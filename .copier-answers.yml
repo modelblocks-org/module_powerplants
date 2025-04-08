@@ -1,0 +1,13 @@
+# Changes here will be overwritten by Copier
+# DO NOT MANUALLY MODIFY THIS FILE
+_commit: latest
+_src_path: https://github.com/calliope-project/data-module-template.git
+author_email: i.ruizmanuel@tudelft.nl
+author_family_name: Ruiz Manuel
+author_given_name: Ivan
+github_org: calliope-project
+license: Apache-2.0
+module_description: A module that collects, harmonizes and aggregates powerplant capacities
+    for energy systems modelling.
+module_long_name: clio - Powerplants module
+module_short_name: module_powerplants

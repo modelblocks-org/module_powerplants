@@ -1,0 +1,37 @@
+[project]
+name = "module_powerplants"
+authors = ["See AUTHORS file"]
+description = "A module that collects, harmonizes and aggregates powerplant capacities for energy systems modelling."
+license = "Apache-2.0"
+readme = "README.md"
+channels = ["conda-forge", "bioconda"]
+platforms = ["win-64", "linux-64", "osx-arm64"]
+homepage = "https://clio.readthedocs.io/"
+
+[dependencies]
+clio-tools = ">=2025.03.03"
+conda = ">=25.0.0"
+ipdb = ">=0.13.13"
+ipykernel = ">=6.29.5"
+mypy = ">=1.15.0"
+pytest = ">=8.3.5"
+python = ">=3.12"
+ruff = ">=0.9.9"
+snakefmt = ">=0.10.2"
+snakemake-minimal = ">=8.29.0"
+
+[tasks]
+test = {cmd = "pytest tests/"}
+
+[feature.docs.dependencies]
+mkdocs-material = ">=9.6.7"
+
+[feature.docs.pypi-dependencies]
+mkdocs-mermaid2-plugin = ">=1.2.1"
+
+[feature.docs.tasks]
+serve-docs = {cmd = "mkdocs serve"}
+build-docs = {cmd = "mkdocs build"}
+
+[environments]
+docs = ["docs"]
