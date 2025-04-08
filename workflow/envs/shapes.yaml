@@ -1,0 +1,7 @@
+name: shapes
+channels:
+  - conda-forge
+dependencies:
+  - geopandas = 1.0.1
+  - pandera-geopandas = 0.23.1
+  - python = 3.12.9

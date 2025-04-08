@@ -1,16 +1,16 @@
 """Rules to used to download automatic resource files."""
 
 
-rule dummy_download:
+rule eia_bulk_download:
     message:
-        "Download the clio README file."
+        "Download the EIA International energy statistics in bulk."
     params:
-        url=internal["resources"]["automatic"]["dummy_readme"],
+        url=internal["resources"]["automatic"]["eia_bulk"],
     output:
-        readme="resources/automatic/dummy_readme.md",
+        path=temp("resources/automatic/eia/INTL.txt"),
     log:
-        "logs/dummy_download.log",
+        "logs/eia_bulk_download.log",
     conda:
-        "../envs/shell.yaml"
-    shell:
-        'curl -sSLo {output.readme} "{params.url}"'
+        "../envs/download.yaml"
+    script:
+        "../scripts/eia_bulk_download.py"

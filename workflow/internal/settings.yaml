@@ -2,4 +2,4 @@
 resources:
   automatic:
     # Links for automatically downloaded files
-    dummy_readme: "https://raw.githubusercontent.com/calliope-project/clio/refs/heads/main/README.md"
+    eia_bulk: "https://www.eia.gov/opendata/bulk/INTL.zip"
