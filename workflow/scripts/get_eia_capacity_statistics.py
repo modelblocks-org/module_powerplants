@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from _schema import eia_capacity_schema, shape_schema
+from _schema import EIASchema, ShapeSchema
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -32,7 +32,9 @@ def _get_id_data(eia_df: pd.DataFrame, code: str) -> pd.DataFrame:
     return df
 
 
-def _get_capacity_id_data(eia_df: pd.DataFrame, country_a3: str, category_id: int) -> pd.DataFrame:
+def _get_capacity_id_data(
+    eia_df: pd.DataFrame, country_a3: str, category_id: int
+) -> pd.DataFrame:
     """Return annual capacity in GW."""
     code = f"INTL.{category_id}-7-{country_a3}-MK.A"
     return _get_id_data(eia_df, code)
@@ -64,23 +66,29 @@ def _get_country_capacity(
 
     country_capacity = pd.concat(results, ignore_index=True)
     country_capacity.reset_index(drop=True)
-    country_capacity["capacity_mw"] = country_capacity.pop("value") * 1000  # EIA data is in GW
+    country_capacity["capacity_mw"] = (
+        country_capacity.pop("value") * 1000
+    )  # EIA data is in GW
     country_capacity["country_id"] = country_a3
     return country_capacity
 
 
-def get_eia_capacity_statistics(shapes_file: str, eia_bulk_file: str, output_file: str, disaggregate: bool):
+def get_eia_capacity_statistics(
+    shapes_file: str, eia_bulk_file: str, output_file: str, disaggregate: bool
+):
     """Generate a file with annual capacity statistics per country."""
     shapes = gpd.read_parquet(shapes_file)
-    shapes = shape_schema.validate(shapes)
+    shapes = ShapeSchema.validate(shapes)
 
     eia_stats = pd.read_json(eia_bulk_file, lines=True)
 
     results = []
     for country in shapes["country_id"].unique():
-        results.append(_get_country_capacity(eia_stats, country, disaggregate=disaggregate))
+        results.append(
+            _get_country_capacity(eia_stats, country, disaggregate=disaggregate)
+        )
     annual_statistics = pd.concat(results, ignore_index=True).reset_index(drop=True)
-    annual_statistics = eia_capacity_schema.validate(annual_statistics)
+    annual_statistics = EIASchema.validate(annual_statistics)
     annual_statistics.to_parquet(output_file)
 
 
@@ -89,6 +97,5 @@ if __name__ == "__main__":
         shapes_file=snakemake.input.shapes,
         eia_bulk_file=snakemake.input.eia_bulk,
         output_file=snakemake.output.annual_stats,
-        disaggregate=snakemake.params.disaggregate
+        disaggregate=snakemake.params.disaggregate,
     )
-
