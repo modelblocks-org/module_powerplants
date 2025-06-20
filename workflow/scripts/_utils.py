@@ -1,7 +1,5 @@
 """Schemas for key files."""
 
-import pandas as pd
-import pandera as pa
 from pandera import DataFrameModel, Field
 from pandera.typing import Series
 from pandera.typing.geopandas import GeoSeries

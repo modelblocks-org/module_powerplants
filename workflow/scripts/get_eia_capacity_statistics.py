@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from _schema import EIASchema, ShapeSchema
+from _utils import EIASchema, ShapeSchema
 
 if TYPE_CHECKING:
     snakemake: Any
