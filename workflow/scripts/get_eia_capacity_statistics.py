@@ -1,5 +1,6 @@
 """Aggregated capacity data at a country level."""
 
+import math
 import sys
 from typing import TYPE_CHECKING, Any
 
@@ -15,13 +16,14 @@ sys.stderr = open(snakemake.log[0], "w")
 CAT_ID = {
     "total": 2,
     "nuclear": 27,
-    "fossil_fuels": 28,
+    "fossil fuels": 28,
     "hydroelectricity": 33,
     "geothermal": 35,
-    "other": 117,
+    "tide and wave": 117,
     "solar": 116,
     "wind": 37,
     "biomass and waste": 38,
+    "hydroelectric pumped storage": 82,
 }
 
 
@@ -40,27 +42,11 @@ def _get_capacity_id_data(
     return _get_id_data(eia_df, code)
 
 
-def _get_country_capacity(
-    eia_df: pd.DataFrame, country_a3: str, disaggregate: bool = False
-):
+def _get_country_capacity(eia_df: pd.DataFrame, country_a3: str):
     """Parse country capacity from the EIA dataset."""
-    if disaggregate:
-        categories = [
-            "nuclear",
-            "fossil_fuels",
-            "hydroelectricity",
-            "geothermal",
-            "other",
-            "solar",
-            "wind",
-            "biomass and waste",
-        ]
-    else:
-        categories = ["total"]
-
     results = []
-    for category in categories:
-        data = _get_capacity_id_data(eia_df, country_a3, CAT_ID[category])
+    for category, identifier in CAT_ID.items():
+        data = _get_capacity_id_data(eia_df, country_a3, identifier)
         data["category"] = category
         results.append(data)
 
@@ -74,7 +60,7 @@ def _get_country_capacity(
 
 
 def get_eia_capacity_statistics(
-    shapes_file: str, eia_bulk_file: str, output_file: str, disaggregate: bool
+    shapes_file: str, eia_bulk_file: str, path_total: str, path_disaggregated: str
 ):
     """Generate a file with annual capacity statistics per country."""
     shapes = gpd.read_parquet(shapes_file)
@@ -84,18 +70,28 @@ def get_eia_capacity_statistics(
 
     results = []
     for country in shapes["country_id"].unique():
-        results.append(
-            _get_country_capacity(eia_stats, country, disaggregate=disaggregate)
-        )
-    annual_statistics = pd.concat(results, ignore_index=True).reset_index(drop=True)
-    annual_statistics = EIASchema.validate(annual_statistics)
-    annual_statistics.to_parquet(output_file)
+        results.append(_get_country_capacity(eia_stats, country))
+    all_statistics = pd.concat(results, ignore_index=True).reset_index(drop=True)
+    all_statistics = EIASchema.validate(all_statistics)
+
+    total_statistics = all_statistics[all_statistics["category"] == "total"]
+    total_statistics = total_statistics.reset_index(drop=True)
+    disaggregated_statistics = all_statistics[all_statistics["category"] != "total"]
+    disaggregated_statistics = disaggregated_statistics.reset_index(drop=True)
+
+    total_cap_sum = total_statistics["capacity_mw"].sum()
+    disaggregated_cap_sum = disaggregated_statistics["capacity_mw"].sum()
+    assert math.isclose(total_cap_sum, disaggregated_cap_sum), (
+        f"Aggregated capacity checksum failed: {total_cap_sum} vs {disaggregated_cap_sum}."
+    )
+    total_statistics.to_parquet(path_total)
+    disaggregated_statistics.to_parquet(path_disaggregated)
 
 
 if __name__ == "__main__":
     get_eia_capacity_statistics(
         shapes_file=snakemake.input.shapes,
         eia_bulk_file=snakemake.input.eia_bulk,
-        output_file=snakemake.output.annual_stats,
-        disaggregate=snakemake.params.disaggregate,
+        path_total=snakemake.output.total,
+        path_disaggregated=snakemake.output.disaggregated,
     )
