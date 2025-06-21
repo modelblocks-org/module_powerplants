@@ -21,10 +21,11 @@ snakefmt = ">=0.10.2"
 snakemake-minimal = ">=8.29.0"
 powerplantmatching = ">=0.7.1,<0.8"
 geopandas = ">=1.0.1,<2"
-pandera-geopandas = ">=0.23.1,<0.24"
+pandera-geopandas = ">=0.24.0,<0.25"
 pyarrow = ">=19.0.1,<20"
 pycountry = ">=24.6.1,<25"
 cartopy = ">=0.24.0,<0.25"
+pandera-pandas = ">=0.24.0,<0.25"
 
 [tasks]
 test = {cmd = "pytest tests/"}

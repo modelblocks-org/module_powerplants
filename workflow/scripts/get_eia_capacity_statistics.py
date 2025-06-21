@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from _utils import EIASchema, ShapeSchema
+from workflow.scripts._schemas import EIASchema, ShapeSchema
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -17,13 +17,13 @@ CAT_ID = {
     "total": 2,
     "nuclear": 27,
     "fossil fuels": 28,
-    "hydroelectricity": 33,
+    "hydropower": 33,
     "geothermal": 35,
     "tide and wave": 117,
     "solar": 116,
     "wind": 37,
     "biomass and waste": 38,
-    "hydroelectric pumped storage": 82,
+    "pumped storage": 82,
 }
 
 
