@@ -34,9 +34,24 @@ class ShapeSchema(DataFrameModel):
     geometry: GeoSeries
     "Shape polygon."
 
-PLANT_CATEGORIES = ["nuclear", "coal", "bioenergy", "geothermal", "hydropower", "oil and gas", "solar", "wind", "other"]
-PLANT_STATUS = ["announced", "pre-construction", "construction", "operating", "mothballed", "retired"]
 
+COMBUSTION_PLANT_CATEGORIES = ["coal", "bioenergy", "oil_gas"]
+
+PLANT_CATEGORIES = [
+    "nuclear",
+    "geothermal",
+    "hydropower",
+    "solar",
+    "wind",
+] + COMBUSTION_PLANT_CATEGORIES
+PLANT_STATUS = [
+    "announced",
+    "pre-construction",
+    "construction",
+    "operating",
+    "mothballed",
+    "retired",
+]
 
 
 class PlantSchema(DataFrameModel):
@@ -52,10 +67,10 @@ class PlantSchema(DataFrameModel):
     # Technology characteristics
     category: Series[str] = Field(isin=PLANT_CATEGORIES)
     "General category of the powerplant."
-    technology: Series[str] = Field()
+    technology: Series[str]
     "Subcategory of the powerplant, if necessary."
-    net_output_capacity_mw: Series[float]
-    "Powerplant net output capacity in Megawatts."
+    output_capacity_mw: Series[float]
+    "Powerplant gross output capacity in Megawatts."
     # Temporal aspects
     start_year: Series[float] = Field(nullable=True)
     "Installation year."
@@ -67,34 +82,22 @@ class PlantSchema(DataFrameModel):
     geometry: GeoSeries
     "Shape polygon."
 
-COMBUSTION_TECHS = ["steam turbine", "gas turbine", "reciprocating engine"]
 
-class CombustionPlantSchema(PlantSchema):
+class CombustionSchema(PlantSchema):
     class Config:
         strict = True
 
-    technology: Series[str] = Field(isin=COMBUSTION_TECHS)
-    subtechnology: Series[str]
-    fuel: Series[str]
+    category: Series[str] = Field(isin=COMBUSTION_PLANT_CATEGORIES)
     ccs: Series[bool]
     chp: Series[bool]
 
 
-COAL_SUBTECHS = ["subcritical", "supercritical", "ultra-supercritical", "CFB", "IGCC"]
-COAL_FUELS = ["anthracite", "bituminous", "lignite", "subbituminous", "waste coal"]
+class FuelSchema(DataFrameModel):
+    class Config:
+        strict = True
+        coerce = True
 
-class CoalSchema(CombustionPlantSchema):
-    category: Series[str] = Field(isin=["coal"])
-    technology: Series[str] = Field(isin=["steam turbine", "gas turbine"])
-    subtechnology: Series[str] = Field(isin=COAL_SUBTECHS)
-    fuel: Series[str] = Field(isin=COAL_FUELS)
-
-OIL_AND_GAS_FUELS = ["LNG", "natural gas", "fuel oil", "diesel", "hydrogen", ]
-OIL_AND_GAS_SUBTECHS = ["OCGT", "CCGT", "ICE", "AFC", "subcritical"]
-
-class OilGasSchema(CombustionPlantSchema):
-    category: Series[str] = Field(isin=["oil and gas"])
-    subtechnology: Series[str] = Field(isin=OIL_AND_GAS_SUBTECHS)
-    fuel: Series[str] = Field(isin=[OIL_AND_GAS_FUELS])
-    other_fuels: Series[list[str]] = Field(isin=[])
-
+    powerplant_id: Series[str] = Field(unique=False)
+    "Unique ID for the powerplant."
+    fuel: Series[str]
+    "Fuel consumed."

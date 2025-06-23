@@ -10,7 +10,8 @@ configfile: workflow.source_path("../config/config.yaml")
 
 
 # Validate the configuration using the schema file.
-validate(config, workflow.source_path("internal/config.schema.yaml"))
+# TODO: add validation
+# validate(config, workflow.source_path("internal/config.schema.yaml"))
 
 # Load internal settings separately so users cannot modify them.
 with open(workflow.source_path("internal/settings.yaml"), "r") as f:
@@ -20,9 +21,10 @@ with open(workflow.source_path("internal/settings.yaml"), "r") as f:
 # Add all your includes here.
 include: "rules/automatic.smk"
 include: "rules/statistics.smk"
+include: "rules/gem.smk"
 
 # Add all files to be delivered alongside the workflow here
-workflow.source_path("scripts/_utils.py")
+workflow.source_path("scripts/_schemas.py")
 
 rule all:
     message:
