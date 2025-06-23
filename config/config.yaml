@@ -8,8 +8,8 @@ categories:
     coal:
       "IGCC": "igcc"
       "subcritical": "steam turbine"
-      "supercritical": "advanced steam turbine"
-      "ultra-supercritical": "advanced steam turbine"
+      "supercritical": "steam turbine"
+      "ultra-supercritical": "steam turbine"
       "CFB": "steam turbine"
       "unknown": "steam turbine"
     oil_gas:
@@ -23,6 +23,22 @@ categories:
       "steam turbine": "steam turbine"
       "unknown": "ocgt"
     bioenergy:
+      "unknown": "steam turbine"
+    nuclear:
+      "pressurized heavy water reactor": "steam turbine"
+      "pressurized water reactor": "steam turbine"
+      "small modular reactor": "steam turbine"
+      "heavy water light water reactor": "steam turbine"
+      "high temperature gas reactor": "steam turbine"
+      "fast breeder reactor": "steam turbine"
+      "molten salt reactor": "steam turbine"
+      "boiling water reactor": "steam turbine"
+      "heavy water gas-cooled reactor": "steam turbine"
+      "gas-cooled reactor": "steam turbine"
+      "light water graphite reactor": "steam turbine"
+      "steam-generating heavy water reactor": "steam turbine"
+      "liquid-metal-cooled fast reactor": "steam turbine"
+      "fast neutron reactor": "steam turbine"
       "unknown": "steam turbine"
 fuel_mapping:
   "fossil gas: natural gas": "natural gas"

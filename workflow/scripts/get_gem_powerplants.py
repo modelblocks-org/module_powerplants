@@ -25,6 +25,8 @@ class SmkOutput(TypedDict):
 
     combustion_plants: str
     combustion_plant_fuels: str
+    geothermal_plants: str
+    nuclear_plants: str
 
 
 class CategoryParam(TypedDict):
@@ -33,6 +35,8 @@ class CategoryParam(TypedDict):
     bioenergy: dict[str, str]
     coal: dict[str, str]
     oil_n_gas: dict[str, str]
+    nuclear: dict[str, str]
+    geothermal: dict[str, str]
 
 
 class SmkParams(TypedDict):
@@ -55,6 +59,7 @@ FUEL_PATTERNS = {
     for key in FUEL_MAPPING
 }
 GEM_CRS = "EPSG:4326"
+
 
 def _get_fuel(cell: str, default: str):
     """Find and replace fuel names using pattern matching.
@@ -136,18 +141,16 @@ def _get_chp(gem_df: pd.DataFrame) -> pd.Series:
     return gem_df["CHP"].fillna("").apply(lambda x: True if "yes" in x else False)
 
 
-def get_combustion_capacity_df(
+def get_powerplant_df(
     raw_df: pd.DataFrame, tech_mapping: dict[str, str]
 ) -> gpd.GeoDataFrame:
-    """Obtain a standardised dataset for combustion powerplants."""
+    """Obtain a standardised dataset for non-combustion powerplants."""
     capacity_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _get_powerplant_id(raw_df),
             "name": _get_name(raw_df),
             "category": raw_df["Type"],
             "technology": _get_technology(raw_df, tech_mapping),
-            "ccs": _get_ccs(raw_df),
-            "chp": _get_chp(raw_df),
             "output_capacity_mw": raw_df["Capacity (MW)"],
             "start_year": _get_year(raw_df, "start"),
             "end_year": _get_year(raw_df, "end"),
@@ -155,6 +158,19 @@ def get_combustion_capacity_df(
             "geometry": _get_geometry(raw_df, GEM_CRS),
         }
     )
+    return _schemas.PlantSchema.validate(capacity_df)
+
+
+def get_combustion_plant_df(
+    raw_df: pd.DataFrame, tech_mapping: dict[str, str]
+) -> gpd.GeoDataFrame:
+    """Obtain a standardised dataset for combustion powerplants.
+
+    Includes CCS and CHP attributes.
+    """
+    capacity_df = get_powerplant_df(raw_df, tech_mapping)
+    capacity_df["ccs"] = _get_ccs(raw_df)
+    capacity_df["chp"] = _get_chp(raw_df)
     return _schemas.CombustionSchema.validate(capacity_df)
 
 
@@ -170,30 +186,20 @@ def get_combustion_fuel_df(raw_df: pd.DataFrame, default: str):
     return _schemas.FuelSchema.validate(fuels_df)
 
 
-def main(inputs: SmkInput, outputs: SmkOutput, params: SmkParams):
-    """Process and save datasets for GEM powerplants.
+def combustion_powerplants(
+    gem_raw: pd.DataFrame, params: SmkParams, outputs: SmkOutput
+):
+    """Obtain and save datasets for combustion powerplants.
 
-    These include fossil powerplants (coal, oil_gas), geothermal and nuclear.
-
-    Args:
-        inputs (SmkInput): Snakemake inputs.
-        outputs (SmkOutput): Snakemake outputs.
-        params (SmkParams): Snakemake parameters.
+    These have a unique structure due to CHP and CCS options.
+    The separate fuel dataset ensures a 'tidy' structure for multi-fuel powerplants.
     """
-    # Get raw dataset without cancelled projects
-    gem_raw = pd.read_excel(inputs["gem_raw"], sheet_name="Power facilities")
-    pattern = "|".join(map(re.escape, ["cancelled", "shelved"]))
-    mask = gem_raw["Status"].str.contains(pattern, na=False)
-    gem_raw = gem_raw[~mask]
-    gem_raw["Type"] = gem_raw["Type"].replace("oil/gas", "oil_gas")
-
-    # Process combustion powerplants.
     capacity_dfs = []
     fuel_dfs = []
     for category in ["bioenergy", "coal", "oil_gas"]:
         raw = gem_raw[gem_raw["Type"] == category]
         capacity_dfs.append(
-            get_combustion_capacity_df(raw, params["technology_mapping"][category])
+            get_combustion_plant_df(raw, params["technology_mapping"][category])
         )
         fuel_dfs.append(get_combustion_fuel_df(raw, params["default_fuel"][category]))
     combined_combustion_cap = _schemas.CombustionSchema.validate(
@@ -202,6 +208,26 @@ def main(inputs: SmkInput, outputs: SmkOutput, params: SmkParams):
     combined_combustion_fuel = _schemas.FuelSchema.validate(pd.concat(fuel_dfs))
     combined_combustion_cap.to_parquet(outputs["combustion_plants"])
     combined_combustion_fuel.to_parquet(outputs["combustion_plant_fuels"])
+
+
+def main(inputs: SmkInput, outputs: SmkOutput, params: SmkParams):
+    """Process and save datasets for GEM powerplants.
+
+    These include fossil powerplants (coal, oil_gas), geothermal and nuclear.
+    """
+    # Get raw dataset without cancelled projects
+    gem_raw = pd.read_excel(inputs["gem_raw"], sheet_name="Power facilities")
+    pattern = "|".join(map(re.escape, ["cancelled", "shelved"]))
+    mask = gem_raw["Status"].str.contains(pattern, na=False)
+    gem_raw = gem_raw[~mask]
+    gem_raw["Type"] = gem_raw["Type"].replace("oil/gas", "oil_gas")
+
+    combustion_powerplants(gem_raw, params, outputs)
+    nuclear = get_powerplant_df(
+        gem_raw[gem_raw["Type"] == "nuclear"], params["technology_mapping"]["nuclear"]
+    )
+    nuclear.to_parquet(outputs["nuclear_plants"])
+
 
 
 if __name__ == "__main__":

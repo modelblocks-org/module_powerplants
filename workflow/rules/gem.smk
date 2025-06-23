@@ -10,6 +10,7 @@ rule get_gem_powerplants:
     output:
         combustion_plants="results/disaggregated/combustion_plants.parquet",
         combustion_plant_fuels="results/disaggregated/combustion_plant_fuels.parquet",
+        nuclear_plants="results/disaggregated/nuclear_plants.parquet"
     log:
         "logs/get_gem_powerplants.log",
     conda:
