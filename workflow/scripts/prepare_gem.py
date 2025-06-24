@@ -1,4 +1,4 @@
-"""Process and clean GEM data to fit our powerplant schemas."""
+"""Prepare clean GEM datasets that fit our schemas."""
 
 import re
 import sys

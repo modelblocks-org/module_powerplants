@@ -3,5 +3,5 @@ resources:
   automatic:
     # Links for automatically downloaded files
     eia_bulk: "https://www.eia.gov/opendata/bulk/INTL.zip"
-    gem:
-      integrated: https://globalenergymonitor.org/wp-content/uploads/2025/04/Global-Integrated-Power-April-2025.xlsx
+    gem: https://globalenergymonitor.org/wp-content/uploads/2025/04/Global-Integrated-Power-April-2025.xlsx
+    glohydrores: "https://zenodo.org/records/14526360/files/GloHydroRes_vs1.csv"

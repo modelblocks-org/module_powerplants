@@ -1,4 +1,4 @@
-rule get_eia_capacity_statistics:
+rule process_eia_statistics:
     message:
         "Get EIA annual country capacity statistics."
     input:
@@ -8,8 +8,8 @@ rule get_eia_capacity_statistics:
         total="resources/automatic/eia/total_capacity.parquet",
         disaggregated="resources/automatic/eia/disaggregated_capacity.parquet"
     log:
-        "logs/get_eia_capacity_statistics.log",
+        "logs/process_eia_statistics.log",
     conda:
         "../envs/shapes.yaml"
     script:
-        "../scripts/get_eia_capacity_statistics.py"
+        "../scripts/process_eia_statistics.py"

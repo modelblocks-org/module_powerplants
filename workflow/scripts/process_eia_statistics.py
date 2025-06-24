@@ -4,10 +4,10 @@ import math
 import sys
 from typing import TYPE_CHECKING, Any
 
+import _schemas
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from workflow.scripts._schemas import EIASchema, ShapeSchema
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -64,7 +64,7 @@ def get_eia_capacity_statistics(
 ):
     """Generate a file with annual capacity statistics per country."""
     shapes = gpd.read_parquet(shapes_file)
-    shapes = ShapeSchema.validate(shapes)
+    shapes = _schemas.ShapeSchema.validate(shapes)
 
     eia_stats = pd.read_json(eia_bulk_file, lines=True)
 
@@ -72,7 +72,7 @@ def get_eia_capacity_statistics(
     for country in shapes["country_id"].unique():
         results.append(_get_country_capacity(eia_stats, country))
     all_statistics = pd.concat(results, ignore_index=True).reset_index(drop=True)
-    all_statistics = EIASchema.validate(all_statistics)
+    all_statistics = _schemas.EIASchema.validate(all_statistics)
 
     total_statistics = all_statistics[all_statistics["category"] == "total"]
     total_statistics = total_statistics.reset_index(drop=True)

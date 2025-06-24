@@ -1,4 +1,4 @@
-rule get_gem_powerplants:
+rule prepare_gem:
     message:
         "Global Energy Monitor: obtain combustion, nuclear and geothermal powerplants."
     params:
@@ -13,8 +13,8 @@ rule get_gem_powerplants:
         nuclear_plants="resources/automatic/gem/nuclear_plants.parquet",
         geothermal_plants="resources/automatic/gem/geothermal_plants.parquet"
     log:
-        "logs/get_gem_powerplants.log",
+        "logs/prepare_gem.log",
     conda:
         "../envs/shapes.yaml"
     script:
-        "../scripts/get_gem_powerplants.py"
+        "../scripts/prepare_gem.py"
