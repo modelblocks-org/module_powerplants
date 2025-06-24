@@ -108,10 +108,11 @@ def _get_geometry(gem_df: pd.DataFrame, crs: str) -> gpd.GeoSeries:
 
 
 def _get_technology(gem_df: pd.DataFrame, mapping: dict[str, str]) -> pd.Series:
-    """Remap technology names, cleaning CCS specifics."""
+    """Remap technology names, cleaning CCS specifics and inconsistencies."""
     return (
         gem_df["Technology"]
         .fillna("unknown")
+        .replace("unknown type", "unknown")
         .apply(lambda x: mapping[x.replace("/CCS", "").strip()])
     )
 
@@ -227,6 +228,10 @@ def main(inputs: SmkInput, outputs: SmkOutput, params: SmkParams):
         gem_raw[gem_raw["Type"] == "nuclear"], params["technology_mapping"]["nuclear"]
     )
     nuclear.to_parquet(outputs["nuclear_plants"])
+    geothermal = get_powerplant_df(
+        gem_raw[gem_raw["Type"] == "geothermal"], params["technology_mapping"]["geothermal"]
+    )
+    geothermal.to_parquet(outputs["geothermal_plants"])
 
 
 

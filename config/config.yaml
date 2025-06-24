@@ -40,6 +40,17 @@ categories:
       "liquid-metal-cooled fast reactor": "steam turbine"
       "fast neutron reactor": "steam turbine"
       "unknown": "steam turbine"
+    geothermal:
+      "dry steam": "high enthalpy geothermal"
+      "flash steam - single": "high enthalpy geothermal"
+      "flash steam - double": "high enthalpy geothermal"
+      "flash steam - unknown": "high enthalpy geothermal"
+      "flash steam - triple": "high enthalpy geothermal"
+      "unknown": "high enthalpy geothermal"
+      "binary cycle": "medium enthalpy geothermal"
+      "advanced geothermal systems (AGS)": "medium enthalpy geothermal"
+      "geopressured geothermal system (GGS)": "medium enthalpy geothermal"
+      "enhanced geothermal systems (EGS)": "deep geothermal"
 fuel_mapping:
   "fossil gas: natural gas": "natural gas"
   "fossil gas: LNG": "natural gas"

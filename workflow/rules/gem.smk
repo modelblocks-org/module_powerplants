@@ -8,9 +8,10 @@ rule get_gem_powerplants:
     input:
         gem_raw="resources/automatic/gem/integrated.xlsx",
     output:
-        combustion_plants="results/disaggregated/combustion_plants.parquet",
-        combustion_plant_fuels="results/disaggregated/combustion_plant_fuels.parquet",
-        nuclear_plants="results/disaggregated/nuclear_plants.parquet"
+        combustion_plants="resources/automatic/gem/combustion_plants.parquet",
+        combustion_plant_fuels="resources/automatic/gem/combustion_plant_fuels.parquet",
+        nuclear_plants="resources/automatic/gem/nuclear_plants.parquet",
+        geothermal_plants="resources/automatic/gem/geothermal_plants.parquet"
     log:
         "logs/get_gem_powerplants.log",
     conda:

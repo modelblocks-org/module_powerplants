@@ -35,15 +35,15 @@ class ShapeSchema(DataFrameModel):
     "Shape polygon."
 
 
-COMBUSTION_PLANT_CATEGORIES = ["coal", "bioenergy", "oil_gas"]
-
+COMBUSTION_CATEGORIES = ["coal", "bioenergy", "oil_gas"]
 PLANT_CATEGORIES = [
     "nuclear",
     "geothermal",
     "hydropower",
     "solar",
     "wind",
-] + COMBUSTION_PLANT_CATEGORIES
+] + COMBUSTION_CATEGORIES
+
 PLANT_STATUS = [
     "announced",
     "pre-construction",
@@ -57,7 +57,7 @@ PLANT_STATUS = [
 class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
-        strict = False
+        strict = True
 
     # Identifiers
     powerplant_id: Series[str] = Field(unique=True)
@@ -80,16 +80,18 @@ class PlantSchema(DataFrameModel):
     "Known state of the project."
     # Location / size
     geometry: GeoSeries
-    "Shape polygon."
+    "Powerplant point data."
 
 
 class CombustionSchema(PlantSchema):
     class Config:
         strict = True
 
-    category: Series[str] = Field(isin=COMBUSTION_PLANT_CATEGORIES)
+    category: Series[str] = Field(isin=COMBUSTION_CATEGORIES)
     ccs: Series[bool]
+    """Identifier for known CCS-enabled powerplants."""
     chp: Series[bool]
+    """Identifier for known CHP-enabled powerplants."""
 
 
 class FuelSchema(DataFrameModel):
@@ -97,7 +99,7 @@ class FuelSchema(DataFrameModel):
         strict = True
         coerce = True
 
-    powerplant_id: Series[str] = Field(unique=False)
+    powerplant_id: Series[str]
     "Unique ID for the powerplant."
     fuel: Series[str]
     "Fuel consumed."
