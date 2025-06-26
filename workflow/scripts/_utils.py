@@ -1,24 +1,42 @@
 # Imports & global constants
+import math
+
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import rasterio
 import richdem as rd
 from tqdm.auto import tqdm
+
+# close previous handle if present
+try:
+    dem_src.close()
+except NameError:
+    pass
 
 GLOBAL_DEM_URL = (
     "https://s3.opengeohub.org/global/edtm/"
     "legendtm_rf_30m_m_s_20000101_20231231_go_epsg.4326_v20250130.tif"
 )
+dem_src = rasterio.open(GLOBAL_DEM_URL, sharing=False)
+
+PIXEL_LEN_M = 30.0                     # GEDTM-30 is 30 m (1-arc-sec) native
+N_CELLS = {                            # march ≈ 2 km or 0.5 km
+    "reservoir"    : int(2_000 / PIXEL_LEN_M),   #  ≈ 67
+    "pump storage" : int(2_000 / PIXEL_LEN_M),
+    "run of river" : int(500  / PIXEL_LEN_M),    #  ≈ 17
+}
 
 # D8 neighbour offsets (RichDEM convention)
 _MOVES_R = np.array([0, 0, -1, -1, -1, 0, 1, 1, 1])
 _MOVES_C = np.array([0, -1, -1, 0, 1, 1, 1, 0, -1])
 
-# How far to walk upstream/downstream (cells) by technology
-N_CELLS = {"reservoir": 67, "pump storage": 67, "run of river": 17}
+# flat-slope threshold (metres per 30 m pixel) – anything flatter is “lake”
+SLOPE_EPS = 0.25                      # ≈ 8 mm m⁻¹; tweak if needed
 
+print("GEDTM-30 opened :", dem_src.name.split('/')[-1])
+print("Pixel length    :", PIXEL_LEN_M, "m")
+print("Cells per tech  :", N_CELLS)
 
 # Helper: derive integer D8 flow-direction grid from a RichDEM array
 def d8_flowdir(dem: rd.rdarray) -> np.ndarray:
@@ -32,10 +50,6 @@ def d8_flowdir(dem: rd.rdarray) -> np.ndarray:
     fdir = np.argmax(props[:, :, 1:], axis=-1) + 1  # best receiver 1-8
     fdir[props[:, :, 0] < 0] = 0  # keep pits/voids at 0
     return fdir.astype(np.uint8)
-
-
-# Helper: read a DEM window around one plant
-dem_src = rasterio.open(GLOBAL_DEM_URL, sharing=False)  # open once, stream
 
 
 def dem_window(lon: float, lat: float, cells: int = 256):
@@ -67,56 +81,53 @@ def dem_window(lon: float, lat: float, cells: int = 256):
     return dem, transform, fdir
 
 
-# Compute head from one plant’s DEM window
-def head_from_dem(lon: float, lat: float, tech: str, cells: int = 256) -> float | None:
-    """
-    Gross head in metres: walk `n` cells upstream and downstream along
-    RichDEM D8 flow paths.  Uses the latest (v2.3+) API.
-    """
-    dem, transform, fdir = dem_window(lon, lat, cells)
-
-    r0, c0 = rasterio.transform.rowcol(transform, lon, lat)
+def head_from_dem(lon: float, lat: float, tech: str,
+                  cells: int = 256) -> float | None:
+    """Gross head with flat-slope guard (skips < 0.25 m steps)."""
+    dem, tr, fdir = dem_window(lon, lat, cells)
+    r0, c0 = rasterio.transform.rowcol(tr, lon, lat)
     if np.isnan(dem[r0, c0]):
         return None
 
     n = N_CELLS.get(tech, 67)
 
     # ---------- upstream ------------------------------------------------
-    elev_u = []
-    r, c = r0, c0
+    elev_u, r, c = [], r0, c0
     for _ in range(n):
         code = int(fdir[r, c])
         if code == 0:
-            break  # source / pit / NoData
-        code = opposite(code)  # go *against* the flow
-        r += _MOVES_R[code]
-        c += _MOVES_C[code]
-        if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1]:
-            e = dem[r, c]
-            if not np.isnan(e):
-                elev_u.append(e)
-        else:
             break
+        ru = r + _MOVES_R[opposite(code)]
+        cu = c + _MOVES_C[opposite(code)]
+        if not (0 <= ru < dem.shape[0] and 0 <= cu < dem.shape[1]):
+            break
+        if abs(dem[r, c] - dem[ru, cu]) < SLOPE_EPS:
+            r, c = ru, cu
+            continue                         # lake / flat – skip height
+        r, c = ru, cu
+        if not np.isnan(dem[r, c]):
+            elev_u.append(dem[r, c])
 
     # ---------- downstream ----------------------------------------------
-    elev_d = []
-    r, c = r0, c0
+    elev_d, r, c = [], r0, c0
     for _ in range(n):
         code = int(fdir[r, c])
         if code == 0:
-            break  # sink / flat
-        r += _MOVES_R[code]  # follow the flow
-        c += _MOVES_C[code]
-        if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1]:
-            e = dem[r, c]
-            if not np.isnan(e):
-                elev_d.append(e)
-        else:
             break
+        rdwn = r + _MOVES_R[code]
+        cdwn = c + _MOVES_C[code]
+        if not (0 <= rdwn < dem.shape[0] and 0 <= cdwn < dem.shape[1]):
+            break
+        if abs(dem[r, c] - dem[rdwn, cdwn]) < SLOPE_EPS:
+            r, c = rdwn, cdwn
+            continue                         # lake / flat
+        r, c = rdwn, cdwn
+        if not np.isnan(dem[r, c]):
+            elev_d.append(dem[r, c])
 
     if not elev_u or not elev_d:
         return None
-    return max(elev_u) - min(elev_d)
+    return float(max(elev_u) - min(elev_d))
 
 
 # Main imputation loop – simple & sequential
