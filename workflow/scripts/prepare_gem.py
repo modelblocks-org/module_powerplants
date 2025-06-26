@@ -4,10 +4,12 @@ import re
 import sys
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
-import _schemas
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+
+sys.path.append("workflow/scripts/")
+import _schemas
 
 if TYPE_CHECKING:
     snakemake: Any

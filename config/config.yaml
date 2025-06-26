@@ -51,6 +51,13 @@ categories:
       "advanced geothermal systems (AGS)": "medium enthalpy geothermal"
       "geopressured geothermal system (GGS)": "medium enthalpy geothermal"
       "enhanced geothermal systems (EGS)": "deep geothermal"
+    hydropower:
+      "STO": "reservoir"
+      "Canal": "run of river"
+      "ROR": "run of river"
+      "PS": "pump storage"
+      "unknown": "reservoir"
+
 fuel_mapping:
   "fossil gas: natural gas": "natural gas"
   "fossil gas: LNG": "natural gas"

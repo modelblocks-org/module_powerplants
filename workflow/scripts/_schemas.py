@@ -62,7 +62,7 @@ class PlantSchema(DataFrameModel):
     # Identifiers
     powerplant_id: Series[str] = Field(unique=True)
     "Unique ID for the powerplant."
-    name: Series[str] = Field(nullable=True, unique=True)
+    name: Series[str] = Field(nullable=True)
     "Human readable powerplant name."
     # Technology characteristics
     category: Series[str] = Field(isin=PLANT_CATEGORIES)
@@ -84,8 +84,6 @@ class PlantSchema(DataFrameModel):
 
 
 class CombustionSchema(PlantSchema):
-    class Config:
-        strict = True
 
     category: Series[str] = Field(isin=COMBUSTION_CATEGORIES)
     ccs: Series[bool]
@@ -103,3 +101,8 @@ class FuelSchema(DataFrameModel):
     "Unique ID for the powerplant."
     fuel: Series[str]
     "Fuel consumed."
+
+class HydroSchema(PlantSchema):
+
+    head_m: Series[float] = Field(nullable=True, ge=0)
+    reservoir_km3: Series[float] = Field(nullable=True, ge=0)
