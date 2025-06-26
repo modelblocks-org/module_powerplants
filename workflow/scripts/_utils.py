@@ -68,42 +68,51 @@ def dem_window(lon: float, lat: float, cells: int = 256):
 
 
 # Compute head from one plant’s DEM window
-def head_from_dem(lon: float, lat: float, tech: str,
-                  cells: int = 256) -> float | None:
+def head_from_dem(lon: float, lat: float, tech: str, cells: int = 256) -> float | None:
     """
-    Return the gross head (m) by marching `n` cells upstream and downstream
-    along D8 flow paths derived with RichDEM.  Uses the latest (v2.3+) API.
+    Gross head in metres: walk `n` cells upstream and downstream along
+    RichDEM D8 flow paths.  Uses the latest (v2.3+) API.
     """
     dem, transform, fdir = dem_window(lon, lat, cells)
-    r_u = r_d, c_u = c_d = rasterio.transform.rowcol(transform, lon, lat)
-    if np.isnan(dem[r_u, c_u]):
+
+    r0, c0 = rasterio.transform.rowcol(transform, lon, lat)
+    if np.isnan(dem[r0, c0]):
         return None
 
     n = N_CELLS.get(tech, 67)
-    elev_u, elev_d = [], []
 
+    # ---------- upstream ------------------------------------------------
+    elev_u = []
+    r, c = r0, c0
     for _ in range(n):
-        # -------- upstream leg (against the flow) --------------------
-        code_u = int(fdir[r_u, c_u])
-        if code_u == 0:
-            break                                # source / pit / nodata
-        r_u += _MOVES_R[opposite(code_u)]
-        c_u += _MOVES_C[opposite(code_u)]
-        if 0 <= r_u < dem.shape[0] and 0 <= c_u < dem.shape[1]:
-            eu = dem[r_u, c_u]
-            if not np.isnan(eu):
-                elev_u.append(eu)
+        code = int(fdir[r, c])
+        if code == 0:
+            break  # source / pit / NoData
+        code = opposite(code)  # go *against* the flow
+        r += _MOVES_R[code]
+        c += _MOVES_C[code]
+        if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1]:
+            e = dem[r, c]
+            if not np.isnan(e):
+                elev_u.append(e)
+        else:
+            break
 
-        # -------- downstream leg (with the flow) ---------------------
-        code_d = int(fdir[r_d, c_d])
-        if code_d == 0:
-            break                                # reached sink / flat
-        r_d += _MOVES_R[code_d]
-        c_d += _MOVES_C[code_d]
-        if 0 <= r_d < dem.shape[0] and 0 <= c_d < dem.shape[1]:
-            ed = dem[r_d, c_d]
-            if not np.isnan(ed):
-                elev_d.append(ed)
+    # ---------- downstream ----------------------------------------------
+    elev_d = []
+    r, c = r0, c0
+    for _ in range(n):
+        code = int(fdir[r, c])
+        if code == 0:
+            break  # sink / flat
+        r += _MOVES_R[code]  # follow the flow
+        c += _MOVES_C[code]
+        if 0 <= r < dem.shape[0] and 0 <= c < dem.shape[1]:
+            e = dem[r, c]
+            if not np.isnan(e):
+                elev_d.append(e)
+        else:
+            break
 
     if not elev_u or not elev_d:
         return None
@@ -156,74 +165,94 @@ def opposite(code: int) -> int:
 
 def walk_path(lon: float, lat: float, tech: str, cells: int = 256, ax=None):
     """
-    Returns (dem_array, upstream_xy, downstream_xy) and draws the walk.
+    Draw the D8 walk and annotate the computed gross head (m).
+    Returns (dem, head_m).
     """
     dem, transform, fdir = dem_window(lon, lat, cells)
     r0, c0 = rasterio.transform.rowcol(transform, lon, lat)
-    if np.isnan(dem[r0, c0]):
-        raise ValueError("Centre pixel is NoData.")
 
     n = N_CELLS.get(tech, 67)
-    ur = [r0]
-    uc = [c0]
-    dr = [r0]
-    dc = [c0]
-    r_u = r_d = r0
-    c_u = c_d = c0
+    upr, upc, dnr, dnc = [r0], [c0], [r0], [c0]
 
+    # ---------- upstream ---------------------------------------------
+    r, c = r0, c0
     for _ in range(n):
-        code = int(fdir[r_d, c_d])
+        code = int(fdir[r, c])
         if code == 0:
             break
-        # upstream
-        r_u += _MOVES_R[code]
-        c_u += _MOVES_C[code]
-        if 0 <= r_u < dem.shape[0] and 0 <= c_u < dem.shape[1]:
-            ur.append(r_u)
-            uc.append(c_u)
-        # downstream (use fixed opposite)
-        code_d = opposite(code)
-        r_d += _MOVES_R[code_d]
-        c_d += _MOVES_C[code_d]
-        if 0 <= r_d < dem.shape[0] and 0 <= c_d < dem.shape[1]:
-            dr.append(r_d)
-            dc.append(c_d)
+        code = opposite(code)
+        r += _MOVES_R[code]
+        c += _MOVES_C[code]
+        upr.append(r)
+        upc.append(c)
+
+    # ---------- downstream -------------------------------------------
+    r, c = r0, c0
+    for _ in range(n):
+        code = int(fdir[r, c])
+        if code == 0:
+            break
+        r += _MOVES_R[code]
+        c += _MOVES_C[code]
+        dnr.append(r)
+        dnc.append(c)
+
+    # head calculation
+    elev_u = [dem[r, c] for r, c in zip(upr, upc) if not np.isnan(dem[r, c])]
+    elev_d = [dem[r, c] for r, c in zip(dnr, dnc) if not np.isnan(dem[r, c])]
+    head_m = float(max(elev_u) - min(elev_d)) if elev_u and elev_d else np.nan
 
     # pixel → lon/lat
     u_xy = [
-        rasterio.transform.xy(transform, r, c, offset="center") for r, c in zip(ur, uc)
+        rasterio.transform.xy(transform, r, c, offset="center")
+        for r, c in zip(upr, upc)
     ]
     d_xy = [
-        rasterio.transform.xy(transform, r, c, offset="center") for r, c in zip(dr, dc)
+        rasterio.transform.xy(transform, r, c, offset="center")
+        for r, c in zip(dnr, dnc)
     ]
 
     if ax is None:
         fig, ax = plt.subplots(figsize=(5, 5))
+    extent = _extent_from_transform(transform, *dem.shape)
+    im = ax.imshow(dem, cmap="terrain", extent=extent, interpolation="none")
 
-    # compute extent manually
-    extent = _extent_from_transform(transform, dem.shape[0], dem.shape[1])
-
-    imshow = ax.imshow(dem, cmap="terrain", extent=extent, interpolation="none")
-    # upstream (blue) & downstream (red) paths
-    ax.plot(*zip(*u_xy), marker="o", ms=3, lw=1, color="blue", label="upstream")
-    ax.plot(*zip(*d_xy), marker="o", ms=3, lw=1, color="red", label="downstream")
+    ax.plot(*zip(*u_xy), "o-", ms=3, lw=1, color="blue", label="upstream")
+    ax.plot(*zip(*d_xy), "o-", ms=3, lw=1, color="red", label="downstream")
     ax.scatter(lon, lat, marker="x", color="k", zorder=10, label="plant")
+
+    ax.set_title(f"DEM window - estimated head ≈ {head_m:.1f} m")
     ax.legend(loc="lower right")
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     ax.set_aspect("equal")
-    fig = ax.get_figure()
-    fig.colorbar(imshow, ax=ax, label="Elevation (m)")
+    ax.get_figure().colorbar(im, ax=ax, label="Elevation (m)")
 
-    return dem, u_xy, d_xy
+    # place a text label near the plant
+    ax.text(
+        lon,
+        lat,
+        f"{head_m:.1f} m",
+        ha="left",
+        va="bottom",
+        fontsize=9,
+        fontweight="bold",
+        bbox=dict(boxstyle="round,pad=0.2", fc="white", alpha=0.7),
+    )
+
+    return dem, head_m
 
 
 # Convenience wrapper that pulls coordinates from a dataframe row
 def show_head_walk(row, cells: int = 256):
     """
+    Convenience wrapper: call with a GeoDataFrame row.
     Example:
-        show_head_walk(hydro_df.loc[12345])
+        show_head_walk(hydro_df.loc[1234])
     """
     walk_path(
-        lon=row.geometry.x, lat=row.geometry.y, tech=row["technology"], cells=cells
+        lon=row.geometry.x,
+        lat=row.geometry.y,
+        tech=row["technology"],
+        cells=cells,
     )
