@@ -69,7 +69,7 @@ class PlantSchema(DataFrameModel):
     "General category of the powerplant."
     technology: Series[str]
     "Subcategory of the powerplant, if necessary."
-    output_capacity_mw: Series[float]
+    output_capacity_mw: Series[float] = Field(ge=0)
     "Powerplant gross output capacity in Megawatts."
     # Temporal aspects
     start_year: Series[float] = Field(nullable=True)
@@ -84,7 +84,6 @@ class PlantSchema(DataFrameModel):
 
 
 class CombustionSchema(PlantSchema):
-
     category: Series[str] = Field(isin=COMBUSTION_CATEGORIES)
     ccs: Series[bool]
     """Identifier for known CCS-enabled powerplants."""
@@ -102,7 +101,7 @@ class FuelSchema(DataFrameModel):
     fuel: Series[str]
     "Fuel consumed."
 
-class HydroSchema(PlantSchema):
 
+class HydroSchema(PlantSchema):
     head_m: Series[float] = Field(nullable=True, ge=0)
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)

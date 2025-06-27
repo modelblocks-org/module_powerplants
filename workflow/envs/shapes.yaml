@@ -1,7 +1,10 @@
 name: shapes
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
+  - click=8.2.1
   - geopandas = 1.0.1
   - pandera-geopandas = 0.24.0
+  - pyarrow = 19.0.1
   - python = 3.12.9

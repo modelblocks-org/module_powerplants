@@ -41,23 +41,25 @@ categories:
       "fast neutron reactor": "steam turbine"
       "unknown": "steam turbine"
     geothermal:
+      "unknown": "high enthalpy geothermal"
+      # based on https://doi.org/10.1016/j.ijft.2023.100323
+      "binary cycle": "low enthalpy geothermal"
+      "flash steam - double": "low enthalpy geothermal"
+      "flash steam - triple": "low enthalpy geothermal"
       "dry steam": "high enthalpy geothermal"
       "flash steam - single": "high enthalpy geothermal"
-      "flash steam - double": "high enthalpy geothermal"
       "flash steam - unknown": "high enthalpy geothermal"
-      "flash steam - triple": "high enthalpy geothermal"
-      "unknown": "high enthalpy geothermal"
-      "binary cycle": "medium enthalpy geothermal"
-      "advanced geothermal systems (AGS)": "medium enthalpy geothermal"
-      "geopressured geothermal system (GGS)": "medium enthalpy geothermal"
-      "enhanced geothermal systems (EGS)": "deep geothermal"
+      # based on https://doi.org/10.1146/annurev.energy.22.1.305
+      "geopressured geothermal system (GGS)": "high enthalpy geothermal"
+      # based on https://www.nature.com/articles/s44359-024-00019-9.pdf
+      "advanced geothermal systems (AGS)": "high enthalpy geothermal"
+      "enhanced geothermal systems (EGS)": "high enthalpy geothermal"
     hydropower:
       "STO": "reservoir"
       "Canal": "run of river"
       "ROR": "run of river"
       "PS": "pump storage"
       "unknown": "reservoir"
-
 fuel_mapping:
   "fossil gas: natural gas": "natural gas"
   "fossil gas: LNG": "natural gas"
