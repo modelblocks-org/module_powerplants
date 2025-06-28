@@ -7,7 +7,7 @@ rule prepare_glohydrores:
     input:
         input_path="resources/automatic/glohydrores/data.csv",
     output:
-        output_path="resources/automatic/prepared/hydropower_plants.parquet",
+        output_path="resources/automatic/prepared/hydropower.parquet",
     log:
         "logs/prepare_glohydrores.log",
     conda:

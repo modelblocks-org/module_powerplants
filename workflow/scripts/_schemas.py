@@ -1,8 +1,9 @@
 """Schemas for key files."""
 
-from pandera.pandas import DataFrameModel, Field
+from pandera.pandas import DataFrameModel, Field, check
 from pandera.typing.geopandas import GeoSeries
 from pandera.typing.pandas import Series
+from shapely.geometry import Point
 
 
 class EIASchema(DataFrameModel):
@@ -79,8 +80,11 @@ class PlantSchema(DataFrameModel):
     status: Series[str] = Field(isin=PLANT_STATUS)
     "Known state of the project."
     # Location / size
-    geometry: GeoSeries
+    geometry: GeoSeries[Point] = Field()
     "Powerplant point data."
+    @check("geometry", element_wise=True)
+    def geom_not_empty(cls, geom):
+        return (geom is not None) and (not geom.is_empty) and geom.is_valid
 
 
 class CombustionSchema(PlantSchema):
@@ -105,3 +109,7 @@ class FuelSchema(DataFrameModel):
 class HydroSchema(PlantSchema):
     head_m: Series[float] = Field(nullable=True, ge=0)
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
+
+
+class WindSchema(PlantSchema):
+    technology: Series[str] = Field(isin=["onshore", "offshore"])

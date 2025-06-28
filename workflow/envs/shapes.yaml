@@ -8,3 +8,4 @@ dependencies:
   - pandera-geopandas = 0.24.0
   - pyarrow = 19.0.1
   - python = 3.12.9
+  - xlrd = 2.0.1

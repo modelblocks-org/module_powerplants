@@ -8,10 +8,10 @@ rule prepare_gem:
     input:
         gem_raw="resources/automatic/gem/integrated.xlsx",
     output:
-        combustion_plants="resources/automatic/prepared/combustion_plants.parquet",
-        combustion_plant_fuels="resources/automatic/prepared/combustion_plant_fuels.parquet",
-        nuclear_plants="resources/automatic/prepared/nuclear_plants.parquet",
-        geothermal_plants="resources/automatic/prepared/geothermal_plants.parquet"
+        combustion_plants="resources/automatic/prepared/combustion.parquet",
+        combustion_plant_fuels="resources/automatic/prepared/combustion_fuels.parquet",
+        nuclear_plants="resources/automatic/prepared/nuclear.parquet",
+        geothermal_plants="resources/automatic/prepared/geothermal.parquet"
     log:
         "logs/prepare_gem.log",
     conda:

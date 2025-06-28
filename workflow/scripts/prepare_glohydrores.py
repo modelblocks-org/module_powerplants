@@ -1,13 +1,12 @@
 """Prepare a clean hydropower dataset that fits our schema."""
 
 import _schemas
+import _utils
 import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-CSV_PATH = "resources/automatic/glohydrores/data.csv"
-CRS = "EPSG:4326"
 TECH_MAPPING = {
     "STO": "reservoir",
     "Canal": "run of river",
@@ -28,11 +27,6 @@ def _status(raw: pd.DataFrame, lifetime: int):
     start_year = raw["year"]
     diff = end_year - start_year
     return diff.apply(lambda x: "operating" if x > 0 else "retired")
-
-
-def _geometry(raw: pd.DataFrame, lon_col: str, lat_col: str) -> gpd.GeoSeries:
-    """Converts lat/long to point data."""
-    return gpd.points_from_xy(raw[lon_col], raw[lat_col], crs=CRS)
 
 
 def _technology(gem_df: pd.DataFrame) -> pd.Series:
@@ -62,6 +56,7 @@ def _reservoir_km3(gem_df: pd.DataFrame) -> pd.Series:
 def main(input_path: str, output_path: str, lifetime: int):
     """Prepare a cleaned hydropower dataset."""
     raw_df = pd.read_csv(input_path)
+    raw_df = raw_df.dropna(subset=["capacity_mw","plant_lon", "plant_lat"])
     hydro_df = gpd.GeoDataFrame(
         {
             "powerplant_id": raw_df["ID"].apply(lambda x: "GloHydroRes_" + x),
@@ -72,7 +67,7 @@ def main(input_path: str, output_path: str, lifetime: int):
             "start_year": raw_df["year"],
             "end_year": _end_year(raw_df, lifetime),
             "status": _status(raw_df, lifetime),
-            "geometry": _geometry(raw_df, "plant_lon", "plant_lat"),
+            "geometry": _utils.get_point(raw_df, "plant_lon", "plant_lat"),
             "head_m": _head_m(raw_df),
             "reservoir_km3": _reservoir_km3(raw_df),
         }

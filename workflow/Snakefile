@@ -23,9 +23,11 @@ include: "rules/automatic.smk"
 include: "rules/gem.smk"
 include: "rules/glohydrores.smk"
 include: "rules/statistics.smk"
+include: "rules/wemi.smk"
 
 # Add all files to be delivered alongside the workflow here
 workflow.source_path("scripts/_schemas.py")
+workflow.source_path("scripts/_utils.py")
 
 rule all:
     message:
@@ -39,16 +41,3 @@ rule all:
         "envs/shell.yaml"
     shell:
         'echo "This workflow must be called as a snakemake module." > {log.stderr}'
-
-
-rule remote_with_local_vector:
-    output:
-        # Clipped region
-        path="results/{region}.tiff",
-    params:
-        buffer_degrees=0,
-        bbox = [5.9559111595, 45.8056043984, 10.6135070324, 47.808380127],
-        cog_url="https://zenodo.org/records/14920365/files/minic_edtm_m_960m_s_20000101_20221231_go_epsg.4326_v20241230.tif"
-    threads: 1
-    wrapper:
-        "master/geo/rasterio/clip-geotiff"
