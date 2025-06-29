@@ -5,6 +5,7 @@ channels:
 dependencies:
   - click=8.2.1
   - geopandas = 1.0.1
+  - ipdb = 0.13.13
   - pandera-geopandas = 0.24.0
   - pyarrow = 19.0.1
   - python = 3.12.9
