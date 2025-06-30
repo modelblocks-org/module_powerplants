@@ -3,8 +3,11 @@ resources:
   automatic:
     # Links for automatically downloaded files
     eia_bulk: "https://www.eia.gov/opendata/bulk/INTL.zip"
-    gem: https://globalenergymonitor.org/wp-content/uploads/2025/04/Global-Integrated-Power-April-2025.xlsx
+    gem:
+      integrated: https://globalenergymonitor.org/wp-content/uploads/2025/04/Global-Integrated-Power-April-2025.xlsx
+      solar: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Solar-Power-Tracker-February-2025.xlsx
     glohydrores: "https://zenodo.org/records/14526360/files/GloHydroRes_vs1.csv"
+    tz-sam: "https://blog.transitionzero.org/hubfs/Data%20Products/TZ-SAM/TZ-SAM_Solar%20Asset%20Mapper%20-%20Q1%202025.zip"
 gem:
   fuel_mapping:
     "fossil gas: natural gas": "natural gas"
