@@ -109,7 +109,3 @@ class FuelSchema(DataFrameModel):
 class HydroSchema(PlantSchema):
     head_m: Series[float] = Field(nullable=True, ge=0)
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
-
-
-class WindSchema(PlantSchema):
-    technology: Series[str] = Field(isin=["onshore", "offshore"])

@@ -67,7 +67,7 @@ def main(input_path: str, output_path: str, lifetime: int):
             "start_year": raw_df["year"],
             "end_year": _end_year(raw_df, lifetime),
             "status": _status(raw_df, lifetime),
-            "geometry": _utils.get_point(raw_df, "plant_lon", "plant_lat"),
+            "geometry": _utils.get_point_col(raw_df, "plant_lon", "plant_lat"),
             "head_m": _head_m(raw_df),
             "reservoir_km3": _reservoir_km3(raw_df),
         }

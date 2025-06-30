@@ -63,3 +63,6 @@ categories:
 lifetime:
   hydropower: 80
   wind: 25
+solar:
+  pv:
+    dc_to_ac_ratio: 1.25  # 100 MWdc -> 80 MWac

@@ -8,7 +8,7 @@ import _schemas
 import click
 import geopandas as gpd
 import pandas as pd
-from _utils import CURRENT_YEAR, get_point
+from _utils import CURRENT_YEAR, get_point_col
 
 WEMI_CRS = "EPSG:4326"
 KW_TO_MW = 1 / 1000
@@ -79,7 +79,7 @@ def main(input_path: str, output_path: str, lifetime: int):
             "start_year": start_year,
             "end_year": end_year,
             "status": _status(raw_df["Status"], start_year, end_year),
-            "geometry": get_point(raw_df, "Longitude", "Latitude", crs=WEMI_CRS),
+            "geometry": get_point_col(raw_df, "Longitude", "Latitude", crs=WEMI_CRS),
         },
         crs=WEMI_CRS,
     )

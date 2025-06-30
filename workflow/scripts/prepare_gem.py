@@ -5,18 +5,15 @@ import sys
 from typing import TYPE_CHECKING, Any, Literal
 
 import _schemas
+import _utils
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from _utils import get_point
 
 if TYPE_CHECKING:
     snakemake: Any
 sys.stderr = open(snakemake.log[0], "w")
 
-
-INVALID_STATE_VALUES = ["cancelled", "shelved"]
-DROP_NA_COLUMNS = ["Capacity (MW)", "Latitude", "Longitude"]
 CATEGORY_MAPPING = {"oil/gas": "oil_gas"}
 COMBUSTION_CATEGORIES = ["bioenergy", "coal", "oil_gas"]
 
@@ -104,16 +101,15 @@ def _fuel(cell: str, default: str):
 
 def _powerplant_id(gem_df: pd.DataFrame) -> pd.Series:
     """Create a unique identifier using GEM codes."""
-    return gem_df.apply(
-        lambda x: f"GEM_{x['GEM location ID']}_{x['GEM unit/phase ID']}", axis="columns"
+    return _utils.get_combined_text_col(
+        gem_df, ["GEM location ID", "GEM unit/phase ID"], prefix="GEM_"
     )
 
 
 def _name(gem_df: pd.DataFrame) -> pd.Series:
     """Create a unique name using GEM data."""
-    return gem_df.apply(
-        lambda x: f"{x['Plant / Project name']}_{x['Unit / Phase name']}",
-        axis="columns",
+    return _utils.get_combined_text_col(
+        gem_df, ["Plant / Project name", "Unit / Phase name"]
     )
 
 
@@ -166,25 +162,10 @@ def get_powerplant_df(
             "start_year": _year(gem_df, "start"),
             "end_year": _year(gem_df, "end"),
             "status": gem_df["Status"],
-            "geometry": get_point(gem_df, "Longitude", "Latitude"),
+            "geometry": _utils.get_point_col(gem_df, "Longitude", "Latitude"),
         }
     )
     return _schemas.PlantSchema.validate(capacity_df)
-
-
-def get_gem_df(path: str, category: str) -> pd.DataFrame:
-    """Get a GEM dataset for a type/category of powerplant."""
-    gem_df = pd.read_excel(path, sheet_name="Power facilities")
-    # Get raw dataset without cancelled projects
-    pattern = "|".join(map(re.escape, INVALID_STATE_VALUES))
-    mask = gem_df["Status"].str.contains(pattern, na=False)
-    gem_df = gem_df[~mask]
-    # Remove rows with problematic empty values
-    gem_df = gem_df.dropna(subset=DROP_NA_COLUMNS)
-    # Type/category should match with our schema
-    gem_df["Type"] = gem_df["Type"].replace(CATEGORY_MAPPING)
-    gem_df = gem_df[gem_df["Type"] == category]
-    return gem_df
 
 
 def get_combustion_plant_df(
@@ -209,7 +190,10 @@ def prepare_powerplants(
     default_fuel: str | None,
 ):
     """Process powerplants that burn fuel."""
-    gem_df = get_gem_df(gem_raw_path, category)
+    gem_df = _utils.read_gem_dataset(gem_raw_path, ["Power facilities"])
+    # Type/category should match with our schema
+    gem_df["Type"] = gem_df["Type"].replace(CATEGORY_MAPPING)
+    gem_df = gem_df[gem_df["Type"] == category]
     plants_df = get_powerplant_df(gem_df, technology_mapping)
 
     if category in COMBUSTION_CATEGORIES:
