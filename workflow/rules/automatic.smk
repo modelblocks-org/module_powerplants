@@ -5,7 +5,7 @@ rule download_eia:
     message:
         "Download the EIA International energy statistics in bulk."
     params:
-        script=workflow.source_path("../scripts/_url_unzip_single_file.py"),
+        script=workflow.source_path("../scripts/url_unzip_single_file.py"),
         url=internal["resources"]["automatic"]["eia_bulk"],
         zip_file_path="INTL.txt"
     output:
@@ -22,7 +22,7 @@ rule download_tz_sam:
     message:
         "Download the Transition Zero - Solar Asset Mapper dataset."
     params:
-        script=workflow.source_path("../scripts/_url_unzip_single_file.py"),
+        script=workflow.source_path("../scripts/url_unzip_single_file.py"),
         url=internal["resources"]["automatic"]["tz-sam"],
         zip_file_path="tz-sam-runs_2025-Q1_outputs_external_analysis_polygons.gpkg"
     output:
@@ -49,13 +49,13 @@ rule download_gem_integrated:
     shell:
         'curl -sSLo {output.path} "{params.url}"'
 
-rule download_gem_solar:
+rule download_gem_gspt:
     message:
         "Download the Global Solar Power Tracker dataset."
     params:
-        url=internal["resources"]["automatic"]["gem"]["solar"]
+        url=internal["resources"]["automatic"]["gem"]["gspt"]
     output:
-        path="resources/automatic/gem/solar.xlsx",
+        path="resources/automatic/gem/gspt.xlsx",
     log:
         "logs/download_gem_solar.log",
     conda:

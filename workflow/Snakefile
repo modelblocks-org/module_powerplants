@@ -24,6 +24,7 @@ include: "rules/gem.smk"
 include: "rules/glohydrores.smk"
 include: "rules/statistics.smk"
 include: "rules/wemi.smk"
+include: "rules/prepare.smk"
 
 # Add all files to be delivered alongside the workflow here
 workflow.source_path("scripts/_schemas.py")

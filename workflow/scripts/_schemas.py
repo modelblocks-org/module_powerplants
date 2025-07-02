@@ -2,7 +2,7 @@
 
 from pandera.pandas import DataFrameModel, Field, check
 from pandera.typing.geopandas import GeoSeries
-from pandera.typing.pandas import Series
+from pandera.typing.pandas import Index, Series
 from shapely.geometry import Point
 
 
@@ -59,6 +59,8 @@ class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
         strict = True
+
+    index: Index[int] = Field(unique=True)
 
     # Identifiers
     powerplant_id: Series[str] = Field(unique=True)
