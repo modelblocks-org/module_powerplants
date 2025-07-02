@@ -55,6 +55,23 @@ rule prepare_concentrated_solar:
         "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
 
 
+rule prepare_wind_gem_gwpt:
+    message:
+        "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
+    params:
+        script=workflow.source_path("../scripts/prepare_wind_gwpt.py")
+    input:
+        gem_gspt_path="resources/automatic/gem/gwpt.xlsx",
+    output:
+        output_path="resources/automatic/prepared/wind_gem_gwpt.parquet",
+    log:
+        "logs/prepare_wind_gem_gwpt.log",
+    conda:
+        "../envs/shapes.yaml",
+    shell:
+        "python {params.script} {input} {output}"
+
+
 rule prepare_wind_wemi:
     message:
         "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
@@ -64,7 +81,7 @@ rule prepare_wind_wemi:
     input:
         input_path="resources/user/wemi.xls",
     output:
-        output_path="resources/automatic/prepared/wind.parquet",
+        output_path="resources/automatic/prepared/wind_wemi.parquet",
     log:
         "logs/prepare_wind_wemi.log",
     conda:

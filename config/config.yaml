@@ -70,3 +70,9 @@ solar:
   concentrated_solar:
     dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
     lifetime: 25
+wind:
+  dataset: "gem_gwpt"  # options: wemi, gem_gwpt
+  offshore:
+    lifetime: 30
+  onshore:
+    lifetime: 30

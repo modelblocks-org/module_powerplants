@@ -6,6 +6,8 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
+GEM_GWPT_SHEETS = ["Data", "Below Threshold"]
+
 GEM_GSPT_SHEETS = ["20 MW+", "1-20 MW"]
 GSPT_CAPACITY_RATING_MAPPING = {"MWac": "AC", "MWp/dc": "DC"}
 

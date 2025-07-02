@@ -49,6 +49,7 @@ rule download_gem_integrated:
     shell:
         'curl -sSLo {output.path} "{params.url}"'
 
+
 rule download_gem_gspt:
     message:
         "Download the Global Solar Power Tracker dataset."
@@ -57,11 +58,27 @@ rule download_gem_gspt:
     output:
         path="resources/automatic/gem/gspt.xlsx",
     log:
-        "logs/download_gem_solar.log",
+        "logs/download_gem_gspt.log",
     conda:
         "../envs/shell.yaml"
     shell:
         'curl -sSLo {output.path} "{params.url}"'
+
+
+rule download_gem_gwpt:
+    message:
+        "Download the Global Solar Power Tracker dataset."
+    params:
+        url=internal["resources"]["automatic"]["gem"]["gwpt"]
+    output:
+        path="resources/automatic/gem/gwpt.xlsx",
+    log:
+        "logs/download_gem_gwpt.log",
+    conda:
+        "../envs/shell.yaml"
+    shell:
+        'curl -sSLo {output.path} "{params.url}"'
+
 
 rule download_glohydrores:
     message:
