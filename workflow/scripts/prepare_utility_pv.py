@@ -1,7 +1,6 @@
 """Processing of the Tranzition Zero Solar Asset Mapper (TZ-SAM) dataset."""
 
-from typing import Literal
-
+import _gem as gem
 import _schemas
 import _utils
 import click
@@ -9,43 +8,11 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-ASSUMED_CAPACITY_RATING = "AC"
-TECHNOLOGY_MAPPING = {
-    "PV": "utility pv",
-    "Assumed PV": "utility pv",
-    "Solar Thermal": "concentrated solar power",
-}
-CAPACITY_RATING_MAPPING = {"MWac": "AC", "MWp/dc": "DC"}
-
-GEM_GSPT_SHEETS = ["20 MW+", "1-20 MW"]
-
 
 def _start_year_tz_sam(tz_dam_df: pd.DataFrame):
     """Assume installation occured in the middle of the detection window."""
     delta = (tz_dam_df["constructed_before"] - tz_dam_df["constructed_after"]) / 2
     return (tz_dam_df["constructed_after"] + delta).dt.year
-
-
-def _output_capacity_mw_gem_gspt(
-    gem_df: pd.DataFrame, dc_ac_ratio: float, default_rating: Literal["AC", "DC"]
-):
-    """Obtain capacity, applying DC-to-AC ratios where necessary."""
-    rating = (
-        gem_df["Capacity Rating"]
-        .fillna("unknown")
-        .replace("unknown", default_rating)
-        .replace(CAPACITY_RATING_MAPPING)
-    )
-    invalid_ratings = set(rating.unique()) - set(CAPACITY_RATING_MAPPING.values())
-    assert not invalid_ratings, f"GEM GSPT: invalid capacity ratings {invalid_ratings}."
-
-    cap_df = pd.concat([gem_df["Capacity (MW)"], rating], axis="columns")
-    return cap_df.apply(
-        lambda x: x["Capacity (MW)"]
-        if x["Capacity Rating"] == "AC"
-        else x["Capacity (MW)"] / dc_ac_ratio,
-        axis="columns",
-    )
 
 
 def fill_tz_with_gem(
@@ -117,13 +84,18 @@ def get_gem_mismatch(
 
     return future_gem_df.loc[~future_gem_df.index.isin(intersecting.index)]
 
+
 @click.command()
 @click.argument("tz_sam_path")
 @click.argument("gem_gspt_path")
 @click.argument("output_path")
 @click.option("--dc_ac_ratio", default=1.25)
 def main(tz_sam_path: str, gem_gspt_path: str, output_path, dc_ac_ratio):
-    """Combine GEM and TZ-SAM data."""
+    """Obtain utility-scale PV locations by combinging GEM-GSPT and TZ-SAM data.
+
+    - TZ-SAM is the primary source for current facilities
+    - GEM-GSPT provides project status and near-future facilities.
+    """
     raw_tz_df = gpd.read_file(tz_sam_path)
     tz_df = gpd.GeoDataFrame(
         {
@@ -140,7 +112,7 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, dc_ac_ratio):
     )
 
     # Get only Utility PV facilities.
-    raw_gem_df = _utils.read_gem_dataset(gem_gspt_path, GEM_GSPT_SHEETS)
+    raw_gem_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
     raw_gem_df["Technology Type"] = raw_gem_df["Technology Type"].fillna("Assumed PV")
     raw_gem_df = raw_gem_df[raw_gem_df["Technology Type"].isin(["Assumed PV", "PV"])]
     gem_df = gpd.GeoDataFrame(
@@ -153,11 +125,11 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, dc_ac_ratio):
             ),
             "category": "solar",
             "technology": "utility pv",
-            "output_capacity_mw": _output_capacity_mw_gem_gspt(
+            "output_capacity_mw": gem.output_capacity_mw_gspt(
                 raw_gem_df, dc_ac_ratio, "AC"
             ),
-            "start_year": _utils.gem_year_col(raw_gem_df, "start"),
-            "end_year": _utils.gem_year_col(raw_gem_df, "end"),
+            "start_year": gem.gem_year_col(raw_gem_df, "start"),
+            "end_year": gem.gem_year_col(raw_gem_df, "end"),
             "status": raw_gem_df["Status"],
             "geometry": _utils.get_point_col(raw_gem_df, "Longitude", "Latitude"),
         }

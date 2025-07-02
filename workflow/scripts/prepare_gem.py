@@ -2,12 +2,12 @@
 
 import re
 import sys
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
+import _gem as gem
 import _schemas
 import _utils
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 
 if TYPE_CHECKING:
@@ -137,12 +137,6 @@ def _ccs(gem_df: pd.DataFrame) -> pd.Series:
     )
 
 
-def _year(gem_df: pd.DataFrame, option: Literal["start", "end"]):
-    """Get start/end year, ensuring typing is respected."""
-    mapping = {"start": "Start year", "end": "Retired year"}
-    return gem_df[mapping[option]].apply(lambda x: np.nan if x == "not found" else x)
-
-
 def _chp(gem_df: pd.DataFrame) -> pd.Series:
     """Get CHP status of powerplants."""
     return gem_df["CHP"].fillna("").apply(lambda x: True if "yes" in x else False)
@@ -159,8 +153,8 @@ def get_powerplant_df(
             "category": gem_df["Type"],
             "technology": _technology(gem_df, tech_mapping),
             "output_capacity_mw": gem_df["Capacity (MW)"],
-            "start_year": _year(gem_df, "start"),
-            "end_year": _year(gem_df, "end"),
+            "start_year": gem.gem_year_col(gem_df, "start"),
+            "end_year": gem.gem_year_col(gem_df, "end"),
             "status": gem_df["Status"],
             "geometry": _utils.get_point_col(gem_df, "Longitude", "Latitude"),
         }
@@ -190,7 +184,7 @@ def prepare_powerplants(
     default_fuel: str | None,
 ):
     """Process powerplants that burn fuel."""
-    gem_df = _utils.read_gem_dataset(gem_raw_path, ["Power facilities"])
+    gem_df = gem.read_gem_dataset(gem_raw_path, ["Power facilities"])
     # Type/category should match with our schema
     gem_df["Type"] = gem_df["Type"].replace(CATEGORY_MAPPING)
     gem_df = gem_df[gem_df["Type"] == category]

@@ -22,7 +22,7 @@ rule prepare_utility_pv:
         "Preparing utility PV powerplants using the Solar Asset Mapper (TZ-SAM) "
         "and the Global Solar Power Tracker (GEM-GSPT) datasets."
     params:
-        dc_ac_ratio=config["solar"]["pv"]["dc_ac_ratio"],
+        dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
         script=workflow.source_path("../scripts/prepare_utility_pv.py"),
     input:
         tz_sam_path="resources/automatic/tz/sam.gpkg",
@@ -31,6 +31,24 @@ rule prepare_utility_pv:
         output_path="resources/automatic/prepared/utility_pv.parquet"
     log:
         "logs/prepare_utility_pv.log",
+    conda:
+        "../envs/shapes.yaml",
+    shell:
+        "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
+
+
+rule prepare_concentrated_solar:
+    message:
+        "Preparing concentrated solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
+    params:
+        dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
+        script=workflow.source_path("../scripts/prepare_csp.py")
+    input:
+        gem_gspt_path="resources/automatic/gem/gspt.xlsx",
+    output:
+        output_path="resources/automatic/prepared/concentrated_solar.parquet",
+    log:
+        "logs/prepare_concentrated_solar.log",
     conda:
         "../envs/shapes.yaml",
     shell:

@@ -64,5 +64,9 @@ lifetime:
   hydropower: 80
   wind: 25
 solar:
-  pv:
+  utility_pv:
     dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
+    lifetime: 25
+  concentrated_solar:
+    dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
+    lifetime: 25
