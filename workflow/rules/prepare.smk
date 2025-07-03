@@ -5,7 +5,7 @@ rule prepare_hydropower:
         lifetime= config["lifetime"]["hydropower"],
         script=workflow.source_path("../scripts/prepare_hydropower.py")
     input:
-        input_path="resources/automatic/glohydrores/data.csv",
+        input_path="resources/automatic/downloads/GloHydroRes.csv",
     output:
         output_path="resources/automatic/prepared/hydropower.parquet",
     log:
@@ -25,8 +25,8 @@ rule prepare_utility_pv:
         dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
         script=workflow.source_path("../scripts/prepare_utility_pv.py"),
     input:
-        tz_sam_path="resources/automatic/tz/sam.gpkg",
-        gem_gspt_path="resources/automatic/gem/gspt.xlsx",
+        tz_sam_path="resources/automatic/downloads/TZ-SAM.gpkg",
+        gem_gspt_path="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
         output_path="resources/automatic/prepared/utility_pv.parquet"
     log:
@@ -37,18 +37,18 @@ rule prepare_utility_pv:
         "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
 
 
-rule prepare_concentrated_solar:
+rule prepare_csp:
     message:
         "Preparing concentrated solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
         dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
         script=workflow.source_path("../scripts/prepare_csp.py")
     input:
-        gem_gspt_path="resources/automatic/gem/gspt.xlsx",
+        gem_gspt_path="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        output_path="resources/automatic/prepared/concentrated_solar.parquet",
+        output_path="resources/automatic/prepared/csp.parquet",
     log:
-        "logs/prepare_concentrated_solar.log",
+        "logs/prepare_csp.log",
     conda:
         "../envs/shapes.yaml",
     shell:
@@ -61,9 +61,9 @@ rule prepare_wind_gem_gwpt:
     params:
         script=workflow.source_path("../scripts/prepare_wind_gwpt.py")
     input:
-        gem_gspt_path="resources/automatic/gem/gwpt.xlsx",
+        gem_gspt_path="resources/automatic/downloads/GEM_GWPT.xlsx",
     output:
-        output_path="resources/automatic/prepared/wind_gem_gwpt.parquet",
+        output_path="resources/automatic/prepared/wind_gem.parquet",
     log:
         "logs/prepare_wind_gem_gwpt.log",
     conda:
@@ -79,7 +79,7 @@ rule prepare_wind_wemi:
         lifetime= config["lifetime"]["wind"],
         script=workflow.source_path("../scripts/prepare_wind_wemi.py")
     input:
-        input_path="resources/user/wemi.xls",
+        input_path="resources/user/WEMI.xls",
     output:
         output_path="resources/automatic/prepared/wind_wemi.parquet",
     log:

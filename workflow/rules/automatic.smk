@@ -23,10 +23,10 @@ rule download_tz_sam:
         "Download the Transition Zero - Solar Asset Mapper dataset."
     params:
         script=workflow.source_path("../scripts/unzip_webfile.py"),
-        url=internal["resources"]["automatic"]["tz-sam"],
+        url=internal["resources"]["automatic"]["TZ-SAM"],
         zip_file_path="tz-sam-runs_2025-Q1_outputs_external_analysis_polygons.gpkg"
     output:
-        path="resources/automatic/tz/sam.gpkg"
+        path="resources/automatic/downloads/TZ-SAM.gpkg"
     log:
         "logs/download_tz_sam.log"
     conda:
@@ -35,60 +35,30 @@ rule download_tz_sam:
         'python {params.script} {params.url} {params.zip_file_path} {output.path}'
 
 
-rule download_gem_integrated:
-    message:
-        "Download the Global Integrated Power Tracker dataset."
-    params:
-        url=internal["resources"]["automatic"]["gem"]["integrated"]
-    output:
-        path="resources/automatic/gem/integrated.xlsx",
-    log:
-        "logs/download_gem_integrated.log",
-    conda:
-        "../envs/shell.yaml"
-    shell:
-        'curl -sSLo {output.path} "{params.url}"'
-
-
-rule download_gem_gspt:
-    message:
-        "Download the Global Solar Power Tracker dataset."
-    params:
-        url=internal["resources"]["automatic"]["gem"]["gspt"]
-    output:
-        path="resources/automatic/gem/gspt.xlsx",
-    log:
-        "logs/download_gem_gspt.log",
-    conda:
-        "../envs/shell.yaml"
-    shell:
-        'curl -sSLo {output.path} "{params.url}"'
-
-
-rule download_gem_gwpt:
-    message:
-        "Download the Global Solar Power Tracker dataset."
-    params:
-        url=internal["resources"]["automatic"]["gem"]["gwpt"]
-    output:
-        path="resources/automatic/gem/gwpt.xlsx",
-    log:
-        "logs/download_gem_gwpt.log",
-    conda:
-        "../envs/shell.yaml"
-    shell:
-        'curl -sSLo {output.path} "{params.url}"'
-
-
 rule download_glohydrores:
     message:
         "Download the GloHydroRes dataset."
     params:
-        url=internal["resources"]["automatic"]["glohydrores"]
+        url=internal["resources"]["automatic"]["GloHydroRes"]
     output:
-        path="resources/automatic/glohydrores/data.csv"
+        path="resources/automatic/downloads/GloHydroRes.csv"
     log:
-        "logs/glohydrores_download.log"
+        "logs/download_glohydrores.log"
+    conda:
+        "../envs/shell.yaml"
+    shell:
+        'curl -sSLo {output.path} "{params.url}"'
+
+
+rule download_gem:
+    message:
+        "Download the GEM {wildcards.dataset} dataset."
+    params:
+        url=lambda wc: internal["resources"]["automatic"]["GEM"][wc.dataset]
+    output:
+        path="resources/automatic/downloads/GEM_{dataset}.xlsx"
+    log:
+        "logs/download_gem_{dataset}.log"
     conda:
         "../envs/shell.yaml"
     shell:
