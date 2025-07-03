@@ -71,8 +71,28 @@ solar:
     dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
     lifetime: 25
 wind:
-  dataset: "gem_gwpt"  # options: wemi, gem_gwpt
+  source: "gem"  # options: wemi, gem_gwpt
   offshore:
     lifetime: 30
   onshore:
     lifetime: 30
+coal:
+  technology_mapping:
+    "IGCC": "igcc"
+    "subcritical": "steam turbine"
+    "supercritical": "steam turbine"
+    "ultra-supercritical": "steam turbine"
+    "CFB": "steam turbine"
+    "unknown": "steam turbine"
+  fuel_mapping:
+    "unknown": "brown coal"
+    "bituminous": "hard coal"
+    "anthracite": "hard coal"
+    "lignite": "brown coal"
+    "subbituminous": "brown coal"
+    "waste coal": "brown coal"
+    "bioenergy": "biomass"
+    "fossil gas": "natural gas"
+    "fossil liquids": "oil"
+    "industrial by-product": "solid waste"
+    "other": "oil"

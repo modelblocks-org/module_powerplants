@@ -34,6 +34,18 @@ def gem_year_col(gem_df: pd.DataFrame, option: Literal["start", "end"]):
     return gem_df[mapping[option]].apply(lambda x: np.nan if x == "not found" else x)
 
 
+def technology_col(
+    gem_df: pd.DataFrame, mapping: dict[str, str], col: str = "Technology"
+) -> pd.Series:
+    """Remap technology names, cleaning CCS specifics and other inconsistencies."""
+    return (
+        gem_df[col]
+        .fillna("unknown")
+        .replace("unknown type", "unknown")
+        .apply(lambda x: mapping[x.replace("/CCS", "").strip()])
+    )
+
+
 def output_capacity_mw_gspt(
     gem_df: pd.DataFrame, dc_ac_ratio: float, default_rating: Literal["AC", "DC"]
 ):
@@ -54,3 +66,41 @@ def output_capacity_mw_gspt(
         else x["Capacity (MW)"] / dc_ac_ratio,
         axis="columns",
     )
+
+
+def fuel_col(cell: str, fuel_mapping: dict) -> list[str]:
+    """Find and replace fuel names using pattern matching.
+
+    Ambiguous cases should raise errors.
+    """
+    fuel_patterns = {
+        key: (
+            re.compile(rf"\b{re.escape(key)}\b", flags=re.IGNORECASE)
+            if re.fullmatch(
+                r"\w+", key.replace(" ", "")
+            )  # only wrap in \b if key is a single word/phrase
+            else re.compile(re.escape(key), flags=re.IGNORECASE)
+        )
+        for key in fuel_mapping
+    }
+
+    default_fuel = fuel_mapping["unknown"]
+    fuels = []
+    if pd.isna(cell):
+        fuels.append(default_fuel)
+    else:
+        for value in cell.split(","):
+            if any([i in value for i in ["unknown", "other: other"]]):
+                fuels.append(default_fuel)
+                continue
+            matched_keys = [
+                fuel_mapping[key]
+                for key, pattern in fuel_patterns.items()
+                if pattern.search(value.strip())
+            ]
+            if len(set(matched_keys)) != 1:
+                raise ValueError(
+                    f"Ambiguous fuel definition for '{value}': found '{matched_keys}'."
+                )
+            fuels.append(matched_keys[0])
+    return fuels

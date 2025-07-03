@@ -55,7 +55,7 @@ rule prepare_csp:
         "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
 
 
-rule prepare_wind_gem_gwpt:
+rule prepare_wind_gem:
     message:
         "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
     params:
@@ -65,7 +65,7 @@ rule prepare_wind_gem_gwpt:
     output:
         output_path="resources/automatic/prepared/wind_gem.parquet",
     log:
-        "logs/prepare_wind_gem_gwpt.log",
+        "logs/prepare_wind_gem.log",
     conda:
         "../envs/shapes.yaml",
     shell:
@@ -90,40 +90,59 @@ rule prepare_wind_wemi:
         "python {params.script} {input} {output} --lifetime {params.lifetime}"
 
 
-rule prepare_firm_non_combustion:
+rule prepare_coal:
     message:
-        "Preparing {wildcards.category} powerplants using the Global Energy Monitor dataset."
+        "Preparing coal powerplants using the Global Coal Power Tracker (GCPT) dataset."
     params:
-        technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
+        technology_mapping= config["coal"]["technology_mapping"],
+        fuel_mapping = config["coal"]["fuel_mapping"],
     input:
-        gem_raw="resources/automatic/gem/integrated.xlsx",
+        gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
-        powerplant_capacity="resources/automatic/prepared/{category}.parquet",
-    wildcard_constraints:
-        category="|".join(["nuclear", "geothermal"])
+        plants="resources/automatic/prepared/coal.parquet",
+        fuels="results/per_plant/fuels/coal.parquet"
     log:
-        "logs/prepare_firm_non_combustion_{category}.log",
+        "logs/prepare_coal.log"
     conda:
         "../envs/shapes.yaml"
     script:
-        "../scripts/prepare_gem.py"
+        "../scripts/prepare_coal.py"
 
-rule prepare_firm_combustion:
-    message:
-        "Preparing {wildcards.category} combustion powerplants using the Global Energy Monitor dataset."
-    params:
-        default_fuel = lambda wc: config["categories"]["default_fuel"][wc.category],
-        technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
-    input:
-        gem_raw="resources/automatic/gem/integrated.xlsx",
-    output:
-        powerplant_capacity="resources/automatic/prepared/{category}.parquet",
-        powerplant_fuels="resources/automatic/prepared/{category}_fuels.parquet"
-    wildcard_constraints:
-        category="|".join(["bioenergy", "coal", "oil_gas"])
-    log:
-        "logs/prepare_gem_combustion_{category}.log",
-    conda:
-        "../envs/shapes.yaml"
-    script:
-        "../scripts/prepare_gem.py"
+
+# rule prepare_firm_non_combustion:
+#     message:
+#         "Preparing {wildcards.category} powerplants using the Global Energy Monitor dataset."
+#     params:
+#         technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
+#     input:
+#         gem_raw="resources/automatic/gem/integrated.xlsx",
+#     output:
+#         powerplant_capacity="resources/automatic/prepared/{category}.parquet",
+#     wildcard_constraints:
+#         category="|".join(["nuclear", "geothermal"])
+#     log:
+#         "logs/prepare_firm_non_combustion_{category}.log",
+#     conda:
+#         "../envs/shapes.yaml"
+#     script:
+#         "../scripts/prepare_gem.py"
+
+# rule prepare_firm_combustion:
+#     message:
+#         "Preparing {wildcards.category} combustion powerplants using the Global Energy Monitor dataset."
+#     params:
+#         default_fuel = lambda wc: config["categories"]["default_fuel"][wc.category],
+#         technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
+#     input:
+#         gem_raw="resources/automatic/gem/integrated.xlsx",
+#     output:
+#         powerplant_capacity="resources/automatic/prepared/{category}.parquet",
+#         powerplant_fuels="resources/automatic/prepared/{category}_fuels.parquet"
+#     wildcard_constraints:
+#         category="|".join(["bioenergy", "coal", "oil_gas"])
+#     log:
+#         "logs/prepare_gem_combustion_{category}.log",
+#     conda:
+#         "../envs/shapes.yaml"
+#     script:
+#         "../scripts/prepare_gem.py"
