@@ -77,7 +77,7 @@ def main(
 
 if __name__ == "__main__":
     main(
-        gem_gogpt_path=snakemake.input.gem_gcpt,
+        gem_gogpt_path=snakemake.input.gem_gogpt,
         technology_mapping=snakemake.params.technology_mapping,
         fuel_mapping=snakemake.params.fuel_mapping,
         output_plants_path=snakemake.output.plants,

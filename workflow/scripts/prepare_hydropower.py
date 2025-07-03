@@ -1,37 +1,22 @@
 """Prepare a clean hydropower dataset that fits our schema."""
 
+import sys
+from typing import TYPE_CHECKING, Any
+
 import _schemas
 import _utils
-import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-TECH_MAPPING = {
-    "STO": "reservoir",
-    "Canal": "run of river",
-    "ROR": "run of river",
-    "PS": "pump storage",
-    "unknown": "reservoir",
-}
+if TYPE_CHECKING:
+    snakemake: Any
+sys.stderr = open(snakemake.log[0], "w")
 
 
-def _end_year(raw: pd.DataFrame, lifetime: int):
-    """Estimate the end year using a lifetime."""
-    return raw["year"] + lifetime
-
-
-def _status(raw: pd.DataFrame, lifetime: int):
-    """Get powerplant status using lifetime."""
-    end_year = _end_year(raw, lifetime)
-    start_year = raw["year"]
-    diff = end_year - start_year
-    return diff.apply(lambda x: "operating" if x > 0 else "retired")
-
-
-def _technology(gem_df: pd.DataFrame) -> pd.Series:
+def _technology(gem_df: pd.DataFrame, tech_mapping: dict[str, str]) -> pd.Series:
     """Remap technology names, cleaning CCS specifics and inconsistencies."""
-    return gem_df["plant_type"].fillna("unknown").apply(lambda x: TECH_MAPPING[x])
+    return gem_df["plant_type"].fillna("unknown").apply(lambda x: tech_mapping[x])
 
 
 def _head_m(gem_df: pd.DataFrame) -> pd.Series:
@@ -49,24 +34,20 @@ def _reservoir_km3(gem_df: pd.DataFrame) -> pd.Series:
     return gem_df["res_vol_km3"].where(gem_df["res_vol_km3"] >= 0, np.nan)
 
 
-@click.command()
-@click.argument("input_path")
-@click.argument("output_path")
-@click.option("--lifetime", default=80)
-def main(input_path: str, output_path: str, lifetime: int):
+def main(input_path: str, output_path: str, technology_mapping: dict[str, str]):
     """Prepare a cleaned hydropower dataset."""
     raw_df = pd.read_csv(input_path)
-    raw_df = raw_df.dropna(subset=["capacity_mw","plant_lon", "plant_lat"])
+    raw_df = raw_df.dropna(subset=["capacity_mw", "plant_lon", "plant_lat"])
     hydro_df = gpd.GeoDataFrame(
         {
             "powerplant_id": raw_df["ID"].apply(lambda x: "GloHydroRes_" + x),
             "name": raw_df["name"],
             "category": "hydropower",
-            "technology": _technology(raw_df),
+            "technology": _technology(raw_df, technology_mapping),
             "output_capacity_mw": raw_df["capacity_mw"],
             "start_year": raw_df["year"],
-            "end_year": _end_year(raw_df, lifetime),
-            "status": _status(raw_df, lifetime),
+            "end_year": np.nan,
+            "status": "operating",
             "geometry": _utils.get_point_col(raw_df, "plant_lon", "plant_lat"),
             "head_m": _head_m(raw_df),
             "reservoir_km3": _reservoir_km3(raw_df),
@@ -76,4 +57,8 @@ def main(input_path: str, output_path: str, lifetime: int):
 
 
 if __name__ == "__main__":
-    main()
+    main(
+        input_path=snakemake.input.glohydrores_path,
+        output_path=snakemake.output.output_path,
+        technology_mapping=snakemake.params.technology_mapping,
+    )

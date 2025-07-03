@@ -7,12 +7,12 @@ Available here: https://www.thewindpower.net/about_en.php
 import _schemas
 import click
 import geopandas as gpd
+import numpy as np
 import pandas as pd
-from _utils import CURRENT_YEAR, get_point_col
+from _utils import get_point_col
 
 WEMI_CRS = "EPSG:4326"
 KW_TO_MW = 1 / 1000
-LIFETIME = 25
 STATUS_MAPPING = {
     "Production": "operating",
     "Construction": "construction",
@@ -41,25 +41,10 @@ def _start_year(raw_df: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(year, errors="coerce")
 
 
-def _end_year(start_year: pd.Series, lifetime: int):
-    return start_year + lifetime
-
-
-def _status(status: pd.Series, start_year: pd.Series, end_year: pd.Series):
-    status = status.replace(STATUS_MAPPING)
-    for idx in status.index:
-        if end_year[idx] <= CURRENT_YEAR:
-            status[idx] = "retired"
-        elif (start_year[idx] <= CURRENT_YEAR) and (CURRENT_YEAR < end_year[idx]):
-            status[idx] = "operating"
-    return status
-
-
 @click.command()
 @click.argument("input_path")
 @click.argument("output_path")
-@click.option("--lifetime", default=LIFETIME)
-def main(input_path: str, output_path: str, lifetime: int):
+def main(input_path: str, output_path: str):
     """Saves a standardised and validated version of the WEMI dataset."""
     raw_df = pd.read_excel(
         input_path, sheet_name="Windfarms", skiprows=[1], na_values=["#ND"]
@@ -68,7 +53,6 @@ def main(input_path: str, output_path: str, lifetime: int):
     raw_df = raw_df.dropna(subset=["Total power", "Latitude", "Longitude"])
 
     start_year = _start_year(raw_df)
-    end_year = _end_year(start_year, lifetime)
     processed_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _powerplant_id(raw_df),
@@ -77,8 +61,8 @@ def main(input_path: str, output_path: str, lifetime: int):
             "technology": _technology(raw_df),
             "output_capacity_mw": _output_capacity_mw(raw_df),
             "start_year": start_year,
-            "end_year": end_year,
-            "status": _status(raw_df["Status"], start_year, end_year),
+            "end_year": np.nan,
+            "status": raw_df["Status"].replace(STATUS_MAPPING),
             "geometry": get_point_col(raw_df, "Longitude", "Latitude", crs=WEMI_CRS),
         },
         crs=WEMI_CRS,

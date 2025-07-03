@@ -73,7 +73,7 @@ def main(
 
 if __name__ == "__main__":
     main(
-        gem_gbpt_path=snakemake.input.gem_gcpt,
+        gem_gbpt_path=snakemake.input.gem_gbpt,
         technology_mapping=snakemake.params.technology_mapping,
         fuel_mapping=snakemake.params.fuel_mapping,
         output_plants_path=snakemake.output.plants,

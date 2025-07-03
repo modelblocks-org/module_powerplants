@@ -14,8 +14,11 @@ _INVALID_STATUS_VALUES = ["cancelled", "shelved"]
 _DROPPED_NA_COLUMNS = ["capacity_(mw)", "latitude", "longitude"]
 
 
-def read_gem_dataset(path: str, sheets: list[str]) -> pd.DataFrame:
+def read_gem_dataset(path: str, sheets: list[str], dropped_na_cols: list[str]| None=None) -> pd.DataFrame:
     """Get a GEM dataset for a type/category of powerplant."""
+    if dropped_na_cols is None:
+        dropped_na_cols = _DROPPED_NA_COLUMNS
+
     gem_df = pd.concat([pd.read_excel(path, sheet) for sheet in sheets], axis="index")
     # Harmonise column names
     gem_df.columns = gem_df.columns.str.strip().str.lower().str.replace(" ", "_")
@@ -24,7 +27,7 @@ def read_gem_dataset(path: str, sheets: list[str]) -> pd.DataFrame:
     mask = gem_df["status"].str.contains(pattern, na=False)
     gem_df = gem_df[~mask]
     # Remove rows with problematic empty values
-    gem_df = gem_df.dropna(subset=_DROPPED_NA_COLUMNS)
+    gem_df = gem_df.dropna(subset=dropped_na_cols)
     gem_df = gem_df.reset_index(drop=True)
 
     return gem_df

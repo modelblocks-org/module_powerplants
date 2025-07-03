@@ -2,19 +2,17 @@ rule prepare_hydropower:
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
     params:
-        lifetime= config["lifetime"]["hydropower"],
-        script=workflow.source_path("../scripts/prepare_hydropower.py")
+        technology_mapping=config["hydropower"]["technology_mapping"]
     input:
-        input_path="resources/automatic/downloads/GloHydroRes.csv",
+        glohydrores_path="resources/automatic/downloads/GloHydroRes.csv",
     output:
         output_path="resources/automatic/prepared/hydropower.parquet",
     log:
         "logs/prepare_hydropower.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        "python {params.script} {input} {output} --lifetime {params.lifetime}"
-
+    script:
+        "../scripts/prepare_hydropower.py"
 
 
 rule prepare_utility_pv:
@@ -61,7 +59,7 @@ rule prepare_wind_gem:
     params:
         script=workflow.source_path("../scripts/prepare_wind_gwpt.py")
     input:
-        gem_gspt_path="resources/automatic/downloads/GEM_GWPT.xlsx",
+        gem_gwpt_path="resources/automatic/downloads/GEM_GWPT.xlsx",
     output:
         output_path="resources/automatic/prepared/wind_gem.parquet",
     log:
@@ -76,7 +74,6 @@ rule prepare_wind_wemi:
     message:
         "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
     params:
-        lifetime= config["lifetime"]["wind"],
         script=workflow.source_path("../scripts/prepare_wind_wemi.py")
     input:
         input_path="resources/user/WEMI.xls",
@@ -87,7 +84,7 @@ rule prepare_wind_wemi:
     conda:
         "../envs/shapes.yaml"
     shell:
-        "python {params.script} {input} {output} --lifetime {params.lifetime}"
+        "python {params.script} {input} {output}"
 
 
 rule prepare_coal:
@@ -116,7 +113,7 @@ rule prepare_bioenergy:
         technology_mapping= config["bioenergy"]["technology_mapping"],
         fuel_mapping = internal["fuel_mapping"] | config["bioenergy"]["fuel_mapping"],
     input:
-        gem_gcpt="resources/automatic/downloads/GEM_GBPT.xlsx",
+        gem_gbpt="resources/automatic/downloads/GEM_GBPT.xlsx",
     output:
         plants="resources/automatic/prepared/bioenergy.parquet",
         fuels="results/per_plant/fuels/bioenergy.parquet"
@@ -134,7 +131,7 @@ rule prepare_oil_gas:
         technology_mapping= config["oil_gas"]["technology_mapping"],
         fuel_mapping = internal["fuel_mapping"] | config["oil_gas"]["fuel_mapping"],
     input:
-        gem_gcpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
+        gem_gogpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
     output:
         plants="resources/automatic/prepared/oil_gas.parquet",
         fuels="results/per_plant/fuels/oil_gas.parquet"
@@ -146,41 +143,36 @@ rule prepare_oil_gas:
         "../scripts/prepare_oil_gas.py"
 
 
+rule prepare_nuclear:
+    message:
+        "Preparing nuclear powerplants using the Global Nuclear Power Tracker (GNPT) dataset."
+    params:
+        technology_mapping= config["nuclear"]["technology_mapping"],
+    input:
+        gem_gnpt="resources/automatic/downloads/GEM_GNPT.xlsx",
+    output:
+        plants="resources/automatic/prepared/nuclear.parquet",
+    log:
+        "logs/prepare_nuclear.log"
+    conda:
+        "../envs/shapes.yaml"
+    script:
+        "../scripts/prepare_nuclear.py"
 
-# rule prepare_firm_non_combustion:
-#     message:
-#         "Preparing {wildcards.category} powerplants using the Global Energy Monitor dataset."
-#     params:
-#         technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
-#     input:
-#         gem_raw="resources/automatic/gem/integrated.xlsx",
-#     output:
-#         powerplant_capacity="resources/automatic/prepared/{category}.parquet",
-#     wildcard_constraints:
-#         category="|".join(["nuclear", "geothermal"])
-#     log:
-#         "logs/prepare_firm_non_combustion_{category}.log",
-#     conda:
-#         "../envs/shapes.yaml"
-#     script:
-#         "../scripts/prepare_gem.py"
 
-# rule prepare_firm_combustion:
-#     message:
-#         "Preparing {wildcards.category} combustion powerplants using the Global Energy Monitor dataset."
-#     params:
-#         default_fuel = lambda wc: config["categories"]["default_fuel"][wc.category],
-#         technology_mapping = lambda wc: config["categories"]["technology_mapping"][wc.category]
-#     input:
-#         gem_raw="resources/automatic/gem/integrated.xlsx",
-#     output:
-#         powerplant_capacity="resources/automatic/prepared/{category}.parquet",
-#         powerplant_fuels="resources/automatic/prepared/{category}_fuels.parquet"
-#     wildcard_constraints:
-#         category="|".join(["bioenergy", "coal", "oil_gas"])
-#     log:
-#         "logs/prepare_gem_combustion_{category}.log",
-#     conda:
-#         "../envs/shapes.yaml"
-#     script:
-#         "../scripts/prepare_gem.py"
+rule prepare_geothermal:
+    message:
+        "Preparing geothermal powerplants using the Global Geothermal Power Tracker (GGPT) dataset."
+    params:
+        technology_mapping= config["geothermal"]["technology_mapping"],
+    input:
+        gem_ggpt="resources/automatic/downloads/GEM_GGPT.xlsx",
+    output:
+        plants="resources/automatic/prepared/geothermal.parquet",
+    log:
+        "logs/prepare_geothermal.log"
+    conda:
+        "../envs/shapes.yaml"
+    script:
+        "../scripts/prepare_geothermal.py"
+
