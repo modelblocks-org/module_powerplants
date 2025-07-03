@@ -3,7 +3,6 @@
 import re
 from typing import Literal
 
-import numpy as np
 import pandas as pd
 
 GEM_GWPT_SHEETS = ["Data", "Below Threshold"]
@@ -12,30 +11,33 @@ GEM_GSPT_SHEETS = ["20 MW+", "1-20 MW"]
 GSPT_CAPACITY_RATING_MAPPING = {"MWac": "AC", "MWp/dc": "DC"}
 
 _INVALID_STATUS_VALUES = ["cancelled", "shelved"]
-_DROPPED_NA_COLUMNS = ["Capacity (MW)", "Latitude", "Longitude"]
+_DROPPED_NA_COLUMNS = ["capacity_(mw)", "latitude", "longitude"]
 
 
 def read_gem_dataset(path: str, sheets: list[str]) -> pd.DataFrame:
     """Get a GEM dataset for a type/category of powerplant."""
     gem_df = pd.concat([pd.read_excel(path, sheet) for sheet in sheets], axis="index")
+    # Harmonise column names
+    gem_df.columns = gem_df.columns.str.strip().str.lower().str.replace(" ", "_")
     # Get raw dataset without cancelled projects
     pattern = "|".join(map(re.escape, _INVALID_STATUS_VALUES))
-    mask = gem_df["Status"].str.contains(pattern, na=False)
+    mask = gem_df["status"].str.contains(pattern, na=False)
     gem_df = gem_df[~mask]
     # Remove rows with problematic empty values
     gem_df = gem_df.dropna(subset=_DROPPED_NA_COLUMNS)
     gem_df = gem_df.reset_index(drop=True)
+
     return gem_df
 
 
-def gem_year_col(gem_df: pd.DataFrame, option: Literal["start", "end"]):
+def year_col(gem_df: pd.DataFrame, option: Literal["start", "end"]):
     """Get start/end year, ensuring typing is respected."""
-    mapping = {"start": "Start year", "end": "Retired year"}
-    return gem_df[mapping[option]].apply(lambda x: np.nan if x == "not found" else x)
+    mapping = {"start": "start_year", "end": "retired_year"}
+    return gem_df[mapping[option]].apply(lambda x: pd.to_numeric(x, errors="coerce"))
 
 
 def technology_col(
-    gem_df: pd.DataFrame, mapping: dict[str, str], col: str = "Technology"
+    gem_df: pd.DataFrame, mapping: dict[str, str], col: str = "technology"
 ) -> pd.Series:
     """Remap technology names, cleaning CCS specifics and other inconsistencies."""
     return (
@@ -51,7 +53,7 @@ def output_capacity_mw_gspt(
 ):
     """Obtain capacity, applying DC-to-AC ratios where necessary."""
     rating = (
-        gem_df["Capacity Rating"]
+        gem_df["capacity_rating"]
         .fillna("unknown")
         .replace("unknown", default_rating)
         .replace(GSPT_CAPACITY_RATING_MAPPING)
@@ -59,48 +61,40 @@ def output_capacity_mw_gspt(
     invalid_ratings = set(rating.unique()) - set(GSPT_CAPACITY_RATING_MAPPING.values())
     assert not invalid_ratings, f"GEM GSPT: invalid capacity ratings {invalid_ratings}."
 
-    cap_df = pd.concat([gem_df["Capacity (MW)"], rating], axis="columns")
+    cap_df = pd.concat([gem_df["capacity_(mw)"], rating], axis="columns")
     return cap_df.apply(
-        lambda x: x["Capacity (MW)"]
-        if x["Capacity Rating"] == "AC"
-        else x["Capacity (MW)"] / dc_ac_ratio,
+        lambda x: x["capacity_(mw)"]
+        if x["capacity_rating"] == "AC"
+        else x["capacity_(mw)"] / dc_ac_ratio,
         axis="columns",
     )
 
 
-def fuel_col(cell: str, fuel_mapping: dict) -> list[str]:
+def fuel_col(cell: str, fuel_mapping: dict, default: str) -> list[str]:
     """Find and replace fuel names using pattern matching.
 
     Ambiguous cases should raise errors.
     """
-    fuel_patterns = {
-        key: (
-            re.compile(rf"\b{re.escape(key)}\b", flags=re.IGNORECASE)
-            if re.fullmatch(
-                r"\w+", key.replace(" ", "")
-            )  # only wrap in \b if key is a single word/phrase
-            else re.compile(re.escape(key), flags=re.IGNORECASE)
-        )
-        for key in fuel_mapping
-    }
-
-    default_fuel = fuel_mapping["unknown"]
     fuels = []
     if pd.isna(cell):
-        fuels.append(default_fuel)
+        fuels.append(default)
     else:
         for value in cell.split(","):
-            if any([i in value for i in ["unknown", "other: other"]]):
-                fuels.append(default_fuel)
+            # removes shares within brackets (e.g., fossil gas: LNG [50%])
+            value = re.sub(r"\s*\[.*?\]", "", value).strip()
+            if ":" not in value:
+                # removes ambiguous cases (e.g., fossil gas -> fossil gas: unknown)
+                value = value + ": unknown"
+            if value in ["other: other", "other: unknown"]:
+                # Too ambiguous to map usefully
                 continue
-            matched_keys = [
-                fuel_mapping[key]
-                for key, pattern in fuel_patterns.items()
-                if pattern.search(value.strip())
-            ]
-            if len(set(matched_keys)) != 1:
-                raise ValueError(
-                    f"Ambiguous fuel definition for '{value}': found '{matched_keys}'."
+            try:
+                fuels.append(fuel_mapping[value])
+            except KeyError:
+                raise KeyError(
+                    f"No mapped fuel for '{value}'."
                 )
-            fuels.append(matched_keys[0])
+    if len(fuels) == 0:
+        # Handle edge cases where only ambiguous fuels are given.
+        fuels.append(default)
     return fuels

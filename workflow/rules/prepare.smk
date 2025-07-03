@@ -95,7 +95,7 @@ rule prepare_coal:
         "Preparing coal powerplants using the Global Coal Power Tracker (GCPT) dataset."
     params:
         technology_mapping= config["coal"]["technology_mapping"],
-        fuel_mapping = config["coal"]["fuel_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["coal"]["fuel_mapping"],
     input:
         gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
@@ -107,6 +107,44 @@ rule prepare_coal:
         "../envs/shapes.yaml"
     script:
         "../scripts/prepare_coal.py"
+
+
+rule prepare_bioenergy:
+    message:
+        "Preparing bioenergy powerplants using the Global Bioenergy Power Tracker (GBPT) dataset."
+    params:
+        technology_mapping= config["bioenergy"]["technology_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["bioenergy"]["fuel_mapping"],
+    input:
+        gem_gcpt="resources/automatic/downloads/GEM_GBPT.xlsx",
+    output:
+        plants="resources/automatic/prepared/bioenergy.parquet",
+        fuels="results/per_plant/fuels/bioenergy.parquet"
+    log:
+        "logs/prepare_bioenergy.log"
+    conda:
+        "../envs/shapes.yaml"
+    script:
+        "../scripts/prepare_bioenergy.py"
+
+rule prepare_oil_gas:
+    message:
+        "Preparing oil and gas powerplants using the Global Oil and Gas Power Tracker (GOGPT) dataset."
+    params:
+        technology_mapping= config["oil_gas"]["technology_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["oil_gas"]["fuel_mapping"],
+    input:
+        gem_gcpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
+    output:
+        plants="resources/automatic/prepared/oil_gas.parquet",
+        fuels="results/per_plant/fuels/oil_gas.parquet"
+    log:
+        "logs/prepare_oil_gas.log"
+    conda:
+        "../envs/shapes.yaml"
+    script:
+        "../scripts/prepare_oil_gas.py"
+
 
 
 # rule prepare_firm_non_combustion:

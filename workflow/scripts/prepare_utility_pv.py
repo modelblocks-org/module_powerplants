@@ -113,25 +113,25 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, dc_ac_ratio):
 
     # Get only Utility PV facilities.
     raw_gem_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
-    raw_gem_df["Technology Type"] = raw_gem_df["Technology Type"].fillna("Assumed PV")
-    raw_gem_df = raw_gem_df[raw_gem_df["Technology Type"].isin(["Assumed PV", "PV"])]
+    raw_gem_df["technology_type"] = raw_gem_df["technology_type"].fillna("Assumed PV")
+    raw_gem_df = raw_gem_df[raw_gem_df["technology_type"].isin(["Assumed PV", "PV"])]
     gem_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
-                raw_gem_df, ["GEM location ID", "GEM phase ID"], prefix="GEM_"
+                raw_gem_df, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
             ),
             "name": _utils.get_combined_text_col(
-                raw_gem_df, ["Project Name", "Phase Name"]
+                raw_gem_df, ["project_name", "phase_name"]
             ),
             "category": "solar",
             "technology": "utility pv",
             "output_capacity_mw": gem.output_capacity_mw_gspt(
                 raw_gem_df, dc_ac_ratio, "AC"
             ),
-            "start_year": gem.gem_year_col(raw_gem_df, "start"),
-            "end_year": gem.gem_year_col(raw_gem_df, "end"),
-            "status": raw_gem_df["Status"],
-            "geometry": _utils.get_point_col(raw_gem_df, "Longitude", "Latitude"),
+            "start_year": gem.year_col(raw_gem_df, "start"),
+            "end_year": gem.year_col(raw_gem_df, "end"),
+            "status": raw_gem_df["status"],
+            "geometry": _utils.get_point_col(raw_gem_df, "longitude", "latitude"),
         }
     )
 

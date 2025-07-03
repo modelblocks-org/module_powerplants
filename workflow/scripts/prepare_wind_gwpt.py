@@ -21,7 +21,7 @@ TECHNOLOGY_MAPPING = {
 
 
 def _technology(gem_df: pd.DataFrame):
-    return gem_df["Installation Type"].apply(lambda x: TECHNOLOGY_MAPPING[x])
+    return gem_df["installation_type"].apply(lambda x: TECHNOLOGY_MAPPING[x])
 
 
 @click.command()
@@ -33,24 +33,24 @@ def main(
 ):
     """Obtain concentrated solar power locations using GEM-GSPT data."""
     raw_gspt = gem.read_gem_dataset(gem_gwpt_path, gem.GEM_GWPT_SHEETS)
-    raw_gspt = raw_gspt[raw_gspt["Installation Type"] != "Unknown"]
-    raw_gspt = raw_gspt.dropna(subset=["Installation Type"])
+    raw_gspt = raw_gspt[raw_gspt["installation_type"] != "Unknown"]
+    raw_gspt = raw_gspt.dropna(subset=["installation_type"])
 
     wind_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
-                raw_gspt, ["GEM location ID", "GEM phase ID"], prefix="GEM_"
+                raw_gspt, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
             ),
             "name": _utils.get_combined_text_col(
-                raw_gspt, ["Project Name", "Phase Name"]
+                raw_gspt, ["project_name", "phase_name"]
             ),
             "category": "wind",
             "technology": _technology(raw_gspt),
-            "output_capacity_mw": raw_gspt["Capacity (MW)"],
-            "start_year": gem.gem_year_col(raw_gspt, "start"),
-            "end_year": gem.gem_year_col(raw_gspt, "end"),
-            "status": raw_gspt["Status"],
-            "geometry": _utils.get_point_col(raw_gspt, "Longitude", "Latitude"),
+            "output_capacity_mw": raw_gspt["capacity_(mw)"],
+            "start_year": gem.year_col(raw_gspt, "start"),
+            "end_year": gem.year_col(raw_gspt, "end"),
+            "status": raw_gspt["status"],
+            "geometry": _utils.get_point_col(raw_gspt, "longitude", "latitude"),
         }
     )
     _schemas.PlantSchema.validate(wind_df).to_parquet(output_path)

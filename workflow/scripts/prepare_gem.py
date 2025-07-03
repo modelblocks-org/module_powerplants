@@ -153,8 +153,8 @@ def get_powerplant_df(
             "category": gem_df["Type"],
             "technology": _technology(gem_df, tech_mapping),
             "output_capacity_mw": gem_df["Capacity (MW)"],
-            "start_year": gem.gem_year_col(gem_df, "start"),
-            "end_year": gem.gem_year_col(gem_df, "end"),
+            "start_year": gem.year_col(gem_df, "start"),
+            "end_year": gem.year_col(gem_df, "end"),
             "status": gem_df["Status"],
             "geometry": _utils.get_point_col(gem_df, "Longitude", "Latitude"),
         }

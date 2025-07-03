@@ -85,14 +85,22 @@ coal:
     "CFB": "steam turbine"
     "unknown": "steam turbine"
   fuel_mapping:
-    "unknown": "brown coal"
-    "bituminous": "hard coal"
-    "anthracite": "hard coal"
-    "lignite": "brown coal"
-    "subbituminous": "brown coal"
-    "waste coal": "brown coal"
-    "bioenergy": "biomass"
-    "fossil gas": "natural gas"
-    "fossil liquids": "oil"
-    "industrial by-product": "solid waste"
-    "other": "oil"
+    "coal: unknown": "brown coal"
+bioenergy:
+  technology_mapping:
+    "unknown": "bioenergy turbine"
+  fuel_mapping:
+    "bioenergy: unknown": "biomass"
+oil_gas:
+  fuel_mapping:
+    "fossil gas: unknown": "natural gas"
+  technology_mapping:
+    "AFC": "ccgt"
+    "combined cycle": "ccgt"
+    "gas turbine": "ocgt"
+    "ICCC": "ccgt"
+    "IGCC": "igcc"
+    "internal combustion": "reciprocating engine"
+    "ISCC": "ccgt"
+    "steam turbine": "steam turbine"
+    "unknown": "ocgt"
