@@ -46,14 +46,25 @@ def impute_end_year(
     expected = df["start_year"] + df["technology"].map(lifetimes)
     result = df["end_year"].copy().fillna(expected)
 
-    # Handle cases that need delay
+    # Handle cases that need delay (default: retired in 1 year)
     needs_delay = (result >= CURRENT) & (df["status"] == "operating")
-    delayed_end = result + df["technology"].map(delay).astype(int)
+    delayed_end = result + df["technology"].map(delay).fillna(0).astype(int)
     delayed_end = delayed_end.clip(lower=CURRENT + 1)
     result.loc[needs_delay] = delayed_end.loc[needs_delay]
 
     return result
 
+
+def impute_status(df: pd.DataFrame) -> pd.Series:
+    """Impute powerplant status.
+
+    Must be called after start/end years are complete.
+    """
+    status = pd.Series("operating", index=df.index)
+    status.loc[df["start_year"] > _utils.CURRENT_YEAR] = "planned"
+    status.loc[df["end_year"] <= _utils.CURRENT_YEAR] = "retired"
+
+    return status
 
 def adjust_status(row: pd.Series) -> str:
     """Ensure the powerplant status is correct."""
@@ -96,8 +107,9 @@ def main(
     lifetimes = yaml.safe_load(lifetime_mapping)
     imputed["start_year"] = impute_start_year(imputed, lifetimes)
     imputed["end_year"] = impute_end_year(imputed, lifetimes, delay)
-    imputed["status"] = imputed.apply(adjust_status, axis="columns")
+    imputed["status"] = impute_status(imputed)
 
+    # Drop projects with insufficient data
     imputed = imputed.dropna(subset=["start_year", "end_year", "status"])
     _schemas.PlantSchema.validate(imputed).to_parquet(output_path)
 
