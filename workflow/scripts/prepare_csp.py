@@ -17,26 +17,26 @@ def main(
     dc_ac_ratio: float = 1.25,
 ):
     """Obtain concentrated solar power locations using GEM-GSPT data."""
-    raw_gspt = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
-    raw_gspt = raw_gspt[raw_gspt["technology_type"] == "Solar Thermal"]
+    raw_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
+    raw_df = raw_df[raw_df["technology_type"] == "Solar Thermal"]
 
     csp_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
-                raw_gspt, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
+                raw_df, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
             ),
             "name": _utils.get_combined_text_col(
-                raw_gspt, ["project_name", "phase_name"]
+                raw_df, ["project_name", "phase_name"]
             ),
             "category": "solar",
             "technology": "concentrated solar",
             "output_capacity_mw": gem.output_capacity_mw_gspt(
-                raw_gspt, dc_ac_ratio, "AC"
+                raw_df, dc_ac_ratio, "AC"
             ),
-            "start_year": gem.year_col(raw_gspt, "start"),
-            "end_year": gem.year_col(raw_gspt, "end"),
-            "status": raw_gspt["status"],
-            "geometry": _utils.get_point_col(raw_gspt, "longitude", "latitude"),
+            "start_year": gem.year_col(raw_df, "start"),
+            "end_year": gem.year_col(raw_df, "end"),
+            "status": gem.status_col(raw_df),
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
     _schemas.PlantSchema.validate(csp_df).to_parquet(output_path)

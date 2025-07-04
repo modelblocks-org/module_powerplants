@@ -19,6 +19,7 @@ def _technology(gem_df: pd.DataFrame, tech_mapping: dict[str, str]) -> pd.Series
     return gem_df["plant_type"].fillna("unknown").apply(lambda x: tech_mapping[x])
 
 
+# TODO: add back once a reasonable approach to imputing other head heights is found.
 def _head_m(gem_df: pd.DataFrame) -> pd.Series:
     """Imputes the dam height if the head height is not available."""
     return gem_df.apply(
@@ -49,7 +50,6 @@ def main(input_path: str, output_path: str, technology_mapping: dict[str, str]):
             "end_year": np.nan,
             "status": "operating",
             "geometry": _utils.get_point_col(raw_df, "plant_lon", "plant_lat"),
-            "head_m": _head_m(raw_df),
             "reservoir_km3": _reservoir_km3(raw_df),
         }
     )

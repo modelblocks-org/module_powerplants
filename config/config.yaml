@@ -1,3 +1,44 @@
+imputation:
+  lifetime_yr:
+    utility_pv: 25
+    concentrated_solar: 25
+    onshore: 25
+    offshore: 25
+    igcc: 25
+    ccgt: 20
+    ocgt: 20
+    steam turbine: 30
+    reciprocating engine: 20
+    coal turbine: 50
+    bioenergy turbine: 25
+    high enthalpy geothermal: 25
+    low enthalpy geothermal: 25
+    reservoir: 80
+    run of river: 80
+    pump storage: 80
+    nuclear reactor: 50
+  operating_to_retired_delay_yr:
+    utility_pv: 2
+    concentrated_solar: 2
+    onshore: 2
+    offshore: 2
+    igcc: 5
+    ccgt: 5
+    ocgt: 5
+    steam turbine: 5
+    reciprocating engine: 5
+    coal turbine: 5
+    bioenergy turbine: 5
+    high enthalpy geothermal: 5
+    low enthalpy geothermal: 5
+    reservoir: 10
+    run of river: 10
+    pump storage: 10
+    nuclear reactor: 5
+fuel_mapping:
+  "bioenergy: unknown": "biomass"
+  "fossil gas: unknown": "natural gas"
+  "coal: unknown": "brown coal"
 solar:
   utility_pv:
     dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
@@ -8,18 +49,14 @@ wind:
 coal:
   technology_mapping:
     "IGCC": "igcc"
-    "subcritical": "steam turbine"
-    "supercritical": "steam turbine"
-    "ultra-supercritical": "steam turbine"
-    "CFB": "steam turbine"
-    "unknown": "steam turbine"
-  fuel_mapping:
-    "coal: unknown": "brown coal"
+    "subcritical": "coal turbine"
+    "supercritical": "coal turbine"
+    "ultra-supercritical": "coal turbine"
+    "CFB": "coal turbine"
+    "unknown": "coal turbine"
 bioenergy:
   technology_mapping:
     "unknown": "bioenergy turbine"
-  fuel_mapping:
-    "bioenergy: unknown": "biomass"
 geothermal:
   technology_mapping:
     "unknown": "high enthalpy geothermal"
@@ -60,8 +97,6 @@ nuclear:
     "fast neutron reactor": "nuclear reactor"
     "unknown": "nuclear reactor"
 oil_gas:
-  fuel_mapping:
-    "fossil gas: unknown": "natural gas"
   technology_mapping:
     "AFC": "ccgt"
     "combined cycle": "ccgt"

@@ -14,6 +14,16 @@ _INVALID_STATUS_VALUES = ["cancelled", "shelved"]
 _DROPPED_NA_COLUMNS = ["capacity_(mw)", "latitude", "longitude"]
 
 
+_STATUS_MAPPING = {
+    "announced": "planned",
+    "pre-construction": "planned",
+    "construction": "planned",
+    "operating": "operating",
+    "mothballed": "retired",
+    "retired": "retired",
+}
+
+
 def read_gem_dataset(path: str, sheets: list[str], dropped_na_cols: list[str]| None=None) -> pd.DataFrame:
     """Get a GEM dataset for a type/category of powerplant."""
     if dropped_na_cols is None:
@@ -37,6 +47,13 @@ def year_col(gem_df: pd.DataFrame, option: Literal["start", "end"]):
     """Get start/end year, ensuring typing is respected."""
     mapping = {"start": "start_year", "end": "retired_year"}
     return gem_df[mapping[option]].apply(lambda x: pd.to_numeric(x, errors="coerce"))
+
+
+def status_col(gem_df: pd.DataFrame, mapping: dict | None = None):
+    """Get standardised plant status."""
+    if mapping is None:
+        mapping = _STATUS_MAPPING
+    return gem_df["status"].map(mapping)
 
 
 def technology_col(

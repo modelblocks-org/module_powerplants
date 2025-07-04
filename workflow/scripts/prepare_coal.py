@@ -14,12 +14,12 @@ if TYPE_CHECKING:
 sys.stderr = open(snakemake.log[0], "w")
 
 STATUS_MAPPING = {
-    "announced": "announced",
-    "pre-permit": "pre-construction",
-    "permitted": "pre-construction",
-    "construction": "construction",
+    "announced": "planned",
+    "pre-permit": "planned",
+    "permitted": "planned",
+    "construction": "planned",
     "operating": "operating",
-    "mothballed": "mothballed",
+    "mothballed": "retired",
     "retired": "retired",
 }
 
@@ -53,10 +53,6 @@ def _ccs(gem_df: pd.DataFrame) -> pd.Series:
         )
     )
 
-
-def _status(gem_df: pd.DataFrame) -> pd.Series:
-    """Get harmonised plant status."""
-    return gem_df["status"].map(STATUS_MAPPING)
 
 
 def _fuel(gem_df: pd.DataFrame) -> pd.Series:
@@ -96,7 +92,7 @@ def main(
             "output_capacity_mw": raw_df["capacity_(mw)"],
             "start_year": gem.year_col(raw_df, "start"),
             "end_year": _retired_year(raw_df),
-            "status": _status(raw_df),
+            "status": gem.status_col(raw_df, mapping=STATUS_MAPPING),
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": _ccs(raw_df),
             "chp": False,  # Not specified in GCPT

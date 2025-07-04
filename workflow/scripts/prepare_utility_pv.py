@@ -130,7 +130,7 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, dc_ac_ratio):
             ),
             "start_year": gem.year_col(raw_gem_df, "start"),
             "end_year": gem.year_col(raw_gem_df, "end"),
-            "status": raw_gem_df["status"],
+            "status": gem.status_col(raw_gem_df),
             "geometry": _utils.get_point_col(raw_gem_df, "longitude", "latitude"),
         }
     )

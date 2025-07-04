@@ -14,11 +14,11 @@ from _utils import get_point_col
 WEMI_CRS = "EPSG:4326"
 KW_TO_MW = 1 / 1000
 STATUS_MAPPING = {
+    "Planned": "planned",
+    "Approved": "planned",
+    "Construction": "planned",
     "Production": "operating",
-    "Construction": "construction",
     "Dismantled": "retired",
-    "Planned": "announced",
-    "Approved": "pre-construction",
 }
 
 

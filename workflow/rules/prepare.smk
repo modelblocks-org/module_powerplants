@@ -92,7 +92,7 @@ rule prepare_coal:
         "Preparing coal powerplants using the Global Coal Power Tracker (GCPT) dataset."
     params:
         technology_mapping= config["coal"]["technology_mapping"],
-        fuel_mapping = internal["fuel_mapping"] | config["coal"]["fuel_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["fuel_mapping"],
     input:
         gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
@@ -111,7 +111,7 @@ rule prepare_bioenergy:
         "Preparing bioenergy powerplants using the Global Bioenergy Power Tracker (GBPT) dataset."
     params:
         technology_mapping= config["bioenergy"]["technology_mapping"],
-        fuel_mapping = internal["fuel_mapping"] | config["bioenergy"]["fuel_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["fuel_mapping"],
     input:
         gem_gbpt="resources/automatic/downloads/GEM_GBPT.xlsx",
     output:
@@ -129,7 +129,7 @@ rule prepare_oil_gas:
         "Preparing oil and gas powerplants using the Global Oil and Gas Power Tracker (GOGPT) dataset."
     params:
         technology_mapping= config["oil_gas"]["technology_mapping"],
-        fuel_mapping = internal["fuel_mapping"] | config["oil_gas"]["fuel_mapping"],
+        fuel_mapping = internal["fuel_mapping"] | config["fuel_mapping"],
     input:
         gem_gogpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
     output:

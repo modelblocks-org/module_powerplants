@@ -46,9 +46,7 @@ PLANT_CATEGORIES = [
 ] + COMBUSTION_CATEGORIES
 
 PLANT_STATUS = [
-    "announced",
-    "pre-construction",
-    "construction",
+    "planned",
     "operating",
     "mothballed",
     "retired",
@@ -58,7 +56,7 @@ PLANT_STATUS = [
 class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
-        strict = True
+        strict = False
 
     index: Index[int] = Field(unique=True)
 
@@ -109,5 +107,4 @@ class FuelSchema(DataFrameModel):
 
 
 class HydroSchema(PlantSchema):
-    head_m: Series[float] = Field(nullable=True, ge=0)
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)

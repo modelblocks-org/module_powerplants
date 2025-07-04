@@ -37,7 +37,7 @@ def main(
             "end_year": pd.to_datetime(
                 raw_df["retirement_date"], format="mixed"
             ).dt.year,
-            "status": raw_df["status"],
+            "status": gem.status_col(raw_df),
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)

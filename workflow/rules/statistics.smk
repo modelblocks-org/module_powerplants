@@ -5,8 +5,9 @@ rule process_eia_statistics:
         shapes="resources/user/shapes.parquet",
         eia_bulk="resources/automatic/eia/INTL.txt",
     output:
-        total="resources/automatic/eia/total_capacity.parquet",
-        disaggregated="resources/automatic/eia/disaggregated_capacity.parquet"
+        total="results/statistics/total_capacity.parquet",
+        categories="results/statistics/category_capacity.parquet",
+        plot="results/statistics/category_capacity.pdf"
     log:
         "logs/process_eia_statistics.log",
     conda:

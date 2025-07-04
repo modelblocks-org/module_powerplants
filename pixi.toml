@@ -32,6 +32,8 @@ pystac-client = ">=0.8.6,<0.9"
 libgdal-arrow-parquet = ">=3.10.3,<4"
 click = ">=8.2.1,<9"
 contextily = ">=1.6.2,<2"
+gdal = ">=3.10.3,<4"
+libgdal-core = ">=3.10.3,<4"
 
 [tasks]
 test = {cmd = "pytest tests/"}

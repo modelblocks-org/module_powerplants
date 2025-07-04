@@ -50,7 +50,7 @@ def main(
             "output_capacity_mw": raw_df["capacity_(mw)"],
             "start_year": gem.year_col(raw_df, "start"),
             "end_year": gem.year_col(raw_df, "end"),
-            "status": raw_df["status"],
+            "status": gem.status_col(raw_df),
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     )
