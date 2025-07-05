@@ -45,7 +45,7 @@ solar:
   concentrated_solar:
     dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
 wind:
-  source: "gem"  # options: wemi, gem_gwpt
+  source: "wemi"  # options: wemi, gem_gwpt
 coal:
   technology_mapping:
     "IGCC": "igcc"

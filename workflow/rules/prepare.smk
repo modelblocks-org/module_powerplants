@@ -17,14 +17,13 @@ rule prepare_hydropower:
 
 rule prepare_utility_pv:
     message:
-        "Preparing utility PV powerplants using the Solar Asset Mapper (TZ-SAM) "
-        "and the Global Solar Power Tracker (GEM-GSPT) datasets."
+        "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     params:
         dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
-        script=workflow.source_path("../scripts/prepare_utility_pv.py"),
     input:
-        tz_sam_path="resources/automatic/downloads/TZ-SAM.gpkg",
-        gem_gspt_path="resources/automatic/downloads/GEM_GSPT.xlsx",
+        script=workflow.source_path("../scripts/prepare_utility_pv.py"),
+        tz_sam="resources/automatic/downloads/TZ-SAM.gpkg",
+        gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
         output_path="resources/automatic/prepared/utility_pv.parquet"
     log:
@@ -32,7 +31,7 @@ rule prepare_utility_pv:
     conda:
         "../envs/shapes.yaml",
     shell:
-        "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
+        "python {input.script} {input.tz_sam} {input.gem_gspt} {output} --dc_ac_ratio {params.dc_ac_ratio}"
 
 
 rule prepare_csp:
@@ -40,9 +39,9 @@ rule prepare_csp:
         "Preparing concentrated solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
         dc_ac_ratio=config["solar"]["utility_pv"]["dc_ac_ratio"],
-        script=workflow.source_path("../scripts/prepare_csp.py")
     input:
-        gem_gspt_path="resources/automatic/downloads/GEM_GSPT.xlsx",
+        script=workflow.source_path("../scripts/prepare_csp.py"),
+        gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
         output_path="resources/automatic/prepared/csp.parquet",
     log:
@@ -50,41 +49,44 @@ rule prepare_csp:
     conda:
         "../envs/shapes.yaml",
     shell:
-        "python {params.script} {input} {output} --dc_ac_ratio {params.dc_ac_ratio}"
+        "python {input.script} {input.gem_gspt} {output} --dc_ac_ratio {params.dc_ac_ratio}"
 
+if config["wind"]["source"] == "gem":
 
-rule prepare_wind_gem:
-    message:
-        "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
-    params:
-        script=workflow.source_path("../scripts/prepare_wind_gwpt.py")
-    input:
-        gem_gwpt_path="resources/automatic/downloads/GEM_GWPT.xlsx",
-    output:
-        output_path="resources/automatic/prepared/wind_gem.parquet",
-    log:
-        "logs/prepare_wind_gem.log",
-    conda:
-        "../envs/shapes.yaml",
-    shell:
-        "python {params.script} {input} {output}"
+    rule prepare_wind_gem:
+        message:
+            "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
+        input:
+            script=workflow.source_path("../scripts/prepare_wind_gwpt.py"),
+            gem_gwpt="resources/automatic/downloads/GEM_GWPT.xlsx",
+        output:
+            output_path="resources/automatic/prepared/wind.parquet",
+        log:
+            "logs/prepare_wind_gem.log",
+        conda:
+            "../envs/shapes.yaml",
+        shell:
+            "python {input.script} {input.gem_gwpt} {output}"
 
+elif config["wind"]["source"] == "wemi":
 
-rule prepare_wind_wemi:
-    message:
-        "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
-    params:
-        script=workflow.source_path("../scripts/prepare_wind_wemi.py")
-    input:
-        input_path="resources/user/WEMI.xls",
-    output:
-        output_path="resources/automatic/prepared/wind_wemi.parquet",
-    log:
-        "logs/prepare_wind_wemi.log",
-    conda:
-        "../envs/shapes.yaml"
-    shell:
-        "python {params.script} {input} {output}"
+    rule prepare_wind_wemi:
+        message:
+            "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
+        input:
+            script=workflow.source_path("../scripts/prepare_wind_wemi.py"),
+            wemi="resources/user/WEMI.xls",
+        output:
+            output_path="resources/automatic/prepared/wind.parquet",
+        log:
+            "logs/prepare_wind_wemi.log",
+        conda:
+            "../envs/shapes.yaml"
+        shell:
+            "python {input.script} {input.wemi} {output}"
+
+else:
+    raise ValueError(f"Incorrect wind source configuration value '{config['wind']['source']}'")
 
 
 rule prepare_coal:

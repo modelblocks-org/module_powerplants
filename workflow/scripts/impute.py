@@ -196,7 +196,6 @@ def plot(imputed_path: str, output_path: str, colormap):
         ax.set_ylabel("Capacity (MW)")
         ax.locator_params(axis="x", nbins=10)
         ax.minorticks_off()
-        ax.label_outer()
 
     # Hide extra axes
     for ax in axes_flat[n_countries:]:
