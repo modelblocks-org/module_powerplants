@@ -31,7 +31,7 @@ def main(
     gem_gwpt_path: str,
     output_path: str,
 ):
-    """Obtain concentrated solar power locations using GEM-GSPT data."""
+    """Obtain concentrated wind power locations using GEM-GSPT data."""
     raw_df = gem.read_gem_dataset(gem_gwpt_path, gem.GEM_GWPT_SHEETS)
     # Remove unknown installation types to avoid misplacement
     raw_df = raw_df[raw_df["installation_type"] != "Unknown"]

@@ -34,7 +34,7 @@ def main(
     output_plants_path: str,
     output_fuels_path: str,
 ):
-    """Obtain a harmonised bioenergy dataset."""
+    """Obtain bioenergy power locations using GEM-GBPT data."""
     raw_df = gem.read_gem_dataset(gem_gbpt_path, ["Data", "Below Threshold"])
 
     powerplant_id = _utils.get_combined_text_col(

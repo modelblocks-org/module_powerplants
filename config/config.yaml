@@ -1,7 +1,7 @@
 imputation:
   lifetime_yr:
-    utility_pv: 25
-    concentrated_solar: 25
+    utility pv: 25
+    concentrated solar: 25
     onshore: 25
     offshore: 25
     igcc: 25
@@ -18,8 +18,8 @@ imputation:
     pump storage: 80
     nuclear reactor: 50
   operating_to_retired_delay_yr:
-    utility_pv: 2
-    concentrated_solar: 2
+    utility pv: 2
+    concentrated solar: 2
     onshore: 2
     offshore: 2
     igcc: 5

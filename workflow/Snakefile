@@ -11,6 +11,8 @@ configfile: workflow.source_path("../config/config.yaml")
 
 # Validate the configuration using the schema file.
 # TODO: add validation
+# TODO: ensure validation accounts for chosen technology names
+# TODO: consider letting people configure which categories to process as 'planned'
 # validate(config, workflow.source_path("internal/config.schema.yaml"))
 
 # Load internal settings separately so users cannot modify them.

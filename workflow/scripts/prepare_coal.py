@@ -75,7 +75,7 @@ def main(
     output_plants_path: str,
     output_fuels_path: str,
 ):
-    """Obtain concentrated solar power locations using GEM-GSPT data."""
+    """Obtain coal power locations using GEM-GCPT data."""
     raw_df = gem.read_gem_dataset(gem_gcpt_path, ["Units"])
 
     powerplant_id = _utils.get_combined_text_col(
