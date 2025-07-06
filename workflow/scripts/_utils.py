@@ -1,11 +1,13 @@
 """General utilities shared across rules."""
 
-from datetime import datetime
+
 
 import geopandas as gpd
 import pandas as pd
 
-CURRENT_YEAR = datetime.now().year
+# Average year where disaggregated datasets were last updated.
+# MUST BE ADJUSTED WHENEVER DATASOURCES ARE UDPATED!
+REFERENCE_YR = 2024
 
 
 def get_point_col(

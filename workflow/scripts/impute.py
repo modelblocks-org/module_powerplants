@@ -44,16 +44,16 @@ def impute_end_year(
 
     Old plants operating beyond lifetime will retired with a given delay.
     """
-    CURRENT = _utils.CURRENT_YEAR
+    ref_year = _utils.REFERENCE_YR
 
-    # Impute expected end year if no data is present.
-    expected = df["start_year"] + df["technology"].map(lifetimes)
-    result = df["end_year"].copy().fillna(expected)
+    # Impute expected end year only if no data is present.
+    expected_end = df["start_year"] + df["technology"].map(lifetimes)
+    result = df["end_year"].copy().fillna(expected_end)
 
-    # Handle cases that need delay (default: retired in 1 year)
-    needs_delay = (result >= CURRENT) & (df["status"] == "operating")
+    # Plants operating beyond expected lifetime will be retired after a delay of >=1 yr
+    needs_delay = (result <= ref_year) & (df["status"] == "operating")
     delayed_end = result + df["technology"].map(delay).fillna(0).astype(int)
-    delayed_end = delayed_end.clip(lower=CURRENT + 1)
+    delayed_end = delayed_end.clip(lower=ref_year + 1)
     result.loc[needs_delay] = delayed_end.loc[needs_delay]
 
     return result
@@ -64,21 +64,17 @@ def impute_status(df: pd.DataFrame) -> pd.Series:
 
     Must be called after start/end years are complete.
     """
-    status = pd.Series("operating", index=df.index)
-    status.loc[df["start_year"] > _utils.CURRENT_YEAR] = "planned"
-    status.loc[df["end_year"] <= _utils.CURRENT_YEAR] = "retired"
+    status = df["status"].copy()
+    ref_year = _utils.REFERENCE_YR
+    status.loc[ref_year < df["start_year"]] = "planned"
+    status.loc[(df["start_year"] <= ref_year) & (ref_year < df["end_year"])] = (
+        "operating"
+    )
+    status.loc[df["end_year"] <= ref_year] = "retired"
 
-    return status
+    if status.isna().any():
+        raise ValueError("Entries with ambiguous states where left in the dataframe.")
 
-def adjust_status(row: pd.Series) -> str:
-    """Ensure the powerplant status is correct."""
-    year = _utils.CURRENT_YEAR
-    if year < row["start_year"]:
-        status = "planned"
-    elif row["end_year"] <= year:
-        status = "retired"
-    else:
-        status = "operating"
     return status
 
 
@@ -86,6 +82,7 @@ def adjust_status(row: pd.Series) -> str:
 def cli():
     """Specify sub-command."""
     pass
+
 
 @cli.command()
 @click.argument("prepared_path", type=str)
@@ -114,12 +111,15 @@ def main(
     )
     imputed = imputed.drop("index_right", axis="columns")
     lifetimes = yaml.safe_load(lifetime_mapping)
+
+    # Adjust project dates
     imputed["start_year"] = impute_start_year(imputed, lifetimes)
     imputed["end_year"] = impute_end_year(imputed, lifetimes, delay)
+
+    # Drop projects with insufficient date data and then adjust status.
+    imputed = imputed.dropna(subset=["start_year", "end_year"])
     imputed["status"] = impute_status(imputed)
 
-    # Drop projects with insufficient data
-    imputed = imputed.dropna(subset=["start_year", "end_year", "status"])
     _schemas.PlantSchema.validate(imputed).to_parquet(output_path)
 
 
@@ -214,6 +214,7 @@ def plot(imputed_path: str, output_path: str, colormap):
     fig.suptitle(suptitle, fontsize=14)
 
     fig.savefig(output_path, bbox_inches="tight")
+
 
 if __name__ == "__main__":
     cli()
