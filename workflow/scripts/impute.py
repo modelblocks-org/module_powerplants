@@ -201,7 +201,7 @@ def plot(imputed_path: str, output_path: str, colormap):
     for ax in axes_flat[n_countries:]:
         ax.set_visible(False)
 
-    # Add a single legend
+    # Add details
     handles, labels = axes_flat[0].get_legend_handles_labels()
     fig.legend(
         handles[::-1],
@@ -211,9 +211,8 @@ def plot(imputed_path: str, output_path: str, colormap):
         title="Technology",
         frameon=False,
     )
-
-    # 10) Title and show
     fig.suptitle(suptitle, fontsize=14)
+
     fig.savefig(output_path, bbox_inches="tight")
 
 if __name__ == "__main__":

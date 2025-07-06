@@ -1,3 +1,5 @@
+"""Rules in this file focus on parsing and cleaning data into shared schemas."""
+
 rule prepare_hydropower:
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
@@ -178,3 +180,23 @@ rule prepare_geothermal:
     script:
         "../scripts/prepare_geothermal.py"
 
+rule prepare_statistics:
+    message:
+        "Get EIA annual country capacity statistics."
+    input:
+        script = workflow.source_path("../scripts/prepare_statistics.py"),
+        shapes="resources/user/shapes.parquet",
+        eia_bulk="resources/automatic/eia/INTL.txt",
+    output:
+        total="results/statistics/total_capacity.parquet",
+        categories="results/statistics/category_capacity.parquet",
+        plot="results/statistics/category_capacity.pdf"
+    log:
+        "logs/prepare_statistics.log",
+    conda:
+        "../envs/shapes.yaml"
+    shell:
+        """
+        python "{input.script}" prepare "{input.shapes}" "{input.eia_bulk}" "{output.total}" "{output.categories}" 2> {log}
+        python "{input.script}" plot "{output.total}" "{output.categories}" "{output.plot}" 2> {log}
+        """

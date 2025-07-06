@@ -35,6 +35,10 @@ class ShapeSchema(DataFrameModel):
     geometry: GeoSeries
     "Shape polygon."
 
+    @check("geometry", element_wise=True)
+    def geom_not_empty(cls, geom):
+        return (geom is not None) and (not geom.is_empty) and geom.is_valid
+
 
 COMBUSTION_CATEGORIES = ["coal", "bioenergy", "oil_gas"]
 PLANT_CATEGORIES = [
@@ -45,12 +49,7 @@ PLANT_CATEGORIES = [
     "wind",
 ] + COMBUSTION_CATEGORIES
 
-PLANT_STATUS = [
-    "planned",
-    "operating",
-    "mothballed",
-    "retired",
-]
+PLANT_STATUS = ["planned", "operating", "mothballed", "retired"]
 
 
 class PlantSchema(DataFrameModel):
@@ -82,6 +81,7 @@ class PlantSchema(DataFrameModel):
     # Location / size
     geometry: GeoSeries[Point] = Field()
     "Powerplant point data."
+
     @check("geometry", element_wise=True)
     def geom_not_empty(cls, geom):
         return (geom is not None) and (not geom.is_empty) and geom.is_valid

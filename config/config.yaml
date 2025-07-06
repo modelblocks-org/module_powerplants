@@ -11,8 +11,8 @@ imputation:
     reciprocating engine: 20
     coal turbine: 50
     bioenergy turbine: 25
-    high enthalpy geothermal: 25
-    low enthalpy geothermal: 25
+    high enthalpy geothermal: 30
+    low enthalpy geothermal: 30
     reservoir: 80
     run of river: 80
     pump storage: 80

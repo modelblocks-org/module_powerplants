@@ -1,18 +1,14 @@
 """Aggregated capacity data at a country level."""
 
 import math
-import sys
-from typing import TYPE_CHECKING, Any
 
 import _schemas
+import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-
-if TYPE_CHECKING:
-    snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
+from matplotlib.ticker import MaxNLocator
 
 CAT_ID = {
     "total": 2,
@@ -60,14 +56,32 @@ def _get_country_capacity(eia_df: pd.DataFrame, country_a3: str):
     return country_capacity
 
 
-def get_eia_capacity_statistics(
-    shapes_file: str, eia_bulk_file: str, path_total: str, path_categories: str
+@click.group()
+def cli():
+    """Specify sub-command."""
+    pass
+
+
+@cli.command()
+@click.argument("input_shapes", type=str)
+@click.argument("input_eia_bulk", type=str)
+@click.argument("output_total", type=str)
+@click.argument("output_categories", type=str)
+def prepare(
+    input_shapes: str, input_eia_bulk: str, output_total: str, output_categories: str
 ):
-    """Generate a file with annual capacity statistics per country."""
-    shapes = gpd.read_parquet(shapes_file)
+    """Generate a file with annual capacity statistics per country.
+
+    Args:
+        input_shapes (str): shapes parquet file.
+        input_eia_bulk (str): eia bulk txt database.
+        output_total (str): total capacity per country parquet file.
+        output_categories (str): per-category capacity parquet file.
+    """
+    shapes = gpd.read_parquet(input_shapes)
     shapes = _schemas.ShapeSchema.validate(shapes)
 
-    eia_stats = pd.read_json(eia_bulk_file, lines=True)
+    eia_stats = pd.read_json(input_eia_bulk, lines=True)
 
     results = []
     for country in shapes["country_id"].unique():
@@ -85,62 +99,84 @@ def get_eia_capacity_statistics(
     assert math.isclose(total_cap_sum, disaggregated_cap_sum), (
         f"Aggregated capacity checksum failed: {total_cap_sum} vs {disaggregated_cap_sum}."
     )
-    total_statistics.to_parquet(path_total)
-    category_statistics.to_parquet(path_categories)
+    total_statistics.to_parquet(output_total)
+    category_statistics.to_parquet(output_categories)
 
 
-def plot_category_statistics(category_file: str, path_plot: str, figsize=(12, 4)):
-    """Plot the evolution of country capacity over time for every country in df."""
-    df = pd.read_parquet(category_file)
-    countries = df["country_id"].unique()
-    n = len(countries)
+@cli.command()
+@click.argument("input_total", type=str)
+@click.argument("input_categories", type=str)
+@click.argument("output_plot", type=str)
+@click.option("--figsize", type=(float, float), default=(12, 6))
+def plot(
+    input_total: str,
+    input_categories: str,
+    output_plot: str,
+    figsize: tuple[float, float],
+):
+    """Plot the evolution of country capacity over time for every country."""
+    df_cats = pd.read_parquet(input_categories)
+    df_tot = pd.read_parquet(input_total)[["year", "capacity_mw", "country_id"]]
+
+    countries = df_cats["country_id"].unique()
+    n_countries = len(countries)
 
     fig, axes = plt.subplots(
-        nrows=n,
+        nrows=n_countries,
         ncols=1,
-        figsize=(figsize[0], figsize[1] * n),
+        figsize=(figsize[0], figsize[1] * n_countries),
         sharex=False,
         tight_layout=True,
     )
-    if n == 1:
+    if n_countries == 1:
         axes = [axes]
 
     for ax, country in zip(axes, countries):
-        sub = df[df["country_id"] == country]
+        cats = df_cats[df_cats["country_id"] == country]
+        total = df_tot[df_tot["country_id"] == country]
 
         pivot = (
-            sub.pivot_table(
+            cats.pivot_table(
                 index="year", columns="category", values="capacity_mw", aggfunc="sum"
             )
             .fillna(0)
             .sort_index()
         )
+        bar = pivot.plot(kind="bar", stacked=True, ax=ax, legend=False, zorder=1)
 
-        pivot.plot(kind="bar", stacked=True, ax=ax, legend=False)
+        x_pos = bar.get_xticks()
+        total_idx = total.set_index("year").reindex(pivot.index)
+        y_tot = total_idx["capacity_mw"].values
+
+        ax.plot(
+            x_pos,
+            y_tot,
+            "x",
+            color="black",
+            label="total",
+            markersize=8,
+            linewidth=0,
+            zorder=5,
+        )
+
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(
+            handles[::-1],
+            labels[::-1],
+            title="Technology",
+            bbox_to_anchor=(1.02, 0.5),
+            loc="center left",
+            borderaxespad=0,
+        )
+
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=10, integer=True))
+        ax.tick_params(axis="x", rotation=45)
         ax.set_title(f"{country}")
         ax.set_ylabel("Capacity (MW)")
         ax.set_xlabel("Year")
 
-    # single legend on the right
-    handles, labels = pivot.plot(kind="bar", stacked=True).get_legend_handles_labels()
-    fig.legend(
-        handles[::-1],
-        labels[::-1],
-        title="Technology",
-        bbox_to_anchor=(1.02, 0.5),
-        loc="center left",
-    )
-    fig.savefig(path_plot, bbox_inches="tight")
+    fig.savefig(output_plot, bbox_inches="tight")
 
 
 if __name__ == "__main__":
-    get_eia_capacity_statistics(
-        shapes_file=snakemake.input.shapes,
-        eia_bulk_file=snakemake.input.eia_bulk,
-        path_total=snakemake.output.total,
-        path_categories=snakemake.output.categories,
-    )
-    plot_category_statistics(
-        category_file=snakemake.output.categories,
-        path_plot=snakemake.output.plot
-    )
+    cli()
