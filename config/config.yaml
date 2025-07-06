@@ -1,109 +1,122 @@
-imputation:
-  lifetime_yr:
-    utility pv: 25
-    concentrated solar: 25
-    onshore: 25
-    offshore: 25
-    igcc: 25
-    ccgt: 20
-    ocgt: 20
-    steam turbine: 30
-    reciprocating engine: 20
-    coal turbine: 50
-    bioenergy turbine: 25
-    high enthalpy geothermal: 30
-    low enthalpy geothermal: 30
-    reservoir: 80
-    run of river: 80
-    pump storage: 80
-    nuclear reactor: 50
-  operating_to_retired_delay_yr:
-    utility pv: 2
-    concentrated solar: 2
-    onshore: 2
-    offshore: 2
-    igcc: 5
-    ccgt: 5
-    ocgt: 5
-    steam turbine: 5
-    reciprocating engine: 5
-    coal turbine: 5
-    bioenergy turbine: 5
-    high enthalpy geothermal: 5
-    low enthalpy geothermal: 5
-    reservoir: 10
-    run of river: 10
-    pump storage: 10
-    nuclear reactor: 5
+category:
+  bioenergy:
+    technology_mapping:
+      "unknown": "bioenergy turbine"
+
+  fossil:
+    technology_mapping:
+      coal:
+        CFB: "coal turbine"
+        IGCC: "igcc"
+        subcritical: "coal turbine"
+        supercritical: "coal turbine"
+        ultra-supercritical: "coal turbine"
+        unknown: "coal turbine"
+      oil_gas:
+        AFC: "ccgt"
+        ICCC: "ccgt"
+        IGCC: "igcc"
+        ISCC: "ccgt"
+        combined cycle: "ccgt"
+        gas turbine: "ocgt"
+        internal combustion: "reciprocating engine"
+        steam turbine: "steam turbine"
+        unknown: "ocgt"
+
+  geothermal:
+    technology_mapping:
+      "advanced geothermal systems (AGS)": "high enthalpy geothermal"
+      "binary cycle": "low enthalpy geothermal"
+      "dry steam": "high enthalpy geothermal"
+      "enhanced geothermal systems (EGS)": "high enthalpy geothermal"
+      "flash steam - double": "low enthalpy geothermal"
+      "flash steam - single": "high enthalpy geothermal"
+      "flash steam - triple": "low enthalpy geothermal"
+      "flash steam - unknown": "high enthalpy geothermal"
+      "geopressured geothermal system (GGS)": "high enthalpy geothermal"
+      "unknown": "high enthalpy geothermal"
+
+  hydropower:
+    technology_mapping:
+      Canal: "run of river"
+      PS: "pump storage"
+      ROR: "run of river"
+      STO: "reservoir"
+      unknown: "reservoir"
+
+  nuclear:
+    technology_mapping:
+      boiling water reactor: "nuclear reactor"
+      fast breeder reactor: "nuclear reactor"
+      fast neutron reactor: "nuclear reactor"
+      gas-cooled reactor: "nuclear reactor"
+      heavy water gas-cooled reactor: "nuclear reactor"
+      heavy water light water reactor: "nuclear reactor"
+      high temperature gas reactor: "nuclear reactor"
+      liquid-metal-cooled fast reactor: "nuclear reactor"
+      light water graphite reactor: "nuclear reactor"
+      molten salt reactor: "nuclear reactor"
+      pressurized heavy water reactor: "nuclear reactor"
+      pressurized water reactor: "nuclear reactor"
+      small modular reactor: "nuclear reactor"
+      steam-generating heavy water reactor: "nuclear reactor"
+      unknown: "nuclear reactor"
+
+  solar:
+    technology_mapping:
+      csp: "csp"
+      rooftop_pv: "rooftop pv"
+      utility_pv: "utility pv"
+    dc_ac_ratio:
+      csp: 1.25
+      utility_pv: 1.25
+
+  wind:
+    source: "wemi" # options: wemi, gem_gwpt
+    technology_mapping:
+      offshore: "offshore"
+      onshore: "onshore"
+
+
 fuel_mapping:
   "bioenergy: unknown": "biomass"
-  "fossil gas: unknown": "natural gas"
   "coal: unknown": "brown coal"
-solar:
-  utility_pv:
-    dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
-  concentrated_solar:
-    dc_ac_ratio: 1.25  # 100 MWdc -> 80 MWac
-wind:
-  source: "wemi"  # options: wemi, gem_gwpt
-coal:
-  technology_mapping:
-    "IGCC": "igcc"
-    "subcritical": "coal turbine"
-    "supercritical": "coal turbine"
-    "ultra-supercritical": "coal turbine"
-    "CFB": "coal turbine"
-    "unknown": "coal turbine"
-bioenergy:
-  technology_mapping:
-    "unknown": "bioenergy turbine"
-geothermal:
-  technology_mapping:
-    "unknown": "high enthalpy geothermal"
-    # based on https://doi.org/10.1016/j.ijft.2023.100323
-    "binary cycle": "low enthalpy geothermal"
-    "flash steam - double": "low enthalpy geothermal"
-    "flash steam - triple": "low enthalpy geothermal"
-    "dry steam": "high enthalpy geothermal"
-    "flash steam - single": "high enthalpy geothermal"
-    "flash steam - unknown": "high enthalpy geothermal"
-    # based on https://doi.org/10.1146/annurev.energy.22.1.305
-    "geopressured geothermal system (GGS)": "high enthalpy geothermal"
-    # based on https://www.nature.com/articles/s44359-024-00019-9.pdf
-    "advanced geothermal systems (AGS)": "high enthalpy geothermal"
-    "enhanced geothermal systems (EGS)": "high enthalpy geothermal"
-hydropower:
-  technology_mapping:
-    "STO": "reservoir"
-    "Canal": "run of river"
-    "ROR": "run of river"
-    "PS": "pump storage"
-    "unknown": "reservoir"
-nuclear:
-  technology_mapping:
-    "pressurized heavy water reactor": "nuclear reactor"
-    "pressurized water reactor": "nuclear reactor"
-    "small modular reactor": "nuclear reactor"
-    "heavy water light water reactor": "nuclear reactor"
-    "high temperature gas reactor": "nuclear reactor"
-    "fast breeder reactor": "nuclear reactor"
-    "molten salt reactor": "nuclear reactor"
-    "boiling water reactor": "nuclear reactor"
-    "heavy water gas-cooled reactor": "nuclear reactor"
-    "gas-cooled reactor": "nuclear reactor"
-    "light water graphite reactor": "nuclear reactor"
-    "steam-generating heavy water reactor": "nuclear reactor"
-    "liquid-metal-cooled fast reactor": "nuclear reactor"
-    "fast neutron reactor": "nuclear reactor"
-    "unknown": "nuclear reactor"
-oil_gas:
-  technology_mapping:
-    "AFC": "ccgt"
-    "combined cycle": "ccgt"
-    "gas turbine": "ocgt"
-    "ICCC": "ccgt"
-    "IGCC": "igcc"
-    "internal combustion": "reciprocating engine"
-    "ISCC": "ccgt"
-    "steam turbine": "steam turbine"
-    "unknown": "ocgt"
+  "fossil gas: unknown": "natural gas"
+
+imputation:
+  lifetime_yr:
+    bioenergy turbine: 25
+    ccgt: 20
+    coal turbine: 50
+    concentrated solar: 25
+    high enthalpy geothermal: 30
+    igcc: 25
+    low enthalpy geothermal: 30
+    nuclear reactor: 50
+    ocgt: 20
+    offshore: 25
+    onshore: 25
+    pump storage: 80
+    reciprocating engine: 20
+    reservoir: 80
+    run of river: 80
+    steam turbine: 30
+    utility pv: 25
+  operating_to_retired_delay_yr:
+    bioenergy turbine: 5
+    ccgt: 5
+    coal turbine: 5
+    concentrated solar: 2
+    high enthalpy geothermal: 5
+    igcc: 5
+    low enthalpy geothermal: 5
+    nuclear reactor: 5
+    ocgt: 5
+    offshore: 2
+    onshore: 2
+    pump storage: 10
+    reciprocating engine: 5
+    reservoir: 10
+    run of river: 10
+    steam turbine: 5
+    utility pv: 2

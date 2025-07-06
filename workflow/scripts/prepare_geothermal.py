@@ -27,7 +27,7 @@ def main(
                 raw_df, ["gem_location_id", "gem_unit_id"], prefix="GEM_"
             ),
             "name": _utils.get_combined_text_col(raw_df, ["project_name", "unit_name"]),
-            "category": "nuclear",
+            "category": "geothermal",
             "technology": gem.technology_col(
                 raw_df, technology_mapping, col="technology"
             ),

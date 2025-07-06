@@ -62,7 +62,7 @@ class PlantSchema(DataFrameModel):
     # Identifiers
     powerplant_id: Series[str] = Field(unique=True)
     "Unique ID for the powerplant."
-    name: Series[str] = Field(nullable=True)
+    name: Series[str]
     "Human readable powerplant name."
     # Technology characteristics
     category: Series[str] = Field(isin=PLANT_CATEGORIES)
