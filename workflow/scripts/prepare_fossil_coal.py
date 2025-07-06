@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 sys.stderr = open(snakemake.log[0], "w")
 
 STATUS_MAPPING = {
-    "announced": "planned",
-    "pre-permit": "planned",
-    "permitted": "planned",
-    "construction": "planned",
+    "announced": "announced",
+    "pre-permit": "pre-construction",
+    "permitted": "pre-construction",
+    "construction": "construction",
     "operating": "operating",
     "mothballed": "retired",
     "retired": "retired",
@@ -85,7 +85,7 @@ def main(
         {
             "powerplant_id": powerplant_id,
             "name": _utils.get_combined_text_col(raw_df, ["plant_name", "unit_name"]),
-            "category": "coal",
+            "category": "fossil",
             "technology": gem.technology_col(
                 raw_df, technology_mapping, col="combustion_technology"
             ),
@@ -98,7 +98,8 @@ def main(
             "chp": False,  # Not specified in GCPT
         }
     ).reset_index(drop=True)
-    _schemas.CombustionSchema.validate(coal_df).to_parquet(output_plants_path)
+    schema = _schemas.build_schema("fossil", technology_mapping, "prepare")
+    schema.validate(coal_df).to_parquet(output_plants_path)
 
     combined_fuel_col = _fuel(raw_df)
     fuels_df = pd.DataFrame(

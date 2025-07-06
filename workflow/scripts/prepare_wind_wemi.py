@@ -9,14 +9,15 @@ import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import yaml
 from _utils import get_point_col
 
 WEMI_CRS = "EPSG:4326"
 KW_TO_MW = 1 / 1000
 STATUS_MAPPING = {
-    "Planned": "planned",
-    "Approved": "planned",
-    "Construction": "planned",
+    "Planned": "announced",
+    "Approved": "pre-construction",
+    "Construction": "construction",
     "Production": "operating",
     "Dismantled": "retired",
 }
@@ -42,13 +43,15 @@ def _start_year(raw_df: pd.DataFrame) -> pd.Series:
 
 
 @click.command()
-@click.argument("input_path")
-@click.argument("output_path")
-def main(input_path: str, output_path: str):
+@click.argument("input_path", type=str)
+@click.argument("technology_mapping", type=str)
+@click.argument("output_path", type=str)
+def main(input_path: str, technology_mapping: str, output_path: str):
     """Saves a standardised and validated version of the WEMI dataset."""
     raw_df = pd.read_excel(
         input_path, sheet_name="Windfarms", skiprows=[1], na_values=["#ND"]
     )
+    tech_map = yaml.safe_load(technology_mapping)
     # Cleanup columns with problematic empty values.
     raw_df = raw_df.dropna(subset=["Total power", "Latitude", "Longitude"])
 
@@ -58,7 +61,7 @@ def main(input_path: str, output_path: str):
             "powerplant_id": _powerplant_id(raw_df),
             "name": raw_df["Name"],
             "category": "wind",
-            "technology": _technology(raw_df),
+            "technology": _technology(raw_df).map(tech_map),
             "output_capacity_mw": _output_capacity_mw(raw_df),
             "start_year": start_year,
             "end_year": np.nan,
@@ -67,7 +70,8 @@ def main(input_path: str, output_path: str):
         },
         crs=WEMI_CRS,
     )
-    _schemas.PlantSchema.validate(processed_df).to_parquet(output_path)
+    schema = _schemas.build_schema("wind", tech_map, "prepare")
+    schema.validate(processed_df).to_parquet(output_path)
 
 
 if __name__ == "__main__":

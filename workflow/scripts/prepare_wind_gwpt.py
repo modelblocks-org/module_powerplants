@@ -11,8 +11,9 @@ import _utils
 import click
 import geopandas as gpd
 import pandas as pd
+import yaml
 
-TECHNOLOGY_MAPPING = {
+INTERNAL_TECH_MAPPING = {
     "Onshore": "onshore",
     "Offshore floating": "offshore",
     "Offshore hard mount": "offshore",
@@ -21,14 +22,16 @@ TECHNOLOGY_MAPPING = {
 
 
 def _technology(gem_df: pd.DataFrame):
-    return gem_df["installation_type"].apply(lambda x: TECHNOLOGY_MAPPING[x])
+    return  gem_df["installation_type"].apply(lambda x: INTERNAL_TECH_MAPPING[x])
 
 
 @click.command()
-@click.argument("gem_gwpt_path")
-@click.argument("output_path")
+@click.argument("gem_gwpt_path", type=str)
+@click.argument("tech_mapping", type=str)
+@click.argument("output_path", type=str)
 def main(
     gem_gwpt_path: str,
+    tech_mapping: str,
     output_path: str,
 ):
     """Obtain concentrated wind power locations using GEM-GSPT data."""
@@ -36,6 +39,8 @@ def main(
     # Remove unknown installation types to avoid misplacement
     raw_df = raw_df[raw_df["installation_type"] != "Unknown"]
     raw_df = raw_df.dropna(subset=["installation_type"])
+
+    tech_map = yaml.safe_load(tech_mapping)
 
     wind_df = gpd.GeoDataFrame(
         {
@@ -46,7 +51,7 @@ def main(
                 raw_df, ["project_name", "phase_name"]
             ),
             "category": "wind",
-            "technology": _technology(raw_df),
+            "technology": _technology(raw_df).map(tech_map),
             "output_capacity_mw": raw_df["capacity_(mw)"],
             "start_year": gem.year_col(raw_df, "start"),
             "end_year": gem.year_col(raw_df, "end"),
@@ -54,7 +59,8 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     )
-    _schemas.PlantSchema.validate(wind_df).to_parquet(output_path)
+    schema = _schemas.build_schema("wind", tech_map, "prepare")
+    schema.validate(wind_df).to_parquet(output_path)
 
 
 if __name__ == "__main__":

@@ -41,7 +41,8 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
-    _schemas.PlantSchema.validate(nuclear_df).to_parquet(output_plants_path)
+    schema = _schemas.build_schema("nuclear", technology_mapping, "prepare")
+    schema.validate(nuclear_df).to_parquet(output_plants_path)
 
 
 if __name__ == "__main__":

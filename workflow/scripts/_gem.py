@@ -15,9 +15,9 @@ _DROPPED_NA_COLUMNS = ["capacity_(mw)", "latitude", "longitude"]
 
 
 _STATUS_MAPPING = {
-    "announced": "planned",
-    "pre-construction": "planned",
-    "construction": "planned",
+    "announced": "announced",
+    "pre-construction": "pre-construction",
+    "construction": "construction",
     "operating": "operating",
     "mothballed": "retired",
     "retired": "retired",

@@ -16,12 +16,13 @@ rule prepare_hydropower:
     script:
         "../scripts/prepare_hydropower.py"
 
-# TODO: technology_mapping?
+
 rule prepare_solar_utility_pv:
     message:
         "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     params:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["utility_pv"],
+        tech_name=config["category"]["solar"]["technology_mapping"]["utility_pv"]
     input:
         script=workflow.source_path("../scripts/prepare_solar_utility_pv.py"),
         tz_sam="resources/automatic/downloads/TZ-SAM.gpkg",
@@ -33,14 +34,17 @@ rule prepare_solar_utility_pv:
     conda:
         "../envs/shapes.yaml",
     shell:
-        "python {input.script} {input.tz_sam} {input.gem_gspt} {output} --dc_ac_ratio {params.dc_ac_ratio}"
+        """
+        python "{input.script}" "{input.tz_sam}" "{input.gem_gspt}" "{output}" --tech_name "{params.tech_name}" --dc_ac_ratio {params.dc_ac_ratio} 2> "{log}"
+        """
 
-# TODO: technology mapping?
+
 rule prepare_solar_csp:
     message:
         "Preparing concentrated solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["csp"],
+        tech_name=config["category"]["solar"]["technology_mapping"]["csp"]
     input:
         script=workflow.source_path("../scripts/prepare_solar_csp.py"),
         gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
@@ -51,15 +55,18 @@ rule prepare_solar_csp:
     conda:
         "../envs/shapes.yaml",
     shell:
-        "python {input.script} {input.gem_gspt} {output} --dc_ac_ratio {params.dc_ac_ratio}"
+        """
+        python "{input.script}" "{input.gem_gspt}" "{output}" --tech_name "{params.tech_name}" --dc_ac_ratio "{params.dc_ac_ratio}" 2> {log}
+        """
 
 
-# TODO: technology mapping?
 if config["category"]["wind"]["source"] == "gem":
 
     rule prepare_wind_gem:
         message:
             "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
+        params:
+            tech_map = config["category"]["wind"]["technology_mapping"]
         input:
             script=workflow.source_path("../scripts/prepare_wind_gwpt.py"),
             gem_gwpt="resources/automatic/downloads/GEM_GWPT.xlsx",
@@ -70,13 +77,17 @@ if config["category"]["wind"]["source"] == "gem":
         conda:
             "../envs/shapes.yaml",
         shell:
-            "python {input.script} {input.gem_gwpt} {output}"
+            """
+            python "{input.script}" "{input.gem_gwpt}" "{params.tech_map}" "{output}" 2>"{log}"
+            """
 
 elif config["category"]["wind"]["source"] == "wemi":
 
     rule prepare_wind_wemi:
         message:
             "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
+        params:
+            tech_map = config["category"]["wind"]["technology_mapping"]
         input:
             script=workflow.source_path("../scripts/prepare_wind_wemi.py"),
             wemi="resources/user/WEMI.xls",
@@ -87,7 +98,9 @@ elif config["category"]["wind"]["source"] == "wemi":
         conda:
             "../envs/shapes.yaml"
         shell:
-            "python {input.script} {input.wemi} {output}"
+            """
+            python "{input.script}" "{input.wemi}" "{params.tech_map}" "{output}" 2> "{log}"
+            """
 
 else:
     raise ValueError(f"Incorrect wind source configuration value '{config['wind']['source']}'")

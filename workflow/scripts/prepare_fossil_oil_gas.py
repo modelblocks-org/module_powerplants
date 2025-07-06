@@ -46,7 +46,7 @@ def main(
         {
             "powerplant_id": powerplant_id,
             "name": _utils.get_combined_text_col(raw_df, ["plant_name", "unit_name"]),
-            "category": "oil_gas",
+            "category": "fossil",
             "technology": gem.technology_col(
                 raw_df, technology_mapping, col="turbine/engine_technology"
             ),
@@ -59,7 +59,8 @@ def main(
             "chp": raw_df["chp"] == "yes",
         }
     ).reset_index(drop=True)
-    _schemas.CombustionSchema.validate(oil_gas_df).to_parquet(output_plants_path)
+    schema = _schemas.build_schema("fossil", technology_mapping, "prepare")
+    schema.validate(oil_gas_df).to_parquet(output_plants_path)
 
     fuels_df = pd.DataFrame(
         {

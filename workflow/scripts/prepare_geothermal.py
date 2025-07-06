@@ -21,7 +21,7 @@ def main(
         gem_ggpt_path, ["Data"], ["unit_capacity_(mw)", "latitude", "longitude"]
     )
 
-    nuclear_df = gpd.GeoDataFrame(
+    geo_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
                 raw_df, ["gem_location_id", "gem_unit_id"], prefix="GEM_"
@@ -38,7 +38,8 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
-    _schemas.PlantSchema.validate(nuclear_df).to_parquet(output_plants_path)
+    schema = _schemas.build_schema("geothermal", technology_mapping, "prepare")
+    schema.validate(geo_df).to_parquet(output_plants_path)
 
 
 if __name__ == "__main__":

@@ -55,7 +55,8 @@ def main(
             "chp": False,
         }
     ).reset_index(drop=True)
-    _schemas.CombustionSchema.validate(bioenergy_df).to_parquet(output_plants_path)
+    schema = _schemas.build_schema("bioenergy", technology_mapping, "prepare")
+    schema.validate(bioenergy_df).to_parquet(output_plants_path)
 
     fuels_df = pd.DataFrame(
         {

@@ -64,7 +64,7 @@ category:
 
   solar:
     technology_mapping:
-      csp: "csp"
+      csp: "concentrated solar power"
       rooftop_pv: "rooftop pv"
       utility_pv: "utility pv"
     dc_ac_ratio:
@@ -72,7 +72,7 @@ category:
       utility_pv: 1.25
 
   wind:
-    source: "wemi" # options: wemi, gem_gwpt
+    source: "gem" # options: wemi, gem
     technology_mapping:
       offshore: "offshore"
       onshore: "onshore"

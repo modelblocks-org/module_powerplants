@@ -8,11 +8,13 @@ import geopandas as gpd
 
 
 @click.command()
-@click.argument("gem_gspt_path")
-@click.argument("output_path")
+@click.argument("gem_gspt_path", type=str)
+@click.argument("output_path", type=str)
+@click.option("--tech_name", type=str)
 @click.option("--dc_ac_ratio", default=1.25)
 def main(
     gem_gspt_path: str,
+    tech_name: str,
     output_path: str,
     dc_ac_ratio: float = 1.25,
 ):
@@ -29,7 +31,7 @@ def main(
                 raw_df, ["project_name", "phase_name"]
             ),
             "category": "solar",
-            "technology": "concentrated solar",
+            "technology": tech_name,
             "output_capacity_mw": gem.output_capacity_mw_gspt(
                 raw_df, dc_ac_ratio, "AC"
             ),
@@ -39,7 +41,8 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
-    _schemas.PlantSchema.validate(csp_df).to_parquet(output_path)
+    schema = _schemas.build_schema("solar", {"csp": tech_name}, "prepare")
+    schema.validate(csp_df).to_parquet(output_path)
 
 
 if __name__ == "__main__":
