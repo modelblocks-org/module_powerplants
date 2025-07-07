@@ -1,7 +1,5 @@
 """General utilities shared across rules."""
 
-
-
 import geopandas as gpd
 import pandas as pd
 
@@ -24,4 +22,17 @@ def get_combined_text_col(
     prefix: str = "",
     suffix: str = "",
 ):
+    """Vectorised combination of string columns with prefix, suffix and separators.
+
+    Form: {prefix}col1{sep}col2{sep}...coln{suffix}.
+    """
     return prefix + raw[cols].astype(str).agg(sep.join, axis="columns") + suffix
+
+
+def check_single_category(df: pd.DataFrame) -> str:
+    """Quick validation for single-category datasets."""
+    categories = df["category"].unique()
+    if len(categories) != 1:
+        raise ValueError(f"Cannot impute multi-category datasets. Found '{categories}'")
+    return categories[0]
+

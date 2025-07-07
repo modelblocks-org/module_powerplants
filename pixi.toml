@@ -50,3 +50,6 @@ build-docs = {cmd = "mkdocs build"}
 
 [environments]
 docs = ["docs"]
+
+[pypi-dependencies]
+gregor = ">=0.0.2, <0.0.3"

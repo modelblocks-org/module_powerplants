@@ -102,12 +102,7 @@ class HydroSchema(PlantSchema):
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
 
 
-Category = Literal[
-    "nuclear", "geothermal", "hydropower", "solar", "wind", "bioenergy", "fossil"
-]
-Stage = Literal["prepare", "impute"]
-
-PLANT_CATEGORIES: Mapping[Category, type[PlantSchema]] = {
+PLANT_CATEGORIES: Mapping[str, type[PlantSchema]] = {
     "nuclear": PlantSchema,
     "geothermal": PlantSchema,
     "hydropower": HydroSchema,
@@ -131,7 +126,7 @@ IMPUTED_STATUS = {"planned", "operating", "retired"}
 
 
 def build_schema(
-    category: Category,
+    category: str,
     tech_mapping: dict[str, str],
     stage: Literal["prepare", "impute"],
 ) -> pa.DataFrameSchema:
