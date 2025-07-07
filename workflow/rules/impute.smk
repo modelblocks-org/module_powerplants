@@ -1,6 +1,6 @@
 
 lifetime_set = set(config["imputation"]["lifetime_yr"].keys())
-mismatch = lifetime_set ^ set(config["imputation"]["operating_to_retired_delay_yr"])
+mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_yr"])
 if mismatch:
     raise ValueError(f"Imputed lifetimes and retirement delay mismatch: {mismatch}.")
 
@@ -29,8 +29,7 @@ rule impute:
     message:
         "Impute missing values to each technology dataset."
     params:
-        lifetimes=config["imputation"]["lifetime_yr"],
-        delay=config["imputation"]["operating_to_retired_delay_yr"],
+        imputation=config["imputation"],
         tech_map=lambda wc: get_technology_mapping(wc.dataset)
     input:
         script=workflow.source_path("../scripts/impute.py"),
@@ -47,6 +46,6 @@ rule impute:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" main "{input.prepared}" "{input.shapes}" "{params.tech_map}" "{params.lifetimes}" "{params.delay}" "{output.imputed}" 2> "{log}"
+        python "{input.script}" main "{input.prepared}" "{input.shapes}" "{params.imputation}" "{params.tech_map}" "{output.imputed}" 2> "{log}"
         python "{input.script}" plot "{output.imputed}" "{output.plot}" 2> "{log}"
         """

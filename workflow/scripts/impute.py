@@ -11,6 +11,14 @@ import numpy as np
 import pandas as pd
 import yaml
 
+HISTORICAL = {"operating","retired"}
+SCENARIO_MAP = {
+    "historical": HISTORICAL,
+    "near-future": HISTORICAL | {"construction"},
+    "far-future": HISTORICAL | {"construction", "pre-construction"},
+    "far-off-future": HISTORICAL | {"construction", "pre-construction", "announced"}
+}
+
 
 def impute_start_year(
     prepared_df: pd.DataFrame, lifetimes: dict[str, int]
@@ -87,42 +95,44 @@ def cli():
 @cli.command()
 @click.argument("prepared_path", type=str)
 @click.argument("shapes_path", type=str)
+@click.argument("imputation", type=str)
 @click.argument("technology_mapping", type=str)
-@click.argument("lifetime_mapping", type=str)
-@click.argument("delay_mapping", type=str)
 @click.argument("output_path", type=str)
 def main(
     prepared_path: str,
     shapes_path: str,
+    imputation: str,
     technology_mapping: str,
-    lifetime_mapping: str,
-    delay_mapping: str,
     output_path: str,
 ):
     """Add automatic and user imputations to fill missing data."""
     prepared = gpd.read_parquet(prepared_path)
     shapes = gpd.read_parquet(shapes_path)
-    tech_map = yaml.safe_load(technology_mapping)
-    lifetimes = yaml.safe_load(lifetime_mapping)
-    delay = yaml.safe_load(delay_mapping)
 
+    tech_map = yaml.safe_load(technology_mapping)
+    imputation_cnf = yaml.safe_load(imputation)
+    lifetimes = imputation_cnf["lifetime_yr"]
+    retirement_delay_yr = imputation_cnf["retirement_delay_yr"]
+    scenario = SCENARIO_MAP[imputation_cnf["scenario"]]
+
+    # Ensure we are working with a valid single-category file.
     categories = prepared["category"].unique()
     if len(categories) != 1:
         raise ValueError(f"Cannot impute multi-category datasets. Found '{categories}'")
     category = categories[0]
 
+    # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
-        prepared,
+        prepared[prepared["status"].isin(scenario)],
         shapes[["country_id", "geometry"]],
         predicate="intersects",
         how="inner",
     )
     imputed = imputed.drop("index_right", axis="columns")
-    lifetimes = yaml.safe_load(lifetime_mapping)
 
     # Adjust project dates
     imputed["start_year"] = impute_start_year(imputed, lifetimes)
-    imputed["end_year"] = impute_end_year(imputed, lifetimes, delay)
+    imputed["end_year"] = impute_end_year(imputed, lifetimes, retirement_delay_yr)
 
     # Drop projects with insufficient date data and then adjust status.
     imputed = imputed.dropna(subset=["start_year", "end_year"])
@@ -176,7 +186,7 @@ def plot(imputed_path: str, output_path: str, colormap):
         rows,
         cols,
         figsize=(cols * 5, rows * 4),
-        sharex=True,
+        sharex=False,
         sharey=False,
         constrained_layout=True,
     )

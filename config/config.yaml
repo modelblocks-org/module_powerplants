@@ -84,6 +84,7 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
+  scenario: "near-future" # near-future, far-future, far-off-future
   lifetime_yr:
     bioenergy turbine: 25
     ccgt: 20
@@ -103,7 +104,7 @@ imputation:
     run of river: 80
     steam turbine: 30
     utility pv: 25
-  operating_to_retired_delay_yr:
+  retirement_delay_yr:
     bioenergy turbine: 5
     ccgt: 5
     coal turbine: 5
