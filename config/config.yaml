@@ -64,7 +64,7 @@ category:
 
   solar:
     technology_mapping:
-      csp: "concentrated solar power"
+      csp: "concentrated solar"
       rooftop_pv: "rooftop pv"
       utility_pv: "utility pv"
     dc_ac_ratio:
@@ -72,7 +72,7 @@ category:
       utility_pv: 1.25
 
   wind:
-    source: "gem" # options: wemi, gem
+    source: "wemi" # options: wemi, gem
     technology_mapping:
       offshore: "offshore"
       onshore: "onshore"
@@ -99,6 +99,7 @@ imputation:
     pump storage: 80
     reciprocating engine: 20
     reservoir: 80
+    rooftop pv: 5
     run of river: 80
     steam turbine: 30
     utility pv: 25
@@ -117,6 +118,7 @@ imputation:
     pump storage: 10
     reciprocating engine: 5
     reservoir: 10
+    rooftop pv: 5
     run of river: 10
     steam turbine: 5
     utility pv: 2

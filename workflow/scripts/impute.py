@@ -87,12 +87,14 @@ def cli():
 @cli.command()
 @click.argument("prepared_path", type=str)
 @click.argument("shapes_path", type=str)
+@click.argument("technology_mapping", type=str)
 @click.argument("lifetime_mapping", type=str)
 @click.argument("delay_mapping", type=str)
 @click.argument("output_path", type=str)
 def main(
     prepared_path: str,
     shapes_path: str,
+    technology_mapping: str,
     lifetime_mapping: str,
     delay_mapping: str,
     output_path: str,
@@ -100,8 +102,14 @@ def main(
     """Add automatic and user imputations to fill missing data."""
     prepared = gpd.read_parquet(prepared_path)
     shapes = gpd.read_parquet(shapes_path)
+    tech_map = yaml.safe_load(technology_mapping)
     lifetimes = yaml.safe_load(lifetime_mapping)
     delay = yaml.safe_load(delay_mapping)
+
+    categories = prepared["category"].unique()
+    if len(categories) != 1:
+        raise ValueError(f"Cannot impute multi-category datasets. Found '{categories}'")
+    category = categories[0]
 
     imputed = gpd.sjoin(
         prepared,
@@ -120,7 +128,8 @@ def main(
     imputed = imputed.dropna(subset=["start_year", "end_year"])
     imputed["status"] = impute_status(imputed)
 
-    _schemas.PlantSchema.validate(imputed).to_parquet(output_path)
+    schema = _schemas.build_schema(category, tech_map, "impute")
+    schema.validate(imputed).to_parquet(output_path)
 
 
 @cli.command()
@@ -143,7 +152,7 @@ def plot(imputed_path: str, output_path: str, colormap):
         fig, ax = plt.subplots()
         draw_empty(ax, "")
         fig.suptitle(suptitle, fontsize=14)
-        plt.show()
+        fig.savefig(output_path)
         return
 
     # Year range (x-axis)

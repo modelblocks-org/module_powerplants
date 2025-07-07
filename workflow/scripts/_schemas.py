@@ -101,25 +101,20 @@ class FuelSchema(DataFrameModel):
 class HydroSchema(PlantSchema):
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
 
+
 Category = Literal[
-    "nuclear",
-    "geothermal",
-    "hydropower",
-    "solar",
-    "wind",
-    "bioenergy",
-    "fossil",
+    "nuclear", "geothermal", "hydropower", "solar", "wind", "bioenergy", "fossil"
 ]
 Stage = Literal["prepare", "impute"]
 
 PLANT_CATEGORIES: Mapping[Category, type[PlantSchema]] = {
-    "nuclear":    PlantSchema,
+    "nuclear": PlantSchema,
     "geothermal": PlantSchema,
     "hydropower": HydroSchema,
-    "solar":      PlantSchema,
-    "wind":       PlantSchema,
-    "bioenergy":  CombustionSchema,
-    "fossil":     CombustionSchema,
+    "solar": PlantSchema,
+    "wind": PlantSchema,
+    "bioenergy": CombustionSchema,
+    "fossil": CombustionSchema,
 }
 
 
@@ -147,11 +142,14 @@ def build_schema(
         # Years can be empty during preparation stages
         year_overrides: list[tuple[str, dict]] = [
             ("start_year", {"nullable": True}),
-            ("end_year", {"nullable": True})
+            ("end_year", {"nullable": True}),
         ]
     elif stage == "impute":
         status_set = IMPUTED_STATUS
         year_overrides = []
+        schema = schema.add_columns(
+            {"country_id": pa.Column(str, checks=pa.Check.str_length(3, 3))}
+        )
     else:
         raise ValueError(f"Incorrect stage given: '{stage}'.")
 
@@ -160,7 +158,7 @@ def build_schema(
         *year_overrides,
         ("category", {"checks": pa.Check.equal_to(category)}),
         ("technology", {"checks": pa.Check.isin(techs)}),
-        ("status", {"checks": pa.Check.isin(status_set)})
+        ("status", {"checks": pa.Check.isin(status_set)}),
     ]
     for col, kwargs in overrides:
         schema = schema.update_column(col, **kwargs)
