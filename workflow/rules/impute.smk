@@ -82,7 +82,8 @@ rule impute_combined:
     message:
         "Combine and impute user-configured inclusions and exclusions for {wildcards.category}."
     params:
-        tech_map=lambda wc: get_technology_mapping(f"{wc.category}")
+        tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
+        excluded=lambda wc: config["category"][wc.category].get("excluded_ids", [])
     input:
         script=workflow.source_path("../scripts/impute_combined.py"),
         to_combine=  lambda wc: get_files_to_combine(f"{wc.category}")
@@ -96,9 +97,5 @@ rule impute_combined:
         "logs/impute_combined_{category}.log",
     conda:
         "../envs/shapes.yaml",
-    shell:
-        """
-        python {input.script} impute {input.to_combine} -o {output.combined} -t "{params.tech_map}" 2> {log}
-        python {input.script} plot {output.combined} {output.plot} 2> {log}
-        python {input.script} explore {output.combined} {output.explore} 2> {log}
-        """
+    script:
+        "../scripts/impute_combined.py"

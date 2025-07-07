@@ -36,3 +36,9 @@ def check_single_category(df: pd.DataFrame) -> str:
         raise ValueError(f"Cannot impute multi-category datasets. Found '{categories}'")
     return categories[0]
 
+
+def listify(items: str | list[str]) -> list[str]:
+    """Avoids ambiguity in YAML list parameters."""
+    if isinstance(items, str):
+        items = [items]
+    return items

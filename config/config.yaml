@@ -4,6 +4,10 @@ category:
       "unknown": "bioenergy turbine"
 
   fossil:
+    excluded_ids:
+      # Remove all 'mobile' powerstations in Nigeria
+      - GEM_L100000408946-G100000413230
+      - GEM_L100000408946-G100000413232
     technology_mapping:
       coal:
         CFB: "coal turbine"
