@@ -116,7 +116,7 @@ rule prepare_fossil_coal:
         gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
         plants="resources/automatic/prepared/fossil_coal.parquet",
-        fuels="results/disaggregated/fuels/fossil_coal.parquet"
+        fuels="resources/automatic/fuels/fossil_coal.parquet"
     log:
         "logs/prepare_fossil_coal.log"
     conda:
@@ -135,7 +135,7 @@ rule prepare_bioenergy:
         gem_gbpt="resources/automatic/downloads/GEM_GBPT.xlsx",
     output:
         plants="resources/automatic/prepared/bioenergy.parquet",
-        fuels="results/disaggregated/fuels/bioenergy.parquet"
+        fuels="resources/automatic/fuels/bioenergy.parquet"
     log:
         "logs/prepare_bioenergy.log"
     conda:
@@ -153,7 +153,7 @@ rule prepare_fossil_oil_gas:
         gem_gogpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
     output:
         plants="resources/automatic/prepared/fossil_oil_gas.parquet",
-        fuels="results/disaggregated/fuels/fossil_oil_gas.parquet"
+        fuels="resources/automatic/fuels/fossil_oil_gas.parquet"
     log:
         "logs/prepare_fossil_oil_gas.log"
     conda:
@@ -195,19 +195,20 @@ rule prepare_geothermal:
     script:
         "../scripts/prepare_geothermal.py"
 
+
 rule prepare_statistics:
     message:
         "Get EIA annual country capacity statistics."
     input:
         script = workflow.source_path("../scripts/prepare_statistics.py"),
-        shapes="resources/user/shapes.parquet",
-        eia_bulk="resources/automatic/eia/INTL.txt",
+        shapes="resources/user/shapes/{shapes}.parquet",
+        eia_bulk="resources/automatic/downloads/EIA-INTL.txt",
     output:
-        total="results/statistics/total_capacity.parquet",
-        categories="results/statistics/category_capacity.parquet",
-        plot="results/statistics/category_capacity.pdf"
+        total="results/{shapes}/statistics/total_capacity.parquet",
+        categories="results/{shapes}/statistics/category_capacity.parquet",
+        plot="results/{shapes}/statistics/category_capacity.pdf"
     log:
-        "logs/prepare_statistics.log",
+        "logs/prepare_statistics_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
     shell:

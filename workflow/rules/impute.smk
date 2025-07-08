@@ -32,22 +32,22 @@ def get_technology_mapping(filename: str):
     return mapping
 
 
-def get_files_to_combine(category):
+def get_files_to_combine(shapes, category):
     to_combine = []
     if category == "solar":
         to_combine += [
-            "resources/automatic/imputed/solar_utility_pv.parquet",
-            "resources/automatic/imputed/solar_csp.parquet",
+            f"resources/automatic/{shapes}/imputed/solar_utility_pv.parquet",
+            f"resources/automatic/{shapes}/imputed/solar_csp.parquet",
         ]
     elif category == "fossil":
         to_combine += [
-            "resources/automatic/imputed/fossil_coal.parquet",
-            "resources/automatic/imputed/fossil_oil_gas.parquet",
+            f"resources/automatic/{shapes}/imputed/fossil_coal.parquet",
+            f"resources/automatic/{shapes}/imputed/fossil_oil_gas.parquet",
         ]
     else:
-        to_combine.append(f"resources/automatic/imputed/{category}.parquet")
+        to_combine.append(f"resources/automatic/{shapes}/imputed/{category}.parquet")
 
-    user_path = f"resources/user/impute/{category}.parquet"
+    user_path = f"resources/user/{shapes}/imputed_{category}.parquet"
     if exists(user_path):
         to_combine.append(user_path)
     return to_combine
@@ -55,21 +55,21 @@ def get_files_to_combine(category):
 
 rule impute_years:
     message:
-        "Imputing missing years values to {wildcards.dataset} dataset."
+        "Imputing missing years values for {wildcards.shapes}-{wildcards.dataset} dataset."
     params:
         imputation=config["imputation"],
         tech_map=lambda wc: get_technology_mapping(wc.dataset)
     input:
         script=workflow.source_path("../scripts/impute_years.py"),
         prepared="resources/automatic/prepared/{dataset}.parquet",
-        shapes="resources/user/shapes.parquet"
+        shapes="resources/user/shapes/{shapes}.parquet"
     output:
-        imputed="resources/automatic/imputed/{dataset}.parquet",
-        plot="resources/automatic/imputed/{dataset}.pdf"
+        imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
+        plot="resources/automatic/{shapes}/imputed/{dataset}.pdf"
     wildcard_constraints:
         dataset = "|".join(['bioenergy', 'fossil_coal', 'fossil_oil_gas', 'geothermal', 'hydropower', 'nuclear', 'solar_csp', 'solar_utility_pv', 'wind'])
     log:
-        "logs/impute_years_{dataset}.log",
+        "logs/impute_years_{shapes}_{dataset}.log",
     conda:
         "../envs/shapes.yaml",
     shell:
@@ -80,21 +80,21 @@ rule impute_years:
 
 rule impute_combined:
     message:
-        "Combine and impute user-configured inclusions and exclusions for {wildcards.category}."
+        "Combine and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
         excluded=lambda wc: config["category"][wc.category].get("excluded_ids", [])
     input:
         script=workflow.source_path("../scripts/impute_combined.py"),
-        to_combine=  lambda wc: get_files_to_combine(f"{wc.category}")
+        to_combine=  lambda wc: get_files_to_combine(wc.shapes, wc.category)
     output:
-        combined="results/disaggregated/capacity/{category}.parquet",
-        plot="results/disaggregated/capacity/{category}.pdf",
-        explore="results/disaggregated/capacity/{category}.html"
+        combined="results/{shapes}/disaggregated/capacity/{category}.parquet",
+        plot="results/{shapes}/disaggregated/capacity/{category}.pdf",
+        explore="results/{shapes}/disaggregated/capacity/{category}.html"
     wildcard_constraints:
         category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'solar', 'wind'])
     log:
-        "logs/impute_combined_{category}.log",
+        "logs/impute_combined_{shapes}_{category}.log",
     conda:
         "../envs/shapes.yaml",
     script:

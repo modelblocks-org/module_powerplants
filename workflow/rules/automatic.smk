@@ -10,7 +10,7 @@ rule download_eia:
     input:
         script=workflow.source_path("../scripts/unzip_webfile.py"),
     output:
-        path=temp("resources/automatic/eia/INTL.txt"),
+        path="resources/automatic/downloads/EIA-INTL.txt",
     log:
         "logs/download_eia.log",
     conda:
