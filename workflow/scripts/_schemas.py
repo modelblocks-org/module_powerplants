@@ -47,7 +47,7 @@ class ShapeSchema(DataFrameModel):
 class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
-        strict = True
+        strict = False
 
     index: Index[int] = Field(unique=True)
 

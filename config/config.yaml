@@ -43,7 +43,7 @@ category:
   hydropower:
     technology_mapping:
       Canal: "run of river"
-      PS: "pump storage"
+      PS: "pumped storage"
       ROR: "run of river"
       STO: "reservoir"
       unknown: "reservoir"
@@ -88,6 +88,7 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
+  adjustment_yr: 2023
   scenario: "near-future" # near-future, far-future, far-off-future
   lifetime_yr:
     bioenergy turbine: 25
@@ -101,7 +102,7 @@ imputation:
     ocgt: 20
     offshore: 25
     onshore: 25
-    pump storage: 80
+    pumped storage: 80
     reciprocating engine: 20
     reservoir: 80
     rooftop pv: 5
@@ -120,7 +121,7 @@ imputation:
     ocgt: 5
     offshore: 2
     onshore: 2
-    pump storage: 10
+    pumped storage: 10
     reciprocating engine: 5
     reservoir: 10
     rooftop pv: 5

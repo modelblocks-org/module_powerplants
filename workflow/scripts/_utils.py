@@ -1,7 +1,10 @@
 """General utilities shared across rules."""
 
+from typing import Literal
+
 import geopandas as gpd
 import pandas as pd
+from pandas.api.types import is_list_like
 
 # Average year where disaggregated datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UDPATED!
@@ -37,8 +40,32 @@ def check_single_category(df: pd.DataFrame) -> str:
     return categories[0]
 
 
-def listify(items: str | list[str]) -> list[str]:
+def listify(item) -> list:
     """Avoids ambiguity in YAML list parameters."""
-    if isinstance(items, str):
-        items = [items]
-    return items
+    return item if is_list_like(item) else [item]
+
+
+def filter_years(
+    powerplants_df: pd.DataFrame,
+    year: int,
+    how: Literal["operating", "future"] = "operating",
+) -> pd.DataFrame:
+    """Standardised filtering of powerplants based on start / end years.
+
+    Args:
+        powerplants_df (pd.DataFrame): powerplant dataset to filter.
+        year (int): year to filter.
+        how (Literal["operating", "future"], optional): filtering approach. Defaults to "operating".
+        - "operating": only powerplants active in the given year.
+        - "future": powerplants active and planned projects in the given year.
+
+    Returns:
+        pd.DataFrame: copy of the given dataframe after filtering applied.
+    """
+    if how == "operating":
+        filtered = powerplants_df[
+            (powerplants_df["start_year"] <= year) & (year < powerplants_df["end_year"])
+        ].copy()
+    elif how == "future":
+        filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
+    return filtered

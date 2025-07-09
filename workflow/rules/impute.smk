@@ -78,14 +78,13 @@ rule impute_years:
         python "{input.script}" plot "{output.imputed}" "{output.plot}" 2> "{log}"
         """
 
-rule impute_combined:
+rule impute_category_combination:
     message:
         "Combine and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
         excluded=lambda wc: config["category"][wc.category].get("excluded_ids", [])
     input:
-        script=workflow.source_path("../scripts/impute_combined.py"),
         to_combine=  lambda wc: get_files_to_combine(wc.shapes, wc.category)
     output:
         combined="results/{shapes}/disaggregated/capacity/{category}.parquet",
@@ -94,8 +93,33 @@ rule impute_combined:
     wildcard_constraints:
         category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'solar', 'wind'])
     log:
-        "logs/impute_combined_{shapes}_{category}.log",
+        "logs/impute_category_combination_{shapes}_{category}.log",
     conda:
         "../envs/shapes.yaml",
     script:
-        "../scripts/impute_combined.py"
+        "../scripts/impute_category_combination.py"
+
+
+rule impute_capacity_adjustment:
+    message:
+        "Adjusting capacity of {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
+    params:
+        year=config["imputation"]["adjustment_yr"],
+    input:
+        script=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
+        disaggregated="results/{shapes}/disaggregated/capacity/{category}.parquet",
+        stats="results/{shapes}/statistics/category_capacity.parquet"
+    output:
+        adjusted="results/{shapes}/disaggregated/adjusted_capacity/{category}.parquet",
+        plot="results/{shapes}/disaggregated/adjusted_capacity/{category}.pdf",
+    wildcard_constraints:
+        category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'wind'])
+    log:
+        "logs/impute_capacity_adjustment_{shapes}_{category}.log",
+    conda:
+        "../envs/shapes.yaml",
+    shell:
+        """
+        python "{input.script}" adjust "{input.disaggregated}" "{input.stats}" -y {params.year} -o "{output.adjusted}" 2> "{log}"
+        python "{input.script}" plot "{input.disaggregated}" "{input.stats}" "{output.adjusted}" -y {params.year} -o "{output.plot}" 2> "{log}"
+        """
