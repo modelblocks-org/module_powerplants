@@ -92,7 +92,7 @@ def output_capacity_mw_gspt(
     )
 
 
-def fuel_col(cell: str, fuel_mapping: dict, default: str) -> tuple[str, ...]:
+def _remap_fuel_col(cell: str, fuel_mapping: dict, default: str) -> tuple[str, ...]:
     """Find and replace fuel names using pattern matching."""
     fuels = set()
     if pd.isna(cell):
@@ -118,16 +118,22 @@ def fuel_col(cell: str, fuel_mapping: dict, default: str) -> tuple[str, ...]:
 
 
 def get_unique_fuel_dataset(
-    raw_fuels: pd.Series, fuel_mapping: dict[str, str], default: str, class_prefix: str = "f"
+    raw_fuels: pd.Series,
+    fuel_mapping: dict[str, str],
+    default: str,
+    class_prefix: str = "f",
 ) -> tuple[pd.DataFrame, dict]:
     """Get a row with fuel values and convert it to a unique fuel class database.
 
-    Foe example [(oil, coal), (coal), ...]
+    Example [(oil, coal), (coal), ...] returns
 
-    id  fuel_class  fuel
-    0   f1          coal
-    1   f1          oil
-    3   f2          coal
+    - class dataframe:
+        id  fuel_class  fuel
+        0   f1          coal
+        1   f1          oil
+        3   f2          coal
+    - class series (same index as raw_fuels):
+        f1, f2, ...
 
     Args:
         raw_fuels (pd.Series[str]): series with fuel values.
@@ -136,19 +142,20 @@ def get_unique_fuel_dataset(
         class_prefix (str, optional): prefix for the fuel class. Defaults to "f".
 
     Returns:
-        pd.DataFrame: dataframe with unique fuel classes.
+        tuple[pd.DataFrame, dict]: clas dataframe and class series.
     """
     fuels = raw_fuels.apply(
-                fuel_col,
-                fuel_mapping=fuel_mapping,
-                default=fuel_mapping[default],
-            )
+        _remap_fuel_col, fuel_mapping=fuel_mapping, default=fuel_mapping[default]
+    )
     fuel_combs = sorted(set(fuels))
     fuel_class_df = pd.DataFrame(
-        [(f"{class_prefix}{i}", fuel) for i, comb in enumerate(fuel_combs) for fuel in comb],
+        [
+            (f"{class_prefix}{i}", fuel)
+            for i, comb in enumerate(fuel_combs)
+            for fuel in comb
+        ],
         columns=["fuel_class", "fuel"],
-    )
-    combo_to_class = {combo: f"c{i}" for i, combo in enumerate(fuel_combs)}
-    classes = fuels.apply(lambda x: combo_to_class[x])
-    return fuel_class_df, classes
-
+    ).reset_index(drop=True)
+    combo_to_class = {combo: f"{class_prefix}{i}" for i, combo in enumerate(fuel_combs)}
+    class_series = fuels.apply(lambda x: combo_to_class[x])
+    return fuel_class_df, class_series

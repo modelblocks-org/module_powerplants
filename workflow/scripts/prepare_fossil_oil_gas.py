@@ -39,19 +39,11 @@ def main(
         gem_gogpt_path, ["Gas & Oil Units", "sub-threshold units"]
     )
 
-    plant_fuels = raw_df["fuel"].apply(
-        gem.fuel_col,
-        fuel_mapping=fuel_mapping,
-        default=fuel_mapping["fossil gas: unknown"],
-    )
-    fuel_combos = sorted(set(plant_fuels))
-    fuels_df = pd.DataFrame(
-        [(f"og{i}", fuel) for i, combo in enumerate(fuel_combos) for fuel in combo],
-        columns=["fuel_class", "fuel"],
+    fuels_df, fuel_class = gem.get_unique_fuel_dataset(
+        raw_df["fuel"], fuel_mapping, "fossil gas: unknown", "og"
     )
     _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
-    combo_to_class = {combo: f"og{i}" for i, combo in enumerate(fuel_combos)}
     oil_gas_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
@@ -69,7 +61,7 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": raw_df["ccs_attachment?"] == "yes",
             "chp": raw_df["chp"] == "yes",
-            "fuel_class": plant_fuels.apply(lambda x: combo_to_class[x]),
+            "fuel_class": fuel_class,
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema("fossil", technology_mapping, "prepare")

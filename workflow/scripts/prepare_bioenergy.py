@@ -37,20 +37,11 @@ def main(
     """Obtain bioenergy power locations using GEM-GBPT data."""
     raw_df = gem.read_gem_dataset(gem_gbpt_path, ["Data", "Below Threshold"])
 
-    # Create fuel lookups
-    plant_fuels = raw_df["fuel"].apply(
-        gem.fuel_col,
-        fuel_mapping=fuel_mapping,
-        default=fuel_mapping["bioenergy: unknown"],
-    )
-    fuel_combos = sorted(set(plant_fuels))
-    fuels_df = pd.DataFrame(
-        [(f"b{i}", fuel) for i, combo in enumerate(fuel_combos) for fuel in combo],
-        columns=["fuel_class", "fuel"],
+    fuels_df, fuel_class = gem.get_unique_fuel_dataset(
+        raw_df["fuel"], fuel_mapping, "bioenergy: unknown", "b"
     )
     _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
-    combo_to_class = {combo: f"b{i}" for i, combo in enumerate(fuel_combos)}
     bioenergy_df = gpd.GeoDataFrame(
         {
             "powerplant_id": _utils.get_combined_text_col(
@@ -66,7 +57,7 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": False,
             "chp": False,
-            "fuel_class": plant_fuels.apply(lambda x: combo_to_class[x]),
+            "fuel_class": fuel_class,
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema("bioenergy", technology_mapping, "prepare")
