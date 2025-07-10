@@ -24,7 +24,9 @@ _STATUS_MAPPING = {
 }
 
 
-def read_gem_dataset(path: str, sheets: list[str], dropped_na_cols: list[str]| None=None) -> pd.DataFrame:
+def read_gem_dataset(
+    path: str, sheets: list[str], dropped_na_cols: list[str] | None = None
+) -> pd.DataFrame:
     """Get a GEM dataset for a type/category of powerplant."""
     if dropped_na_cols is None:
         dropped_na_cols = _DROPPED_NA_COLUMNS
@@ -90,14 +92,11 @@ def output_capacity_mw_gspt(
     )
 
 
-def fuel_col(cell: str, fuel_mapping: dict, default: str) -> list[str]:
-    """Find and replace fuel names using pattern matching.
-
-    Ambiguous cases should raise errors.
-    """
-    fuels = []
+def fuel_col(cell: str, fuel_mapping: dict, default: str) -> tuple[str, ...]:
+    """Find and replace fuel names using pattern matching."""
+    fuels = set()
     if pd.isna(cell):
-        fuels.append(default)
+        fuels.add(default)
     else:
         for value in cell.split(","):
             # removes shares within brackets (e.g., fossil gas: LNG [50%])
@@ -109,12 +108,47 @@ def fuel_col(cell: str, fuel_mapping: dict, default: str) -> list[str]:
                 # Too ambiguous to map usefully
                 continue
             try:
-                fuels.append(fuel_mapping[value])
+                fuels.add(fuel_mapping[value])
             except KeyError:
-                raise KeyError(
-                    f"No mapped fuel for '{value}'."
-                )
+                raise KeyError(f"No mapped fuel for '{value}'.")
     if len(fuels) == 0:
         # Handle edge cases where only ambiguous fuels are given.
-        fuels.append(default)
-    return fuels
+        fuels.add(default)
+    return tuple(sorted(fuels))
+
+
+def get_unique_fuel_dataset(
+    raw_fuels: pd.Series, fuel_mapping: dict[str, str], default: str, class_prefix: str = "f"
+) -> tuple[pd.DataFrame, dict]:
+    """Get a row with fuel values and convert it to a unique fuel class database.
+
+    Foe example [(oil, coal), (coal), ...]
+
+    id  fuel_class  fuel
+    0   f1          coal
+    1   f1          oil
+    3   f2          coal
+
+    Args:
+        raw_fuels (pd.Series[str]): series with fuel values.
+        fuel_mapping (dict[str, str]): fuel mapping (for renaming).
+        default (str): default fuel, if missing or unknown.
+        class_prefix (str, optional): prefix for the fuel class. Defaults to "f".
+
+    Returns:
+        pd.DataFrame: dataframe with unique fuel classes.
+    """
+    fuels = raw_fuels.apply(
+                fuel_col,
+                fuel_mapping=fuel_mapping,
+                default=fuel_mapping[default],
+            )
+    fuel_combs = sorted(set(fuels))
+    fuel_class_df = pd.DataFrame(
+        [(f"{class_prefix}{i}", fuel) for i, comb in enumerate(fuel_combs) for fuel in comb],
+        columns=["fuel_class", "fuel"],
+    )
+    combo_to_class = {combo: f"c{i}" for i, combo in enumerate(fuel_combs)}
+    classes = fuels.apply(lambda x: combo_to_class[x])
+    return fuel_class_df, classes
+

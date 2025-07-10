@@ -80,11 +80,16 @@ class PlantSchema(DataFrameModel):
 
 
 class CombustionSchema(PlantSchema):
+    class Config:
+        coerce = True
+        strict = True
     category: Series[str] = Field(isin=["biofuel", "fossil"])
     ccs: Series[bool]
     """Identifier for known CCS-enabled powerplants."""
     chp: Series[bool]
     """Identifier for known CHP-enabled powerplants."""
+    fuel_class: Series[str]
+    """Unique ID in the fuel consumption look-up table."""
 
 
 class FuelSchema(DataFrameModel):
@@ -92,13 +97,16 @@ class FuelSchema(DataFrameModel):
         strict = True
         coerce = True
 
-    powerplant_id: Series[str]
-    "Unique ID for the powerplant."
+    fuel_class: Series[str]
+    "ID of the fuel consumption class."
     fuel: Series[str]
     "Fuel consumed."
 
 
 class HydroSchema(PlantSchema):
+    class Config:
+        coerce = True
+        strict = True
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
 
 

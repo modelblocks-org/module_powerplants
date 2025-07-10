@@ -39,12 +39,24 @@ def main(
         gem_gogpt_path, ["Gas & Oil Units", "sub-threshold units"]
     )
 
-    powerplant_id = _utils.get_combined_text_col(
-        raw_df, ["gem_location_id", "gem_unit_id"], prefix="GEM_"
+    plant_fuels = raw_df["fuel"].apply(
+        gem.fuel_col,
+        fuel_mapping=fuel_mapping,
+        default=fuel_mapping["fossil gas: unknown"],
     )
+    fuel_combos = sorted(set(plant_fuels))
+    fuels_df = pd.DataFrame(
+        [(f"og{i}", fuel) for i, combo in enumerate(fuel_combos) for fuel in combo],
+        columns=["fuel_class", "fuel"],
+    )
+    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
+
+    combo_to_class = {combo: f"og{i}" for i, combo in enumerate(fuel_combos)}
     oil_gas_df = gpd.GeoDataFrame(
         {
-            "powerplant_id": powerplant_id,
+            "powerplant_id": _utils.get_combined_text_col(
+                raw_df, ["gem_location_id", "gem_unit_id"], prefix="GEM_"
+            ),
             "name": _utils.get_combined_text_col(raw_df, ["plant_name", "unit_name"]),
             "category": "fossil",
             "technology": gem.technology_col(
@@ -57,23 +69,11 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": raw_df["ccs_attachment?"] == "yes",
             "chp": raw_df["chp"] == "yes",
+            "fuel_class": plant_fuels.apply(lambda x: combo_to_class[x]),
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema("fossil", technology_mapping, "prepare")
     schema.validate(oil_gas_df).to_parquet(output_plants_path)
-
-    fuels_df = pd.DataFrame(
-        {
-            "powerplant_id": powerplant_id,
-            "fuel": raw_df["fuel"].apply(
-                gem.fuel_col,
-                fuel_mapping=fuel_mapping,
-                default=fuel_mapping["fossil gas: unknown"],
-            ),
-        }
-    )
-    fuels_df = fuels_df.explode("fuel").reset_index(drop=True)
-    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
 
 if __name__ == "__main__":

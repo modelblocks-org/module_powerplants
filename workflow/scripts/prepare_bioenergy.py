@@ -37,12 +37,25 @@ def main(
     """Obtain bioenergy power locations using GEM-GBPT data."""
     raw_df = gem.read_gem_dataset(gem_gbpt_path, ["Data", "Below Threshold"])
 
-    powerplant_id = _utils.get_combined_text_col(
-        raw_df, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
+    # Create fuel lookups
+    plant_fuels = raw_df["fuel"].apply(
+        gem.fuel_col,
+        fuel_mapping=fuel_mapping,
+        default=fuel_mapping["bioenergy: unknown"],
     )
+    fuel_combos = sorted(set(plant_fuels))
+    fuels_df = pd.DataFrame(
+        [(f"b{i}", fuel) for i, combo in enumerate(fuel_combos) for fuel in combo],
+        columns=["fuel_class", "fuel"],
+    )
+    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
+
+    combo_to_class = {combo: f"b{i}" for i, combo in enumerate(fuel_combos)}
     bioenergy_df = gpd.GeoDataFrame(
         {
-            "powerplant_id": powerplant_id,
+            "powerplant_id": _utils.get_combined_text_col(
+                raw_df, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
+            ),
             "name": _utils.get_combined_text_col(raw_df, ["project_name", "unit_name"]),
             "category": "bioenergy",
             "technology": technology_mapping["unknown"],
@@ -53,23 +66,11 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": False,
             "chp": False,
+            "fuel_class": plant_fuels.apply(lambda x: combo_to_class[x]),
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema("bioenergy", technology_mapping, "prepare")
     schema.validate(bioenergy_df).to_parquet(output_plants_path)
-
-    fuels_df = pd.DataFrame(
-        {
-            "powerplant_id": powerplant_id,
-            "fuel": raw_df["fuel"].apply(
-                gem.fuel_col,
-                fuel_mapping=fuel_mapping,
-                default=fuel_mapping["bioenergy: unknown"],
-            ),
-        }
-    )
-    fuels_df = fuels_df.explode("fuel").reset_index(drop=True)
-    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
 
 if __name__ == "__main__":

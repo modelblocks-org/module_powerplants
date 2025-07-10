@@ -54,7 +54,6 @@ def _ccs(gem_df: pd.DataFrame) -> pd.Series:
     )
 
 
-
 def _fuel(gem_df: pd.DataFrame) -> pd.Series:
     """Harmonise fuel nomenclature with other GEM datasets."""
     # bituminous -> coal: bituminous
@@ -78,12 +77,25 @@ def main(
     """Obtain coal power locations using GEM-GCPT data."""
     raw_df = gem.read_gem_dataset(gem_gcpt_path, ["Units"])
 
-    powerplant_id = _utils.get_combined_text_col(
-        raw_df, ["gem_location_id", "gem_unit/phase_id"], prefix="GEM_"
+    # Create fuel lookups
+    plant_fuels = _fuel(raw_df).apply(
+                gem.fuel_col,
+                fuel_mapping=fuel_mapping,
+                default=fuel_mapping["coal: unknown"],
+            )
+    fuel_combos = sorted(set(plant_fuels))
+    fuels_df = pd.DataFrame(
+        [(f"c{i}", fuel) for i, combo in enumerate(fuel_combos) for fuel in combo],
+        columns=["fuel_class", "fuel"],
     )
+    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
+
+    combo_to_class = {combo: f"c{i}" for i, combo in enumerate(fuel_combos)}
     coal_df = gpd.GeoDataFrame(
         {
-            "powerplant_id": powerplant_id,
+            "powerplant_id": _utils.get_combined_text_col(
+                raw_df, ["gem_location_id", "gem_unit/phase_id"], prefix="GEM_"
+            ),
             "name": _utils.get_combined_text_col(raw_df, ["plant_name", "unit_name"]),
             "category": "fossil",
             "technology": gem.technology_col(
@@ -96,24 +108,11 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
             "ccs": _ccs(raw_df),
             "chp": False,  # Not specified in GCPT
+            "fuel_class": plant_fuels.apply(lambda x: combo_to_class[x]),
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema("fossil", technology_mapping, "prepare")
     schema.validate(coal_df).to_parquet(output_plants_path)
-
-    combined_fuel_col = _fuel(raw_df)
-    fuels_df = pd.DataFrame(
-        {
-            "powerplant_id": powerplant_id,
-            "fuel": combined_fuel_col.apply(
-                gem.fuel_col,
-                fuel_mapping=fuel_mapping,
-                default=fuel_mapping["coal: unknown"],
-            ),
-        }
-    )
-    fuels_df = fuels_df.explode("fuel").reset_index(drop=True)
-    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
 
 if __name__ == "__main__":
