@@ -1,5 +1,7 @@
 """Rules in this file focus on parsing and cleaning data into shared schemas."""
 
+PREPARED_FUEL_CAT = ["bioenergy", "fossil_coal", "fossil_oil_gas"]
+
 rule prepare_hydropower:
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
@@ -115,8 +117,8 @@ rule prepare_fossil_coal:
     input:
         gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
-        plants="resources/automatic/prepared/fossil_coal.parquet",
-        fuels="resources/automatic/fuels/fossil_coal.parquet"
+        plants=temp("resources/automatic/temp/plants_fossil_coal.parquet"),
+        fuels=temp("resources/automatic/temp/fuel_fossil_coal.parquet")
     log:
         "logs/prepare_fossil_coal.log"
     conda:
@@ -134,8 +136,8 @@ rule prepare_bioenergy:
     input:
         gem_gbpt="resources/automatic/downloads/GEM_GBPT.xlsx",
     output:
-        plants="resources/automatic/prepared/bioenergy.parquet",
-        fuels="resources/automatic/fuels/bioenergy.parquet"
+        plants=temp("resources/automatic/temp/plants_bioenergy.parquet"),
+        fuels=temp("resources/automatic/temp/fuels_bioenergy.parquet")
     log:
         "logs/prepare_bioenergy.log"
     conda:
@@ -152,8 +154,8 @@ rule prepare_fossil_oil_gas:
     input:
         gem_gogpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
     output:
-        plants="resources/automatic/prepared/fossil_oil_gas.parquet",
-        fuels="resources/automatic/fuels/fossil_oil_gas.parquet"
+        plants=temp("resources/automatic/temp/plants_fossil_oil_gas.parquet"),
+        fuels=temp("resources/automatic/temp/fuels_fossil_oil_gas.parquet")
     log:
         "logs/prepare_fossil_oil_gas.log"
     conda:
@@ -215,4 +217,44 @@ rule prepare_statistics:
         """
         python "{input.script}" prepare "{input.shapes}" "{input.eia_bulk}" "{output.total}" "{output.categories}" 2> {log}
         python "{input.script}" plot "{output.total}" "{output.categories}" "{output.plot}" 2> {log}
+        """
+
+
+rule prepare_fuels:
+    message:
+        "Get a harmonised dataset of fuel class combinations."
+    input:
+        script = workflow.source_path("../scripts/prepare_fuels.py"),
+        fuel_classes = expand("resources/automatic/temp/fuel_{cat}.parquet", cat=PREPARED_FUEL_CAT)
+    output:
+        "results/fuel_classes.parquet"
+    log:
+        "logs/prepare_fuels.log"
+    conda:
+        "../envs/shapes.yaml"
+    shell:
+        """
+        python "{input.script}" prepare {input.fuel_classes} -o "{output}" 2> "{log}"
+        """
+
+
+rule prepare_remapped_fuel_categories:
+    message:
+        "Remap fuel classes of combustion plants to harmonised ones."
+    input:
+        script = workflow.source_path("../scripts/prepare_fuels.py"),
+        plants = "resources/automatic/temp/plants_{category}.parquet",
+        old = "resources/automatic/temp/fuels_{category}.parquet",
+        new = "results/fuel_classes.parquet",
+    output:
+        "resources/automatic/prepared/{category}.parquet"
+    log:
+        "logs/prepare_remapped_fuel_categories_{category}.log"
+    wildcard_constraints:
+        category="|".join(PREPARED_FUEL_CAT)
+    conda:
+        "../envs/shapes.yaml"
+    shell:
+        """
+        python "{input.script}" remap {input.plants} {input.old} {input.new} -o "{output}" 2> "{log}"
         """
