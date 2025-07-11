@@ -118,7 +118,7 @@ def impute(
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
         prepared[prepared["status"].isin(scenario)],
-        shapes[["country_id", "geometry"]],
+        shapes[["country_id", "geometry"]].dissolve().reset_index(drop=True),
         predicate="intersects",
         how="inner",
     )

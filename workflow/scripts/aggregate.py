@@ -4,6 +4,7 @@ import _schemas
 import _utils
 import click
 import geopandas as gpd
+import numpy as np
 import pandas as pd
 from gregor.aggregate import aggregate_point_to_polygon
 from matplotlib import pyplot as plt
@@ -69,19 +70,24 @@ def plot(aggregated_file: str, shapes_file: str, output_file: str):
     cap_by_shape = agg.groupby("shape_id")["output_capacity_mw"].sum()
 
     shapes = shapes.set_index("shape_id")
-    shapes["output_capacity_mw"] = cap_by_shape
+    shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
+
+    fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
 
     ax = shapes.plot(
+        ax=ax,
         column="output_capacity_mw",
-        cmap="cividis",
-        figsize=(8, 8),
+        cmap="magma",
+        edgecolor="black",
+        linewidth=0.5,
         legend=True,
         legend_kwds={"label": "Capacity ($MW$)"},
+        missing_kwds={"color": "lightgrey", "alpha": 0.2}
     )
-    ax.set_title(f"Aggregated {category} capacity")
+    ax.set_title(f"Aggregated {category} capacity per shape")
     ax.set_xlabel("Longitude ($deg$)")
     ax.set_ylabel("Latitude ($deg$)")
-    plt.savefig(output_file, bbox_inches="tight")
+    fig.savefig(output_file, bbox_inches="tight")
 
 
 if __name__ == "__main__":

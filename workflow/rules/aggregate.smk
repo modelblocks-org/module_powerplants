@@ -20,5 +20,5 @@ rule aggregate_capacity:
     shell:
         """
         python {input.script} capacity {input.powerplants} {input.shapes} -o {output.aggregated} 2> {log}
-        python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot}
+        python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot} 2> {log}
         """
