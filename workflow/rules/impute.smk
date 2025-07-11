@@ -80,16 +80,16 @@ rule impute_years:
 
 rule impute_category_combination:
     message:
-        "Combine and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
+        "Combine sub-categories and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
         excluded=lambda wc: config["category"][wc.category].get("excluded_ids", [])
     input:
         to_combine=  lambda wc: get_files_to_combine(wc.shapes, wc.category)
     output:
-        combined="results/{shapes}/disaggregated/capacity/{category}.parquet",
-        plot="results/{shapes}/disaggregated/capacity/{category}.pdf",
-        explore="results/{shapes}/disaggregated/capacity/{category}.html"
+        combined="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
+        plot="results/{shapes}/disaggregated/unadjusted/{category}.pdf",
+        explore="results/{shapes}/disaggregated/unadjusted/{category}.html"
     wildcard_constraints:
         category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'solar', 'wind'])
     log:
@@ -107,11 +107,11 @@ rule impute_capacity_adjustment:
         year=config["imputation"]["adjustment_yr"],
     input:
         script=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
-        disaggregated="results/{shapes}/disaggregated/capacity/{category}.parquet",
+        disaggregated="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet"
     output:
-        adjusted="results/{shapes}/disaggregated/adjusted_capacity/{category}.parquet",
-        plot="results/{shapes}/disaggregated/adjusted_capacity/{category}.pdf",
+        adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
+        plot="results/{shapes}/disaggregated/adjusted/{category}.pdf",
     wildcard_constraints:
         category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'wind'])
     log:

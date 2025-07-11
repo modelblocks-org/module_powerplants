@@ -1,0 +1,88 @@
+"""Aggregate powerplant capacity into shapes."""
+
+import _schemas
+import _utils
+import click
+import geopandas as gpd
+import pandas as pd
+from gregor.aggregate import aggregate_point_to_polygon
+from matplotlib import pyplot as plt
+
+CAPACITY_COLUMNS = {"category", "technology", "chp", "ccs", "fuel_class"}
+
+
+@click.group()
+def cli():
+    """CLI for powerplant aggregation to shapes."""
+    pass
+
+
+@cli.command()
+@click.argument("powerplant_file", type=click.Path(dir_okay=False))
+@click.argument("shapes_file", type=click.Path(dir_okay=False))
+@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
+def capacity(powerplant_file: str, shapes_file: str, output_file: str):
+    """Capacity aggregation to shape files.
+
+    Args:
+        powerplant_file (str): powerplant data file.
+        shapes_file (_type_): shapes file.
+        output_file (str): aggregated data file.
+    """
+    shapes_df = gpd.read_parquet(shapes_file)
+    shapes_df = _schemas.ShapeSchema.validate(shapes_df)
+    plants_df = gpd.read_parquet(powerplant_file)
+
+    if shapes_df.crs != plants_df.crs:
+        plants_df = plants_df.to_crs(shapes_df)
+
+    # Keep technology-relevant columns, if present.
+    group_cols = list(set(plants_df.columns) & CAPACITY_COLUMNS)
+
+    agg_plants_arr = []
+    for key_vals, group in plants_df.groupby(list(group_cols)):
+        agg_df = aggregate_point_to_polygon(
+            group[["output_capacity_mw", "geometry"]],
+            shapes_df.set_index("shape_id")["geometry"],
+        ).reset_index()
+        agg_df = agg_df.drop("geometry", axis="columns")
+        agg_df["output_capacity_mw"] = agg_df["output_capacity_mw"].fillna(0)
+        agg_df = agg_df
+        for i, name in enumerate(group_cols):
+            agg_df[name] = key_vals[i]
+        agg_plants_arr.append(agg_df)
+
+    agg_plants_df = pd.concat(agg_plants_arr, axis="index", ignore_index=True)
+    _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
+
+
+@cli.command()
+@click.argument("aggregated_file", type=click.Path(dir_okay=False))
+@click.argument("shapes_file", type=click.Path(dir_okay=False))
+@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
+def plot(aggregated_file: str, shapes_file: str, output_file: str):
+    """Plot aggregated capacity per region."""
+    shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))
+    agg = _schemas.AggregatedPlantSchema.validate(pd.read_parquet(aggregated_file))
+
+    category = _utils.check_single_category(agg)
+    cap_by_shape = agg.groupby("shape_id")["output_capacity_mw"].sum()
+
+    shapes = shapes.set_index("shape_id")
+    shapes["output_capacity_mw"] = cap_by_shape
+
+    ax = shapes.plot(
+        column="output_capacity_mw",
+        cmap="cividis",
+        figsize=(8, 8),
+        legend=True,
+        legend_kwds={"label": "Capacity ($MW$)"},
+    )
+    ax.set_title(f"Aggregated {category} capacity")
+    ax.set_xlabel("Longitude ($deg$)")
+    ax.set_ylabel("Latitude ($deg$)")
+    plt.savefig(output_file, bbox_inches="tight")
+
+
+if __name__ == "__main__":
+    cli()

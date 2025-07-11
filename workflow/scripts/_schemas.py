@@ -1,7 +1,7 @@
 """Schemas for key files."""
-
+# ruff: noqa: UP007
 from collections.abc import Mapping
-from typing import Literal
+from typing import Literal, Optional
 
 import pandera.pandas as pa
 from pandera.pandas import DataFrameModel, Field, check
@@ -44,6 +44,23 @@ class ShapeSchema(DataFrameModel):
         return (geom is not None) and (not geom.is_empty) and geom.is_valid
 
 
+class AggregatedPlantSchema(DataFrameModel):
+
+    class Config:
+        coerce = True
+        strict = True
+
+    index: Index[int] = Field(unique=True)
+
+    shape_id: Series[str]
+    category: Series[str]
+    technology: Series[str]
+    chp: Optional[Series[bool]]
+    ccs: Optional[Series[bool]]
+    fuel_class: Optional[Series[str]]
+    output_capacity_mw: Optional[Series[float]]
+
+
 class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
@@ -83,6 +100,7 @@ class CombustionSchema(PlantSchema):
     class Config:
         coerce = True
         strict = True
+
     category: Series[str] = Field(isin=["biofuel", "fossil"])
     ccs: Series[bool]
     """Identifier for known CCS-enabled powerplants."""
@@ -107,6 +125,7 @@ class HydroSchema(PlantSchema):
     class Config:
         coerce = True
         strict = True
+
     reservoir_km3: Series[float] = Field(nullable=True, ge=0)
 
 
@@ -134,9 +153,7 @@ IMPUTED_STATUS = {"planned", "operating", "retired"}
 
 
 def build_schema(
-    category: str,
-    tech_mapping: dict[str, str],
-    stage: Literal["prepare", "impute"],
+    category: str, tech_mapping: dict[str, str], stage: Literal["prepare", "impute"]
 ) -> pa.DataFrameSchema:
     """Construct an inflexible schema applicable to each processing stage."""
     schema = PLANT_CATEGORIES[category].to_schema()

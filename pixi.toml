@@ -52,4 +52,4 @@ build-docs = {cmd = "mkdocs build"}
 docs = ["docs"]
 
 [pypi-dependencies]
-gregor = { git = "https://github.com/jnnr/gregor.git", rev = "4dab123" }
+gregor = { git = "https://github.com/jnnr/gregor.git", rev = "4d54d11" }

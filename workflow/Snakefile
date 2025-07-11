@@ -21,6 +21,7 @@ with open(workflow.source_path("internal/settings.yaml"), "r") as f:
 
 
 # Add all your includes here.
+include: "rules/aggregate.smk"
 include: "rules/automatic.smk"
 include: "rules/impute.smk"
 include: "rules/prepare.smk"
