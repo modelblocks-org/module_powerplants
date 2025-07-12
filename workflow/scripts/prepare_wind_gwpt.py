@@ -59,7 +59,7 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     )
-    schema = _schemas.build_schema("wind", tech_map, "prepare")
+    schema = _schemas.build_schema(tech_map, "prepare")
     schema.validate(wind_df).to_parquet(output_path)
 
 

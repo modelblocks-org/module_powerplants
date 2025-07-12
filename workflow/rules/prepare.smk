@@ -118,7 +118,7 @@ rule prepare_fossil_coal:
         gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
     output:
         plants=temp("resources/automatic/temp/plants_fossil_coal.parquet"),
-        fuels=temp("resources/automatic/temp/fuel_fossil_coal.parquet")
+        fuels=temp("resources/automatic/temp/fuels_fossil_coal.parquet")
     log:
         "logs/prepare_fossil_coal.log"
     conda:
@@ -225,7 +225,7 @@ rule prepare_fuels:
         "Get a harmonised dataset of fuel class combinations."
     input:
         script = workflow.source_path("../scripts/prepare_fuels.py"),
-        fuel_classes = expand("resources/automatic/temp/fuel_{cat}.parquet", cat=PREPARED_FUEL_CAT)
+        fuel_classes = expand("resources/automatic/temp/fuels_{cat}.parquet", cat=PREPARED_FUEL_CAT)
     output:
         "results/fuel_classes.parquet"
     log:

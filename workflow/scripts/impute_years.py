@@ -104,6 +104,9 @@ def impute(
 ):
     """Add automatic and user imputations to fill missing data."""
     prepared = gpd.read_parquet(prepared_path)
+    # Ensure we are working with a valid single-category file.
+    _utils.check_single_category(prepared)
+
     shapes = gpd.read_parquet(shapes_path)
 
     tech_map = yaml.safe_load(technology_mapping)
@@ -112,27 +115,25 @@ def impute(
     retirement_delay_yr = imputation_cnf["retirement_delay_yr"]
     scenario = SCENARIO_MAP[imputation_cnf["scenario"]]
 
-    # Ensure we are working with a valid single-category file.
-    category = _utils.check_single_category(prepared)
-
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
         prepared[prepared["status"].isin(scenario)],
-        shapes[["country_id", "geometry"]].dissolve().reset_index(drop=True),
+        shapes[["country_id", "geometry"]].dissolve("country_id").reset_index(),
         predicate="intersects",
         how="inner",
     )
-    imputed = imputed.drop("index_right", axis="columns")
+    if not imputed.empty:
+        imputed = imputed.drop("index_right", axis="columns")
 
-    # Adjust project dates
-    imputed["start_year"] = impute_start_year(imputed, lifetimes)
-    imputed["end_year"] = impute_end_year(imputed, lifetimes, retirement_delay_yr)
+        # Adjust project dates
+        imputed["start_year"] = impute_start_year(imputed, lifetimes)
+        imputed["end_year"] = impute_end_year(imputed, lifetimes, retirement_delay_yr)
 
-    # Drop projects with insufficient date data and then adjust status.
-    imputed = imputed.dropna(subset=["start_year", "end_year"])
-    imputed["status"] = impute_status(imputed)
+        # Drop projects with insufficient date data and then adjust status.
+        imputed = imputed.dropna(subset=["start_year", "end_year"])
+        imputed["status"] = impute_status(imputed)
 
-    schema = _schemas.build_schema(category, tech_map, "impute")
+    schema = _schemas.build_schema(tech_map, "impute")
     schema.validate(imputed).to_parquet(output_path)
 
 

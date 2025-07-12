@@ -7,6 +7,20 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 
+def draw_empty(ax, title, message="No data available"):
+    """Helper to render an empty-data placeholder."""
+    ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=12, alpha=0.7)
+    ax.set_title(title)
+    ax.set_axis_off()
+
+
+def plot_empty(title: str, output_path: str) -> None:
+    fig, ax = plt.subplots()
+    draw_empty(ax, "")
+    fig.suptitle(title, fontsize=14)
+    fig.savefig(output_path)
+
+
 def plot_disaggregated_capacity_buildup(
     df: pd.DataFrame, output_path: str, colormap: str
 ):
@@ -14,20 +28,10 @@ def plot_disaggregated_capacity_buildup(
 
     Input should be a disaggregated capacity file of a single category.
     """
-
-    def draw_empty(ax, title, message="No data available"):
-        """Helper to render an empty-data placeholder."""
-        ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=12, alpha=0.7)
-        ax.set_title(title)
-        ax.set_axis_off()
-
     suptitle = "Active powerplant capacity by technology per country"
 
     if df.empty:
-        fig, ax = plt.subplots()
-        draw_empty(ax, "")
-        fig.suptitle(suptitle, fontsize=14)
-        fig.savefig(output_path)
+        plot_empty(suptitle, output_path)
         return
 
     # Year range (x-axis)

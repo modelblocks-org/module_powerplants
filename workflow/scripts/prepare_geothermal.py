@@ -38,7 +38,7 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
-    schema = _schemas.build_schema("geothermal", technology_mapping, "prepare")
+    schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(geo_df).to_parquet(output_plants_path)
 
 

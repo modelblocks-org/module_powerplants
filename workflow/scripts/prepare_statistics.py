@@ -50,7 +50,7 @@ def _get_country_capacity(eia_df: pd.DataFrame, country_a3: str):
     country_capacity = pd.concat(results, ignore_index=True)
     country_capacity.reset_index(drop=True)
     country_capacity["capacity_mw"] = (
-        country_capacity.pop("value") * 1000
+        pd.to_numeric(country_capacity.pop("value"), errors="coerce") * 1000
     )  # EIA data is in GW
     country_capacity["country_id"] = country_a3
     return country_capacity

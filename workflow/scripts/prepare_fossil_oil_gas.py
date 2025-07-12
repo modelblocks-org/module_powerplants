@@ -64,7 +64,7 @@ def main(
             "fuel_class": fuel_class,
         }
     ).reset_index(drop=True)
-    schema = _schemas.build_schema("fossil", technology_mapping, "prepare")
+    schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(oil_gas_df).to_parquet(output_plants_path)
 
 

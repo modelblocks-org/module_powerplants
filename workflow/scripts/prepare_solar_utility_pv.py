@@ -147,7 +147,7 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_rat
     utility_pv = pd.concat([filled_tz_df, gem_mismatch_df], axis="index")
     utility_pv = utility_pv.reset_index(drop=True)
 
-    schema = _schemas.build_schema("solar", {"utility_pv": tech_name}, "prepare")
+    schema = _schemas.build_schema({"utility_pv": tech_name}, "prepare")
     schema.validate(utility_pv).to_parquet(output_path)
 
 

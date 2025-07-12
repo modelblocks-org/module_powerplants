@@ -1,4 +1,5 @@
 """Schemas for key files."""
+
 # ruff: noqa: UP007
 from collections.abc import Mapping
 from typing import Literal, Optional
@@ -45,7 +46,6 @@ class ShapeSchema(DataFrameModel):
 
 
 class AggregatedPlantSchema(DataFrameModel):
-
     class Config:
         coerce = True
         strict = True
@@ -90,24 +90,23 @@ class PlantSchema(DataFrameModel):
     # Location / size
     geometry: GeoSeries[Point] = Field()
     "Powerplant point data."
+    country_id: Optional[Series[str]] = Field(
+        str_length={"min_value": 3, "max_value": 3}
+    )
+    # Combustion specifics
+    ccs: Optional[Series[bool]]
+    """Identifier for known CCS-enabled powerplants."""
+    chp: Optional[Series[bool]]
+    """Identifier for known CHP-enabled powerplants."""
+    fuel_class: Optional[Series[str]]
+    """Unique ID in the fuel consumption look-up table."""
+    # Hydropower specifics
+    reservoir_km3: Optional[Series[float]] = Field(nullable=True, ge=0)
+    """Reservoir volume."""
 
     @check("geometry", element_wise=True)
     def geom_not_empty(cls, geom):
         return (geom is not None) and (not geom.is_empty) and geom.is_valid
-
-
-class CombustionSchema(PlantSchema):
-    class Config:
-        coerce = True
-        strict = True
-
-    category: Series[str] = Field(isin=["biofuel", "fossil"])
-    ccs: Series[bool]
-    """Identifier for known CCS-enabled powerplants."""
-    chp: Series[bool]
-    """Identifier for known CHP-enabled powerplants."""
-    fuel_class: Series[str]
-    """Unique ID in the fuel consumption look-up table."""
 
 
 class FuelSchema(DataFrameModel):
@@ -119,25 +118,6 @@ class FuelSchema(DataFrameModel):
     "ID of the fuel consumption class."
     fuel: Series[str]
     "Fuel consumed."
-
-
-class HydroSchema(PlantSchema):
-    class Config:
-        coerce = True
-        strict = True
-
-    reservoir_km3: Series[float] = Field(nullable=True, ge=0)
-
-
-PLANT_CATEGORIES: Mapping[str, type[PlantSchema]] = {
-    "nuclear": PlantSchema,
-    "geothermal": PlantSchema,
-    "hydropower": HydroSchema,
-    "solar": PlantSchema,
-    "wind": PlantSchema,
-    "bioenergy": CombustionSchema,
-    "fossil": CombustionSchema,
-}
 
 
 # A diverse set of statuses to diminish oversimplification during gap filling.
@@ -153,10 +133,10 @@ IMPUTED_STATUS = {"planned", "operating", "retired"}
 
 
 def build_schema(
-    category: str, tech_mapping: dict[str, str], stage: Literal["prepare", "impute"]
+    tech_mapping: dict[str, str], stage: Literal["prepare", "impute"]
 ) -> pa.DataFrameSchema:
     """Construct an inflexible schema applicable to each processing stage."""
-    schema = PLANT_CATEGORIES[category].to_schema()
+    schema = PlantSchema.to_schema()
     if stage == "prepare":
         status_set = PREPARED_STATUS
         # Years can be empty during preparation stages
@@ -167,16 +147,12 @@ def build_schema(
     elif stage == "impute":
         status_set = IMPUTED_STATUS
         year_overrides = []
-        schema = schema.add_columns(
-            {"country_id": pa.Column(str, checks=pa.Check.str_length(3, 3))}
-        )
     else:
         raise ValueError(f"Incorrect stage given: '{stage}'.")
 
     techs = set(tech_mapping.values())
     overrides = [
         *year_overrides,
-        ("category", {"checks": pa.Check.equal_to(category)}),
         ("technology", {"checks": pa.Check.isin(techs)}),
         ("status", {"checks": pa.Check.isin(status_set)}),
     ]

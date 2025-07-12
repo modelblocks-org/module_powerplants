@@ -1,5 +1,6 @@
 """Adjustment of disaggregated powerplant capacity to national statistics."""
 
+import _plots
 import _schemas
 import _utils
 import click
@@ -46,21 +47,26 @@ def adjust(disaggregated_file: str, stats_file: str, year: int, output_file: str
     Powerplant location/distribution will be kept equal.
     """
     plants = gpd.read_parquet(disaggregated_file)
-    category = _utils.check_single_category(plants)
-    stats = _get_stats_in_cat_yr(stats_file, year, category)
+    if not plants.empty:
+        category = _utils.check_single_category(plants)
+        stats = _get_stats_in_cat_yr(stats_file, year, category)
 
-    # Adjustsment of operating facilities
-    operating_plants = _utils.filter_years(plants, year, how="operating")
-    expected_tot_cap = stats.groupby(["country_id"])["capacity_mw"].sum()
-    adjusted_cap_mw = (
-        operating_plants["output_capacity_mw"]
-        / operating_plants.groupby("country_id")["output_capacity_mw"].transform("sum")
-    ) * operating_plants["country_id"].map(expected_tot_cap)
+        # Adjustsment of operating facilities
+        operating_plants = _utils.filter_years(plants, year, how="operating")
+        expected_tot_cap = stats.groupby(["country_id"])["capacity_mw"].sum()
+        adjusted_cap_mw = (
+            operating_plants["output_capacity_mw"]
+            / operating_plants.groupby("country_id")["output_capacity_mw"].transform(
+                "sum"
+            )
+        ) * operating_plants["country_id"].map(expected_tot_cap)
 
-    # Update plants with adjusted capacity without touching planned projects
-    future_plants = _utils.filter_years(plants, year, how="future")
-    future_plants.loc[adjusted_cap_mw.index, "output_capacity_mw"] = adjusted_cap_mw
-    future_plants = future_plants.reset_index(drop=True)
+        # Update plants with adjusted capacity without touching planned projects
+        future_plants = _utils.filter_years(plants, year, how="future")
+        future_plants.loc[adjusted_cap_mw.index, "output_capacity_mw"] = adjusted_cap_mw
+        future_plants = future_plants.reset_index(drop=True)
+    else:
+        future_plants = plants
 
     _schemas.PlantSchema.validate(future_plants).to_parquet(output_file)
 
@@ -89,10 +95,17 @@ def plot(
     target_ticks: int = 12,
 ) -> None:
     """Plot adjustment per country."""
-    df_dis = _utils.filter_years(
-        pd.read_parquet(disaggregated_file), year, how="operating"
-    )
-    df_adj = _utils.filter_years(pd.read_parquet(adjusted_file), year, how="operating")
+    title = f"Disaggregated vs Adjusted vs EIA Capacity by Country - {year}"
+    df_dis = pd.read_parquet(disaggregated_file)
+    df_adj = pd.read_parquet(adjusted_file)
+
+    # Handle the no-data case
+    if df_dis.empty and df_adj.empty:
+        _plots.plot_empty(title, output_file)
+        return
+
+    df_dis = _utils.filter_years(df_dis, year, how="operating")
+    df_adj = _utils.filter_years(df_adj, year, how="operating")
 
     category_dis = _utils.check_single_category(df_dis)
     category_adj = _utils.check_single_category(df_adj)
@@ -232,8 +245,6 @@ def plot(
                 title=title,
                 loc="center",
             )
-
-    title = f"Disaggregated vs Adjusted vs EIA Capacity by Country - {year}"
     fig.suptitle(title, y=0.995)
 
     fig.savefig(output_file)

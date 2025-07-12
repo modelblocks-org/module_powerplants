@@ -36,7 +36,9 @@ def check_single_category(df: pd.DataFrame) -> str:
     """Quick validation for single-category datasets."""
     categories = df["category"].unique()
     if len(categories) != 1:
-        raise ValueError(f"Cannot compute multi-category datasets. Found '{categories}'")
+        raise ValueError(
+            f"Cannot compute dataset with ambiguous category. Found '{categories}'"
+        )
     return categories[0]
 
 

@@ -53,7 +53,7 @@ def main(input_path: str, output_path: str, technology_mapping: dict[str, str]):
             "reservoir_km3": _reservoir_km3(raw_df),
         }
     )
-    schema = _schemas.build_schema("hydropower", technology_mapping, "prepare")
+    schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(hydro_df).to_parquet(output_path)
 
 

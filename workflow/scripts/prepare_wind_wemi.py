@@ -70,7 +70,7 @@ def main(input_path: str, technology_mapping: str, output_path: str):
         },
         crs=WEMI_CRS,
     )
-    schema = _schemas.build_schema("wind", tech_map, "prepare")
+    schema = _schemas.build_schema(tech_map, "prepare")
     schema.validate(processed_df).to_parquet(output_path)
 
 

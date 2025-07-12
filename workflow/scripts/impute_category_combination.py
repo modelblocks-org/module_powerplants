@@ -36,8 +36,10 @@ def impute(
             ~combined_capacity["powerplant_id"].isin(to_drop)
         ]
 
-    category = _utils.check_single_category(combined_capacity)
-    schema = _schemas.build_schema(category, tech_mapping, "impute")
+    if not combined_capacity.empty:
+        _utils.check_single_category(combined_capacity)
+
+    schema = _schemas.build_schema(tech_mapping, "impute")
     schema.validate(combined_capacity).to_parquet(output_path)
 
 
@@ -50,8 +52,14 @@ def plot(imputed_path: str, output_path: str, colormap="tab20"):
 def explore(imputed_path: str, output_path: str, colormap="tab20"):
     """Create a HTML map for users to explore."""
     df = gpd.read_parquet(imputed_path)
-    explorer = df.explore(column="technology", legend=True, popup=True, cmap=colormap)
-    explorer.save(output_path)
+    if df.empty:
+        with open(output_path, "w") as f:
+            f.write("No data")
+    else:
+        explorer = df.explore(
+            column="technology", legend=True, popup=True, cmap=colormap
+        )
+        explorer.save(output_path)
 
 
 if __name__ == "__main__":

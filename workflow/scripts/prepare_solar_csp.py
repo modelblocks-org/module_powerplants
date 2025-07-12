@@ -41,7 +41,7 @@ def main(
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
         }
     ).reset_index(drop=True)
-    schema = _schemas.build_schema("solar", {"csp": tech_name}, "prepare")
+    schema = _schemas.build_schema({"csp": tech_name}, "prepare")
     schema.validate(csp_df).to_parquet(output_path)
 
 
