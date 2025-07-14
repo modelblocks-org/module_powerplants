@@ -1,3 +1,5 @@
+projected_crs: "epsg:8857"
+
 category:
   bioenergy:
     technology_mapping:

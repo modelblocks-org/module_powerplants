@@ -65,7 +65,7 @@ class AggregatedPlantSchema(DataFrameModel):
 class PlantSchema(DataFrameModel):
     class Config:
         coerce = True
-        strict = False
+        strict = True
 
     index: Index[int] = Field(unique=True)
 

@@ -1,22 +1,15 @@
 """Rules related to imputation and user-set modifications."""
 
-# Ensure user-set technology mapping is correct
-# Check lifetime technology names
-lifetime_set = set(config["imputation"]["lifetime_yr"].keys())
-mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_yr"])
-if mismatch:
-    raise ValueError(
-        f"Technologies in lifetimes and retirement delays mismatch: {mismatch}."
-    )
-# Check category technology names
-tech_map_set = set()
-for cat in ["bioenergy", "geothermal", "hydropower", "nuclear", "solar", "wind"]:
-    tech_map_set |= set(config["category"][cat]["technology_mapping"].values())
-for fossil_cat in ["coal", "oil_gas"]:
-    tech_map_set |= set(config["category"]["fossil"]["technology_mapping"][fossil_cat].values())
-mismatch = lifetime_set ^ tech_map_set
-if mismatch:
-    raise ValueError(f"Technology mapping does not match lifetime technologies for {mismatch}")
+IMPUTED_CAT = {'bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'large_solar', 'wind'}
+IMPUTED_CAT_UNADJUSTED = {"large_solar"}
+
+
+def get_config_category(category):
+    if category == "large_solar":
+        config_cat = "solar"
+    else:
+        config_cat = category
+    return config_cat
 
 
 def get_technology_mapping(filename: str):
@@ -34,7 +27,7 @@ def get_technology_mapping(filename: str):
 
 def get_files_to_combine(shapes, category):
     to_combine = []
-    if category == "solar":
+    if category == "large_solar":
         to_combine += [
             f"resources/automatic/{shapes}/imputed/solar_utility_pv.parquet",
             f"resources/automatic/{shapes}/imputed/solar_csp.parquet",
@@ -67,7 +60,7 @@ rule impute_years:
         imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
         plot="resources/automatic/{shapes}/imputed/{dataset}.pdf"
     wildcard_constraints:
-        dataset = "|".join(['bioenergy', 'fossil_coal', 'fossil_oil_gas', 'geothermal', 'hydropower', 'nuclear', 'solar_csp', 'solar_utility_pv', 'wind'])
+        dataset = "|".join(PREPARED_CAT)
     log:
         "logs/impute_years_{shapes}_{dataset}.log",
     conda:
@@ -83,7 +76,7 @@ rule impute_category_combination:
         "Combine sub-categories and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
-        excluded=lambda wc: config["category"][wc.category].get("excluded_ids", [])
+        excluded=lambda wc: config["category"][get_config_category(wc.category)].get("excluded_ids", [])
     input:
         to_combine=  lambda wc: get_files_to_combine(wc.shapes, wc.category)
     output:
@@ -91,7 +84,7 @@ rule impute_category_combination:
         plot="results/{shapes}/disaggregated/unadjusted/{category}.pdf",
         explore="results/{shapes}/disaggregated/unadjusted/{category}.html"
     wildcard_constraints:
-        category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'solar', 'wind'])
+        category = "|".join(IMPUTED_CAT)
     log:
         "logs/impute_category_combination_{shapes}_{category}.log",
     conda:
@@ -113,7 +106,7 @@ rule impute_capacity_adjustment:
         adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
         plot="results/{shapes}/disaggregated/adjusted/{category}.pdf",
     wildcard_constraints:
-        category = "|".join(['bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'wind'])
+        category = "|".join(IMPUTED_CAT - IMPUTED_CAT_UNADJUSTED)
     log:
         "logs/impute_capacity_adjustment_{shapes}_{category}.log",
     conda:

@@ -1,6 +1,7 @@
 """Rules in this file focus on parsing and cleaning data into shared schemas."""
 
-PREPARED_FUEL_CAT = ["bioenergy", "fossil_coal", "fossil_oil_gas"]
+PREPARED_FUEL_CAT = ("bioenergy", "fossil_coal", "fossil_oil_gas")
+PREPARED_CAT = ('bioenergy', 'fossil_coal', 'fossil_oil_gas', 'geothermal', 'hydropower', 'nuclear', 'solar_csp', 'solar_utility_pv', 'wind')
 
 rule prepare_hydropower:
     message:

@@ -8,12 +8,12 @@ import geopandas as gpd
 import pandas as pd
 import yaml
 
-HISTORICAL = {"operating","retired"}
+HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
     "historical": HISTORICAL,
     "near-future": HISTORICAL | {"construction"},
     "far-future": HISTORICAL | {"construction", "pre-construction"},
-    "far-off-future": HISTORICAL | {"construction", "pre-construction", "announced"}
+    "far-off-future": HISTORICAL | {"construction", "pre-construction", "announced"},
 }
 
 
@@ -121,10 +121,9 @@ def impute(
         shapes[["country_id", "geometry"]].dissolve("country_id").reset_index(),
         predicate="intersects",
         how="inner",
-    )
-    if not imputed.empty:
-        imputed = imputed.drop("index_right", axis="columns")
+    ).drop("index_right", axis="columns")
 
+    if not imputed.empty:
         # Adjust project dates
         imputed["start_year"] = impute_start_year(imputed, lifetimes)
         imputed["end_year"] = impute_end_year(imputed, lifetimes, retirement_delay_yr)
