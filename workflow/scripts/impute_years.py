@@ -95,17 +95,43 @@ def cli():
 @click.argument("imputation", type=str)
 @click.argument("technology_mapping", type=str)
 @click.argument("output_path", type=str)
+@click.option("-c", "--projected_crs", type=str)
 def impute(
     prepared_path: str,
     shapes_path: str,
     imputation: str,
     technology_mapping: str,
     output_path: str,
+    projected_crs: str | None
 ):
-    """Add automatic and user imputations to fill missing data."""
+    """Add automatic and user imputations to fill missing data.
+
+    Args:
+        prepared_path (str): cleaned dataset following our schema.
+        shapes_path (str): shapes to use.
+        imputation (str): imputation configuration.
+        technology_mapping (str): technology mapping configuration.
+        output_path (str): resulting dataset.
+        projected_crs (str): crs used to calculate centroids.
+    """
     prepared = gpd.read_parquet(prepared_path)
-    # Ensure we are working with a valid single-category file.
     _utils.check_single_category(prepared)
+
+    # Re-map polygons to their centroid to simplify further processing.
+    # TODO: consider splitting them between shapes instead?
+    polygon_mask = prepared[prepared.geometry.geom_type != "Point"].index
+    if polygon_mask.any():
+        if projected_crs:
+            prev_crs = prepared.crs
+            prepared.loc[polygon_mask, "geometry"] = (
+                prepared.loc[polygon_mask, "geometry"]
+                .to_crs(projected_crs)
+                .centroid.to_crs(prev_crs)
+            )
+        else:
+            raise ValueError(
+                "Polygon powerplant geometries detected. Specify a projected CRS."
+            )
 
     shapes = gpd.read_parquet(shapes_path)
 

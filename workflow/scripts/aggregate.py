@@ -24,13 +24,11 @@ def cli():
 @click.argument("shapes_file", type=click.Path(dir_okay=False))
 @click.option("-y", "--year", type=int, required=True)
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-@click.option("-c", "--projected_crs", type=str)
 def capacity(
     powerplant_file: str,
     shapes_file: str,
     year: int,
     output_file: str,
-    projected_crs: str,
 ):
     """Aggregate operating capacity for the given year.
 
@@ -38,7 +36,6 @@ def capacity(
         powerplant_file (str): powerplant data file.
         shapes_file (str): shapes file.
         year (float): reference year of adjustment.
-        projected_crs (str): CRS to use when calculating centroids.
         output_file (str): aggregated data file.
     """
     shapes_df = gpd.read_parquet(shapes_file)
@@ -52,18 +49,6 @@ def capacity(
     if plants_df.empty:
         agg_plants_df = pd.DataFrame(columns=group_cols + ["shape_id"])
     else:
-        non_point_mask = plants_df[plants_df.geometry.geom_type != "Point"].index
-        if non_point_mask.any():
-            if not projected_crs:
-                raise ValueError(
-                    "Polygon powerplant geometries detected. Specify a projected CRS."
-                )
-            prev_crs = plants_df.crs
-            plants_df.loc[non_point_mask, "geometry"] = (
-                plants_df.loc[non_point_mask, "geometry"]
-                .to_crs(projected_crs)
-                .centroid.to_crs(prev_crs)
-            )
         plants_df = plants_df.to_crs(shapes_df.geometry.crs)
         shapes_df = shapes_df.set_index("shape_id")
         agg_plants_arr = []

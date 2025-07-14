@@ -30,7 +30,6 @@ rule aggregate_large_solar_capacity:
     message:
         "Aggregating unadjusted large solar capacity for {wildcards.shapes}."
     params:
-        projected_crs=config["projected_crs"],
         year = config["imputation"]["adjustment_yr"]
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
@@ -45,6 +44,6 @@ rule aggregate_large_solar_capacity:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -c {params.projected_crs} -o {output.aggregated} 2> {log}
+        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -o {output.aggregated} 2> {log}
         python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot} -c "large solar" 2> {log}
         """

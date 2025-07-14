@@ -51,7 +51,8 @@ rule impute_years:
         "Imputing missing years values for {wildcards.shapes}-{wildcards.dataset} dataset."
     params:
         imputation=config["imputation"],
-        tech_map=lambda wc: get_technology_mapping(wc.dataset)
+        projected_crs=config["projected_crs"],
+        tech_map=lambda wc: get_technology_mapping(wc.dataset),
     input:
         script=workflow.source_path("../scripts/impute_years.py"),
         prepared="resources/automatic/prepared/{dataset}.parquet",
@@ -67,7 +68,7 @@ rule impute_years:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" impute "{input.prepared}" "{input.shapes}" "{params.imputation}" "{params.tech_map}" "{output.imputed}" 2> "{log}"
+        python "{input.script}" impute "{input.prepared}" "{input.shapes}" "{params.imputation}" "{params.tech_map}" "{output.imputed}" -c "{params.projected_crs}" 2> "{log}"
         python "{input.script}" plot "{output.imputed}" "{output.plot}" 2> "{log}"
         """
 
