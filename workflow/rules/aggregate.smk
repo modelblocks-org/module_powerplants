@@ -4,6 +4,8 @@
 rule aggregate_capacity:
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
+    params:
+        year = config["imputation"]["adjustment_yr"]
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
         powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
@@ -19,6 +21,29 @@ rule aggregate_capacity:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity {input.powerplants} {input.shapes} -o {output.aggregated} 2> {log}
-        python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot} 2> {log}
+        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -o {output.aggregated} 2> {log}
+        python {input.script} plot {output.aggregated} {input.shapes} -c {wildcards.category} -o {output.plot} 2> {log}
+        """
+
+
+rule aggregate_large_solar_capacity:
+    message:
+        "Aggregating unadjusted large solar capacity for {wildcards.shapes}."
+    params:
+        year = config["imputation"]["adjustment_yr"]
+    input:
+        script=workflow.source_path("../scripts/aggregate.py"),
+        powerplants="results/{shapes}/disaggregated/unadjusted/solar.parquet",
+        shapes="resources/user/shapes/{shapes}.parquet"
+    output:
+        aggregated="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
+        plot="results/{shapes}/aggregated/unadjusted/large_solar.png"
+    log:
+        "logs/aggregate_large_solar_capacity_{shapes}.log",
+    conda:
+        "../envs/shapes.yaml",
+    shell:
+        """
+        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -o {output.aggregated} 2> {log}
+        python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot} -c "large solar" 2> {log}
         """

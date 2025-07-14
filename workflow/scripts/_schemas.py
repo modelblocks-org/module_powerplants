@@ -53,6 +53,7 @@ class AggregatedPlantSchema(DataFrameModel):
     index: Index[int] = Field(unique=True)
 
     shape_id: Series[str]
+    country_id: Series[str]
     category: Series[str]
     technology: Series[str]
     chp: Optional[Series[bool]]

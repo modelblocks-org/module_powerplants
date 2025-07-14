@@ -58,8 +58,8 @@ def filter_years(
         powerplants_df (pd.DataFrame): powerplant dataset to filter.
         year (int): year to filter.
         how (Literal["operating", "future"], optional): filtering approach. Defaults to "operating".
-        - "operating": only powerplants active in the given year.
-        - "future": powerplants active and planned projects in the given year.
+        - operating: only active powerplants in the given year.
+        - future: active and planned powerplant projects in the given year.
 
     Returns:
         pd.DataFrame: copy of the given dataframe after filtering applied.
