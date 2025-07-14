@@ -110,7 +110,7 @@ def plot(aggregated_file: str, shapes_file: str, output_file: str, category: str
             ax=ax,
             column="output_capacity_mw",
             cmap="magma",
-            edgecolor="black",
+            edgecolor="grey",
             linewidth=0.5,
             legend=True,
             legend_kwds={"label": "Capacity ($MW$)"},

@@ -22,9 +22,8 @@ EIA_CAT_MAPPING = {
 }
 
 
-def _get_stats_in_cat_yr(stats_file: str, year: int, category: str) -> pd.DataFrame:
+def _get_stats_in_cat_yr(stats: pd.DataFrame, year: int, category: str) -> pd.DataFrame:
     """Get EIA statistics for a given year and category."""
-    stats = pd.read_parquet(stats_file)
     stats = stats[stats["year"] == year]
     stats = stats[stats["category"].isin(_utils.listify(EIA_CAT_MAPPING[category]))]
     return stats
@@ -47,9 +46,14 @@ def adjust(disaggregated_file: str, stats_file: str, year: int, output_file: str
     Powerplant location/distribution will be kept equal.
     """
     plants = gpd.read_parquet(disaggregated_file)
+    stats = pd.read_parquet(stats_file)
+
+    # Process only countries with statistics available
+    plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
     if not plants.empty:
         category = _utils.check_single_category(plants)
-        stats = _get_stats_in_cat_yr(stats_file, year, category)
+        stats = _get_stats_in_cat_yr(stats, year, category)
+
 
         # Adjustsment of operating facilities
         operating_plants = _utils.filter_years(plants, year, how="operating")
@@ -95,13 +99,14 @@ def plot(
     target_ticks: int = 12,
 ) -> None:
     """Plot adjustment per country."""
-    title = f"Disaggregated vs Adjusted vs EIA Capacity by Country - {year}"
+    suptitle = f"Disaggregated vs Adjusted vs EIA Capacity by Country - {year}"
     df_dis = pd.read_parquet(disaggregated_file)
     df_adj = pd.read_parquet(adjusted_file)
+    df_eia = pd.read_parquet(stats_file)
 
     # Handle the no-data case
     if df_dis.empty and df_adj.empty:
-        _plots.plot_empty(title, output_file)
+        _plots.plot_empty(suptitle, output_file)
         return
 
     df_dis = _utils.filter_years(df_dis, year, how="operating")
@@ -113,8 +118,9 @@ def plot(
         raise ValueError(
             f"Input datasets are not of the same category: {category_dis} vs {category_adj}"
         )
+    df_eia = _get_stats_in_cat_yr(df_eia, year, category_dis)
+    df_dis = df_dis[df_dis["country_id"].isin(df_eia["country_id"].unique())]
 
-    df_eia = _get_stats_in_cat_yr(stats_file, year, category_dis)
 
     # aggregate total capacities.
     agg_dis = (
@@ -245,9 +251,9 @@ def plot(
                 title=title,
                 loc="center",
             )
-    fig.suptitle(title, y=0.995)
+    fig.suptitle(suptitle, y=0.999)
 
-    fig.savefig(output_file)
+    fig.savefig(output_file, bbox_inches="tight")
 
 
 if __name__ == "__main__":

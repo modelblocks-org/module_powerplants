@@ -2,6 +2,7 @@
 
 import math
 
+import _plots
 import _schemas
 import click
 import geopandas as gpd
@@ -84,8 +85,14 @@ def prepare(
     eia_stats = pd.read_json(input_eia_bulk, lines=True)
 
     results = []
+    missing = []
     for country in shapes["country_id"].unique():
-        results.append(_get_country_capacity(eia_stats, country))
+        try:
+            results.append(_get_country_capacity(eia_stats, country))
+        except (ValueError, KeyError, IndexError):
+            print(f"Failed to extract statistics for {country}")
+            missing.append(country)
+
     all_statistics = pd.concat(results, ignore_index=True).reset_index(drop=True)
     all_statistics = _schemas.EIASchema.validate(all_statistics)
 
@@ -99,6 +106,10 @@ def prepare(
     assert math.isclose(total_cap_sum, disaggregated_cap_sum), (
         f"Aggregated capacity checksum failed: {total_cap_sum} vs {disaggregated_cap_sum}."
     )
+
+    total_statistics.attrs["missing_countries"] = missing
+    category_statistics.attrs["missing_countries"] = missing
+
     total_statistics.to_parquet(output_total)
     category_statistics.to_parquet(output_categories)
 
@@ -118,7 +129,9 @@ def plot(
     df_cats = pd.read_parquet(input_categories)
     df_tot = pd.read_parquet(input_total)[["year", "capacity_mw", "country_id"]]
 
-    countries = df_cats["country_id"].unique()
+    missing_countries = df_cats.attrs["missing_countries"]
+
+    countries = set(df_cats["country_id"].unique()) | set(missing_countries)
     n_countries = len(countries)
 
     fig, axes = plt.subplots(
@@ -131,49 +144,55 @@ def plot(
     if n_countries == 1:
         axes = [axes]
 
-    for ax, country in zip(axes, countries):
+    for ax, country in zip(axes, sorted(countries)):
         cats = df_cats[df_cats["country_id"] == country]
         total = df_tot[df_tot["country_id"] == country]
 
-        pivot = (
-            cats.pivot_table(
-                index="year", columns="category", values="capacity_mw", aggfunc="sum"
+        if any([cats.empty, total.empty]):
+            _plots.draw_empty(ax, country)
+        else:
+            pivot = (
+                cats.pivot_table(
+                    index="year",
+                    columns="category",
+                    values="capacity_mw",
+                    aggfunc="sum",
+                )
+                .fillna(0)
+                .sort_index()
             )
-            .fillna(0)
-            .sort_index()
-        )
-        bar = pivot.plot(kind="bar", stacked=True, ax=ax, legend=False, zorder=1)
+            bar = pivot.plot(kind="bar", stacked=True, ax=ax, legend=False, zorder=1)
 
-        x_pos = bar.get_xticks()
-        total_idx = total.set_index("year").reindex(pivot.index)
-        y_tot = total_idx["capacity_mw"].values
+            x_pos = bar.get_xticks()
+            total_idx = total.set_index("year").reindex(pivot.index)
+            y_tot = total_idx["capacity_mw"].values
 
-        ax.plot(
-            x_pos,
-            y_tot,
-            "x",
-            color="black",
-            label="total",
-            markersize=8,
-            linewidth=0,
-            zorder=5,
-        )
+            ax.plot(
+                x_pos,
+                y_tot,
+                "x",
+                color="black",
+                label="total",
+                markersize=8,
+                linewidth=0,
+                zorder=5,
+            )
 
-        handles, labels = ax.get_legend_handles_labels()
-        ax.legend(
-            handles[::-1],
-            labels[::-1],
-            title="Technology",
-            bbox_to_anchor=(1.02, 0.5),
-            loc="center left",
-            borderaxespad=0,
-        )
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(
+                handles[::-1],
+                labels[::-1],
+                title="Technology",
+                bbox_to_anchor=(1.02, 0.5),
+                loc="center left",
+                borderaxespad=0,
+            )
 
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=10, integer=True))
-        ax.tick_params(axis="x", rotation=45)
-        ax.set_title(f"{country}")
-        ax.set_ylabel("Capacity (MW)")
-        ax.set_xlabel("Year")
+            ax.xaxis.set_major_locator(MaxNLocator(nbins=10, integer=True))
+            ax.tick_params(axis="x", rotation=45)
+            ax.set_title(country)
+            ax.set_ylabel("Capacity (MW)")
+            ax.set_xlabel("Year")
 
     fig.savefig(output_plot, bbox_inches="tight")
 
