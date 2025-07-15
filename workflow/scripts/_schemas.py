@@ -1,7 +1,6 @@
 """Schemas for key files."""
 
 # ruff: noqa: UP007
-from collections.abc import Mapping
 from typing import Literal, Optional
 
 import pandera.pandas as pa

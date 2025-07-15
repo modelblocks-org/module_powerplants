@@ -35,6 +35,7 @@ contextily = ">=1.6.2,<2"
 gdal = ">=3.10.3,<4"
 libgdal-core = ">=3.10.3,<4"
 dask = ">=2025.5.1,<2026"
+cmap = ">=0.6.2,<0.7"
 
 [tasks]
 test = {cmd = "pytest tests/"}

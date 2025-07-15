@@ -11,21 +11,11 @@ from matplotlib import pyplot as plt
 from matplotlib import ticker as mticker
 from matplotlib.patches import Patch
 
-EIA_CAT_MAPPING = {
-    "bioenergy": "biomass and waste",
-    "fossil": "fossil fuels",
-    "geothermal": "geothermal",
-    "hydropower": ["hydropower", "pumped storage"],
-    "nuclear": "nuclear",
-    "solar": "solar",
-    "wind": "wind",
-}
-
 
 def _get_stats_in_cat_yr(stats: pd.DataFrame, year: int, category: str) -> pd.DataFrame:
     """Get EIA statistics for a given year and category."""
     stats = stats[stats["year"] == year]
-    stats = stats[stats["category"].isin(_utils.listify(EIA_CAT_MAPPING[category]))]
+    stats = stats[stats["category"].isin(_utils.EIA_CAT_MAPPING[category])]
     return stats
 
 

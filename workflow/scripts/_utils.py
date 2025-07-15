@@ -2,6 +2,7 @@
 
 from typing import Literal
 
+import _schemas
 import geopandas as gpd
 import pandas as pd
 from pandas.api.types import is_list_like
@@ -9,6 +10,23 @@ from pandas.api.types import is_list_like
 # Average year where disaggregated datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UDPATED!
 REFERENCE_YR = 2024
+
+
+def listify(item) -> list:
+    """Avoids ambiguity in YAML list parameters."""
+    return item if is_list_like(item) else [item]
+
+
+EIA_CAT_MAPPING = {
+    "bioenergy": "biomass and waste",
+    "fossil": "fossil fuels",
+    "geothermal": "geothermal",
+    "hydropower": ["hydropower", "pumped storage"],
+    "nuclear": "nuclear",
+    "solar": "solar",
+    "wind": "wind",
+}
+EIA_CAT_MAPPING = {k: listify(v) for k, v in EIA_CAT_MAPPING.items()}
 
 
 def get_point_col(
@@ -42,11 +60,6 @@ def check_single_category(df: pd.DataFrame) -> str:
     return categories[0]
 
 
-def listify(item) -> list:
-    """Avoids ambiguity in YAML list parameters."""
-    return item if is_list_like(item) else [item]
-
-
 def filter_years(
     powerplants_df: pd.DataFrame,
     year: int,
@@ -71,3 +84,21 @@ def filter_years(
     elif how == "future":
         filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
     return filtered
+
+
+def open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
+    """Opens a borders file, removes marine regions, and validates uniqueness.
+
+    Args:
+        borders_file (str): Path to shape with country borders.
+
+    Returns:
+        gpd.GeoDataFrame: dataframe with only land borders.
+    """
+    borders = gpd.read_parquet(borders_file)
+    if "shape_class" in borders.columns:
+        borders = borders[borders["shape_class"] == "land"]
+    if not borders["country_id"].is_unique:
+        raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
+    return _schemas.ShapeSchema.validate(borders)
+
