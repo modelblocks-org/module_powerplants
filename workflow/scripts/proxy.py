@@ -68,6 +68,7 @@ def capacity(
     missing_cap_mw = missing_cap_mw.where(missing_cap_mw >= 0, 0)
     borders_df["missing"] = missing_cap_mw
 
+    # borders_df = borders_df.reset_index(drop=True)
     proxy = gregor.disaggregate.disaggregate_polygon_to_raster(
         borders_df, column="missing", proxy=area_potential_da
     )
@@ -101,26 +102,26 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int, name
     # Compute a coarsening factor to avoid memory limits
     nx, ny = area_potential_da.sizes["x"], area_potential_da.sizes["y"]
     factor = math.ceil(math.sqrt((nx * ny) / pixels))
+    pixel_count = (nx // factor) * (ny // factor)
 
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
-    coarse = coarse.fillna(0)
 
     fig, ax = plt.subplots(figsize=(6, 6), layout="tight", dpi=300)
     coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),
         add_colorbar=True,
-        cbar_kwargs={"location": "bottom", "label": "Area potential"},
+        cbar_kwargs={"location": "bottom", "label": "Proxied potential"},
         alpha=1,
     )
     borders_df.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
-        ax=ax, color="lightgrey", linewidth=0.3, alpha=0.3
+        ax=ax, color="lightgrey", linewidth=0.3, alpha=0.5
     )
     ax.set_aspect("equal")
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    ax.set_title("Aggregation proxy (coarsened to ~{pixel_count:.1e} pixels)")
+    ax.set_title(f"Aggregation proxy (coarsened to ~{pixel_count:.1e} pixels)")
     fig.savefig(output_file)
 
 

@@ -5,6 +5,7 @@ channels:
 dependencies:
   - click=8.2.1
   - cmap = 0.6.2
+  - dask = 2025.7.0
   - geopandas = 1.0.1
   - ipdb = 0.13.13
   - openpyxl = 3.1.5
@@ -15,4 +16,4 @@ dependencies:
   - xlrd = 2.0.1
   - pip = 25.1.1
   - pip:
-    - gregor == 0.0.2
+    - git+https://github.com/irm-codebase/gregor.git@fix-memory-explosion#egg=gregor
