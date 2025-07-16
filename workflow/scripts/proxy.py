@@ -66,12 +66,18 @@ def capacity(
     missing_cap_mw = total_cap_mw - unadj_cap_mw
     missing_cap_mw = missing_cap_mw.dropna()
     missing_cap_mw = missing_cap_mw.where(missing_cap_mw >= 0, 0)
-    borders_df["missing"] = missing_cap_mw
+    borders_df["output_capacity_mw"] = missing_cap_mw
 
     # borders_df = borders_df.reset_index(drop=True)
     proxy = gregor.disaggregate.disaggregate_polygon_to_raster(
-        borders_df, column="missing", proxy=area_potential_da
+        borders_df, column="output_capacity_mw", proxy=area_potential_da
     )
+    proxy.attrs |= {
+        "name": "output_capacity_mw",
+        "long_name": "Output capacity (MW)",
+        "unit": "mw",
+    }
+    proxy.attrs
     proxy.rio.to_raster(output_file)
 
 

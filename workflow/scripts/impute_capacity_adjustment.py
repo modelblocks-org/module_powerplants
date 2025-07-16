@@ -19,6 +19,51 @@ def _get_stats_in_cat_yr(stats: pd.DataFrame, year: int, category: str) -> pd.Da
     return stats
 
 
+def _get_adjusted_capacity(
+    operating_plants: pd.DataFrame, expected_capacity: pd.Series
+) -> pd.Series:
+    """Adjust powerplant capacity the total expected capacity per country.
+
+    Args:
+        operating_plants (pd.DataFrame): dataframe with all operating plants to adjust.
+        expected_capacity (pd.Series): expected category capacity per country.
+
+    Returns:
+        pd.Series: adjusted powerplant capacity.
+    """
+    adjusted_cap_mw = (
+        operating_plants["output_capacity_mw"]
+        / operating_plants.groupby("country_id")["output_capacity_mw"].transform("sum")
+    ) * operating_plants["country_id"].map(expected_capacity)
+    return adjusted_cap_mw
+
+
+def _adjust_capacity(plants, stats, year, is_disagg):
+    """Adjust capacity to national statistics in the given year.
+
+    Will keep future projects in the disaggregated case.
+    """
+    category = _utils.check_single_category(plants)
+    stats = _get_stats_in_cat_yr(stats, year, category)
+    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
+
+    if is_disagg:
+        operating = _utils.filter_years(plants, year, how="operating")
+    else:
+        operating = plants
+
+    adjusted_cap = _get_adjusted_capacity(operating, expected_capacity)
+
+    if is_disagg:
+        # Add future projects (unaltered)
+        adjusted = _utils.filter_years(plants, year, how="future")
+    else:
+        adjusted = operating
+
+    adjusted.loc[adjusted_cap.index, "output_capacity_mw"] = adjusted_cap
+    return adjusted.reset_index(drop=True)
+
+
 @click.group()
 def cli():
     """CLI for capacity adjustment imputations."""
@@ -26,57 +71,70 @@ def cli():
 
 
 @cli.command()
-@click.argument("disaggregated_file", type=click.Path(dir_okay=False))
 @click.argument("stats_file", type=click.Path(dir_okay=False))
+@click.argument("unadjusted_file", type=click.Path(dir_okay=False))
 @click.option("-y", "--year", type=int, required=True)
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-def adjust(disaggregated_file: str, stats_file: str, year: int, output_file: str):
-    """Adjust powerplant capacity so it fits national statistics for the given year.
+def adjust_disaggregated(
+    stats_file: str, unadjusted_file: str, year: int, output_file: str
+):
+    """Adjust disaggregated powerplant capacity in the given year.
 
-    Powerplant location/distribution will be kept equal.
+    Also appends future projects (unaltered).
     """
-    plants = gpd.read_parquet(disaggregated_file)
     stats = pd.read_parquet(stats_file)
+    plants = gpd.read_parquet(unadjusted_file)
 
-    # Process only countries with statistics available
+    # Filter only relevant countries
     plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
-    if not plants.empty:
-        category = _utils.check_single_category(plants)
-        stats = _get_stats_in_cat_yr(stats, year, category)
-
-
-        # Adjustsment of operating facilities
-        operating_plants = _utils.filter_years(plants, year, how="operating")
-        expected_tot_cap = stats.groupby(["country_id"])["capacity_mw"].sum()
-        adjusted_cap_mw = (
-            operating_plants["output_capacity_mw"]
-            / operating_plants.groupby("country_id")["output_capacity_mw"].transform(
-                "sum"
-            )
-        ) * operating_plants["country_id"].map(expected_tot_cap)
-
-        # Update plants with adjusted capacity without touching planned projects
-        future_plants = _utils.filter_years(plants, year, how="future")
-        future_plants.loc[adjusted_cap_mw.index, "output_capacity_mw"] = adjusted_cap_mw
-        future_plants = future_plants.reset_index(drop=True)
+    if plants.empty:
+        adjusted_plants = plants
     else:
-        future_plants = plants
+        adjusted_plants = _adjust_capacity(plants, stats, year, is_disagg=True)
 
-    _schemas.PlantSchema.validate(future_plants).to_parquet(output_file)
+    _schemas.PlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
 
 @cli.command()
-@click.argument("disaggregated_file", type=click.Path(dir_okay=False))
 @click.argument("stats_file", type=click.Path(dir_okay=False))
+@click.argument("unadjusted_file", type=click.Path(dir_okay=False))
+@click.option("-y", "--year", type=int, required=True)
+@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
+def adjust_aggregated(
+    stats_file: str, unadjusted_file: str, year: int, output_file: str
+):
+    """Adjust aggregated powerplant capacity in the given year.
+
+    Only provides the requested reference year.
+    """
+    stats = pd.read_parquet(stats_file)
+    plants = pd.read_parquet(unadjusted_file)
+
+    # Filter only relevant countries
+    plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
+    if plants.empty:
+        adjusted_plants = plants
+    else:
+        adjusted_plants = _adjust_capacity(plants, stats, year, is_disagg=False)
+
+    _schemas.AggregatedPlantSchema.validate(adjusted_plants).to_parquet(output_file)
+
+
+@cli.command()
+@click.argument("stats_file", type=click.Path(dir_okay=False))
+@click.argument("unadjusted_file", type=click.Path(dir_okay=False))
 @click.argument("adjusted_file", type=click.Path(dir_okay=False))
 @click.option("-y", "--year", type=int, required=True)
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
+@click.option("--disaggregated", "is_disagg", flag_value=True, default=True)
+@click.option("--aggregated", "is_disagg", flag_value=False)
 def plot(
-    disaggregated_file: str,
     stats_file: str,
+    unadjusted_file: str,
     adjusted_file: str,
     year: int,
     output_file: str,
+    is_disagg: bool,
     *,
     country_col: str = "country_id",
     dis_tech_col: str = "technology",
@@ -89,32 +147,32 @@ def plot(
     target_ticks: int = 12,
 ) -> None:
     """Plot adjustment per country."""
-    suptitle = f"Disaggregated vs Adjusted vs EIA Capacity by Country - {year}"
-    df_dis = pd.read_parquet(disaggregated_file)
+    suptitle = f"Unadjusted vs Adjusted vs EIA Capacity by Country - {year}"
+    df_udj = pd.read_parquet(unadjusted_file)
     df_adj = pd.read_parquet(adjusted_file)
     df_eia = pd.read_parquet(stats_file)
 
     # Handle the no-data case
-    if df_dis.empty and df_adj.empty:
+    if df_udj.empty and df_adj.empty:
         _plots.plot_empty(suptitle, output_file)
         return
 
-    df_dis = _utils.filter_years(df_dis, year, how="operating")
-    df_adj = _utils.filter_years(df_adj, year, how="operating")
+    if is_disagg:
+        df_udj = _utils.filter_years(df_udj, year, how="operating")
+        df_adj = _utils.filter_years(df_adj, year, how="operating")
 
-    category_dis = _utils.check_single_category(df_dis)
+    category_dis = _utils.check_single_category(df_udj)
     category_adj = _utils.check_single_category(df_adj)
     if category_dis != category_adj:
         raise ValueError(
             f"Input datasets are not of the same category: {category_dis} vs {category_adj}"
         )
     df_eia = _get_stats_in_cat_yr(df_eia, year, category_dis)
-    df_dis = df_dis[df_dis["country_id"].isin(df_eia["country_id"].unique())]
-
+    df_udj = df_udj[df_udj["country_id"].isin(df_eia["country_id"].unique())]
 
     # aggregate total capacities.
     agg_dis = (
-        df_dis.groupby([country_col, dis_tech_col])[[dis_cap_col]].sum().reset_index()
+        df_udj.groupby([country_col, dis_tech_col])[[dis_cap_col]].sum().reset_index()
     )
     agg_adj = (
         df_adj.groupby([country_col, dis_tech_col])[[dis_cap_col]].sum().reset_index()
@@ -155,7 +213,7 @@ def plot(
         tight_layout=True,
     )
 
-    xpos = {"Disaggregated": 0, "Adjusted": 1, "EIA": 2}
+    xpos = {"Unadjusted": 0, "Adjusted": 1, "EIA": 2}
 
     # loop per country
     for (ax_tech, ax_bar, ax_cat), country in zip(axes, countries):
@@ -174,10 +232,10 @@ def plot(
                 eia_val = eia.get((country, label), 0.0)
 
             ax_bar.bar(
-                xpos["Disaggregated"],
+                xpos["Unadjusted"],
                 dis_val,
                 bar_width,
-                bottom=bottoms["Disaggregated"],
+                bottom=bottoms["Unadjusted"],
                 color=colour,
             )
             ax_bar.bar(
@@ -191,12 +249,12 @@ def plot(
                 xpos["EIA"], eia_val, bar_width, bottom=bottoms["EIA"], color=colour
             )
 
-            bottoms["Disaggregated"] += dis_val
+            bottoms["Unadjusted"] += dis_val
             bottoms["Adjusted"] += adj_val
             bottoms["EIA"] += eia_val
 
         tot_dis, tot_adj, tot_eia = (
-            bottoms["Disaggregated"],
+            bottoms["Unadjusted"],
             bottoms["Adjusted"],
             bottoms["EIA"],
         )
@@ -205,8 +263,8 @@ def plot(
         ax_bar.axhline(tot_dis, ls=":", lw=0.8, color="grey")
         ax_bar.axhline(tot_adj, ls="--", lw=0.8, color="grey")
 
-        ax_bar.set_xticks([xpos[k] for k in ("Disaggregated", "Adjusted", "EIA")])
-        ax_bar.set_xticklabels(["Disaggregated", "Adjusted", "EIA statistics"])
+        ax_bar.set_xticks([xpos[k] for k in ("Unadjusted", "Adjusted", "EIA")])
+        ax_bar.set_xticklabels(["Unadjusted", "Adjusted", "EIA statistics"])
         ax_bar.set_title(country, pad=4)
         ax_bar.set_ylabel("Capacity (MW)")
         ax_bar.yaxis.set_major_locator(mticker.MaxNLocator(nbins=target_ticks))

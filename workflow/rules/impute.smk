@@ -1,7 +1,7 @@
 """Rules related to imputation and user-set modifications."""
 
 IMPUTED_CAT = {'bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'large_solar', 'wind'}
-IMPUTED_CAT_UNADJUSTED = {"large_solar"}
+IMPUTED_CAT_SPECIAL = {"large_solar"}
 
 
 def get_config_category(category):
@@ -94,26 +94,26 @@ rule impute_category_combination:
         "../scripts/impute_category_combination.py"
 
 
-rule impute_capacity_adjustment:
+rule impute_disaggregated_capacity_adjustment:
     message:
-        "Adjusting capacity of {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
+        "Adjusting disaggregated capacity of {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
         script=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
-        disaggregated="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
+        unadjusted="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet"
     output:
         adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
         plot="results/{shapes}/disaggregated/adjusted/{category}.pdf",
     wildcard_constraints:
-        category = "|".join(IMPUTED_CAT - IMPUTED_CAT_UNADJUSTED)
+        category = "|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL)
     log:
-        "logs/impute_capacity_adjustment_{shapes}_{category}.log",
+        "logs/impute_disaggregated_capacity_adjustment_{shapes}_{category}.log",
     conda:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" adjust "{input.disaggregated}" "{input.stats}" -y {params.year} -o "{output.adjusted}" 2> "{log}"
-        python "{input.script}" plot "{input.disaggregated}" "{input.stats}" "{output.adjusted}" -y {params.year} -o "{output.plot}" 2> "{log}"
+        python "{input.script}" adjust-disaggregated "{input.stats}" "{input.unadjusted}" -y {params.year} -o "{output.adjusted}" 2> "{log}"
+        python "{input.script}" plot "{input.stats}" "{input.unadjusted}" "{output.adjusted}" -y {params.year} -o "{output.plot}" --disaggregated 2> "{log}"
         """

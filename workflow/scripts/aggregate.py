@@ -7,7 +7,7 @@ import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
-from gregor.aggregate import aggregate_point_to_polygon
+from gregor.aggregate import aggregate_point_to_polygon, aggregate_raster_to_polygon
 from matplotlib import pyplot as plt
 
 CAPACITY_COLUMNS = {"category", "technology", "chp", "ccs", "fuel_class"}
@@ -24,12 +24,7 @@ def cli():
 @click.argument("shapes_file", type=click.Path(dir_okay=False))
 @click.option("-y", "--year", type=int, required=True)
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-def capacity(
-    powerplant_file: str,
-    shapes_file: str,
-    year: int,
-    output_file: str,
-):
+def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str):
     """Aggregate operating capacity for the given year.
 
     Args:
@@ -67,6 +62,39 @@ def capacity(
 
     agg_plants_df.attrs["year"] = year
     _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
+
+
+@cli.command()
+@click.argument("large_pv_agg_file", type=click.Path(dir_okay=False))
+@click.argument("proxy_file", type=click.Path(dir_okay=False))
+@click.argument("shapes_file", type=click.Path(dir_okay=False))
+@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
+@click.option("-c", "--category", type=str, required=True)
+@click.option("-t", "--technology", type=str, required=True)
+def capacity_solar(
+    large_pv_agg_file: str,
+    proxy_file: str,
+    shapes_file: str,
+    output_file: str,
+    category: str,
+    technology: str,
+):
+    """Aggregate using proxy rasters."""
+    large_pv = pd.read_parquet(large_pv_agg_file)
+    shapes = gpd.read_parquet(shapes_file)
+    aggr_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
+
+    aggr_cap["category"] = category
+    aggr_cap["technology"] = technology
+    aggr_cap = aggr_cap.rename(columns={"sum": "output_capacity_mw"})
+    aggr_cap = aggr_cap.dropna(subset=["output_capacity_mw"])
+
+    valid_cols = set(_schemas.AggregatedPlantSchema.to_schema().columns)
+    aggr_cap = aggr_cap[list(valid_cols & set(aggr_cap.columns))]
+
+    solar_mw = pd.concat([aggr_cap, large_pv], ignore_index=True)
+    solar_mw.attrs = large_pv.attrs | aggr_cap.attrs
+    _schemas.AggregatedPlantSchema.validate(solar_mw).to_parquet(output_file)
 
 
 @cli.command()
