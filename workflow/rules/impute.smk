@@ -40,7 +40,7 @@ def get_files_to_combine(shapes, category):
     else:
         to_combine.append(f"resources/automatic/{shapes}/imputed/{category}.parquet")
 
-    user_path = f"resources/user/{shapes}/imputed_{category}.parquet"
+    user_path = f"resources/user/impute/{category}.parquet"
     if exists(user_path):
         to_combine.append(user_path)
     return to_combine

@@ -38,14 +38,18 @@ def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str
     plants_df = gpd.read_parquet(powerplant_file)
     plants_df = _utils.filter_years(plants_df, year, "operating")
 
-    # Keep technology-relevant columns, if present.
-    group_cols = list(set(plants_df.columns) & CAPACITY_COLUMNS)
-
     if plants_df.empty:
-        agg_plants_df = pd.DataFrame(columns=group_cols + ["shape_id"])
+        cols = {"shape_id"} | (
+            set(plants_df.columns)
+            & set(_schemas.AggregatedPlantSchema.to_schema().columns)
+        )
+        agg_plants_df = pd.DataFrame(columns=sorted(cols))
     else:
         plants_df = plants_df.to_crs(shapes_df.geometry.crs)
         shapes_df = shapes_df.set_index("shape_id")
+
+        # set of technology-relevant columns
+        group_cols = list(set(plants_df.columns) & CAPACITY_COLUMNS)
         agg_plants_arr = []
         for key_vals, group in plants_df.groupby(list(group_cols)):
             agg_df = aggregate_point_to_polygon(

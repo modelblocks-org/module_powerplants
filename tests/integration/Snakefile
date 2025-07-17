@@ -6,15 +6,18 @@ configfile: workflow.source_path("test_config.yaml")
 # `prefix:` re-routes all input/output paths of the module, helping to avoid file conflicts.
 module module_powerplants:
     snakefile: "../../workflow/Snakefile"
-    config: config
-    prefix: "results/module_powerplants/"
+    config: config["module_powerplants"]
+    prefix: "results/integration_test/"
 
 # rename all module rules with a prefix, to avoid naming conflicts.
 use rule * from module_powerplants as module_powerplants_*
+
+
+CATEGORIES = ["bioenergy", "fossil", "geothermal", "hydropower", "nuclear", "solar", "wind"]
 
 # Request something from the module
 rule all:
     message: "A generic test case for your module."
     default_target: True
     input:
-        "results/module_powerplants/resources/automatic/prepared/hydropower.parquet"
+        expand("results/integration_test/results/MNE/aggregated/adjusted/{category}.parquet", category=CATEGORIES)

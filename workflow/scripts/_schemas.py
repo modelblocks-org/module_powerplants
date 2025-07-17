@@ -55,10 +55,10 @@ class AggregatedPlantSchema(DataFrameModel):
     country_id: Series[str]
     category: Series[str]
     technology: Series[str]
+    output_capacity_mw: Series[float]
     chp: Optional[Series[bool]]
     ccs: Optional[Series[bool]]
     fuel_class: Optional[Series[str]]
-    output_capacity_mw: Optional[Series[float]]
 
 
 class PlantSchema(DataFrameModel):
