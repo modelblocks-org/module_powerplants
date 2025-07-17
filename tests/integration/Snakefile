@@ -1,5 +1,5 @@
 # Emulate a user configuring the module.
-configfile: workflow.source_path("../../config/config.yaml")
+configfile: workflow.source_path("test_config.yaml")
 
 # Import the module and configure it.
 # `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers

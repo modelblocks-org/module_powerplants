@@ -4,7 +4,6 @@ resources:
     # Links for automatically downloaded files
     eia_bulk: "https://www.eia.gov/opendata/bulk/INTL.zip"
     GEM:
-      integrated: https://globalenergymonitor.org/wp-content/uploads/2025/04/Global-Integrated-Power-April-2025.xlsx
       gspt: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Solar-Power-Tracker-February-2025.xlsx
       gwpt: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Wind-Power-Tracker-February-2025.xlsx
       GBPT: https://globalenergymonitor.org/wp-content/uploads/2024/09/Global-Bioenergy-Power-Tracker-GBPT-September-2024.xlsx
