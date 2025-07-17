@@ -1,8 +1,386 @@
-$schema: "https://json-schema.org/draft/2020-12/schema"
-description: "Schema for user-provided configuration files."
+$schema: "https://json-schema.org/draft/2020-12/schema#"
 type: object
+required:
+  - projected_crs
+  - category
+  - imputation
 additionalProperties: false
-properties:
-  dummy_text:
-    description: A template example. Should be deleted in real applications.
+
+$defs:
+  excluded_ids:
+    type: array
+    items:
+      type: string
+    uniqueItems: true
+
+  non_empty_string:
     type: string
+    minLength: 1
+
+  nonzero_number:
+    type: number
+    not:
+      const: 0
+
+  year_map:
+    type: object
+    propertyNames:
+      $ref: '#/$defs/non_empty_string'
+    additionalProperties:
+      type: integer
+      minimum: 0
+
+  technology_mapping_base:
+    title: Technology Mapping
+    description: >
+      Allows users to re-map technology names to their desired naming convention.
+      These names will be reflected in the resulting files, and will also be used during validation.
+
+properties:
+  projected_crs:
+    title: Projected CRS
+    description: CRS to use during projected operations (e.g., polygon centroid calculations).
+    oneOf:
+      - type: string
+        pattern: '^(epsg|EPSG):\d{4}$'
+      - type: integer
+        minimum: 1000
+        maximum: 9999
+
+  category:
+    title: Category
+    description: Powerplant category settings, subdivided into bins based on EIA statistics.
+    type: object
+    additionalProperties: false
+    properties:
+
+      bioenergy:
+        title: Bioenergy and Waste powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum: [unknown]
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 1
+                maxProperties: 1
+        required:
+          - technology_mapping
+
+      fossil:
+        title: Fossil powerplant settings, subdivided into Coal and Oil and Gas projects.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                additionalProperties: false
+                properties:
+                  coal:
+                    allOf:
+                      - $ref: '#/$defs/technology_mapping_base'
+                      - type: object
+                        propertyNames:
+                          enum:
+                            - CFB
+                            - IGCC
+                            - subcritical
+                            - supercritical
+                            - ultra-supercritical
+                            - unknown
+                        additionalProperties:
+                          $ref: '#/$defs/non_empty_string'
+                        minProperties: 6
+                        maxProperties: 6
+                  oil_gas:
+                    allOf:
+                      - $ref: '#/$defs/technology_mapping_base'
+                      - type: object
+                        propertyNames:
+                          enum:
+                            - AFC
+                            - ICCC
+                            - IGCC
+                            - ISCC
+                            - "combined cycle"
+                            - "gas turbine"
+                            - "internal combustion"
+                            - "steam turbine"
+                            - unknown
+                        additionalProperties:
+                          $ref: '#/$defs/non_empty_string'
+                        minProperties: 9
+                        maxProperties: 9
+                required:
+                  - coal
+                  - oil_gas
+        required:
+          - technology_mapping
+
+      geothermal:
+        title: Geothermal powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum:
+                    - "advanced geothermal systems (AGS)"
+                    - "binary cycle"
+                    - "dry steam"
+                    - "enhanced geothermal systems (EGS)"
+                    - "flash steam - double"
+                    - "flash steam - single"
+                    - "flash steam - triple"
+                    - "flash steam - unknown"
+                    - "geopressured geothermal system (GGS)"
+                    - unknown
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 10
+                maxProperties: 10
+        required:
+          - technology_mapping
+
+      hydropower:
+        title: Hydropower powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum:
+                    - Canal
+                    - PS
+                    - ROR
+                    - STO
+                    - unknown
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 5
+                maxProperties: 5
+        required:
+          - technology_mapping
+
+      nuclear:
+        title: Nuclear powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum:
+                    - "boiling water reactor"
+                    - "fast breeder reactor"
+                    - "fast neutron reactor"
+                    - "gas-cooled reactor"
+                    - "heavy water gas-cooled reactor"
+                    - "heavy water light water reactor"
+                    - "high temperature gas reactor"
+                    - "liquid-metal-cooled fast reactor"
+                    - "light water graphite reactor"
+                    - "molten salt reactor"
+                    - "pressurized heavy water reactor"
+                    - "pressurized water reactor"
+                    - "small modular reactor"
+                    - "steam-generating heavy water reactor"
+                    - unknown
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 15
+                maxProperties: 15
+        required:
+          - technology_mapping
+
+      solar:
+        title: Solar powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum: [csp, rooftop_pv, utility_pv]
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 3
+                maxProperties: 3
+          dc_ac_ratio:
+            title: DC to AC convertion ratio.
+            description: >
+              Used to convert MWdc to MWac to ensure all solar projects use a consistent capacity unit.
+            type: object
+            additionalProperties: false
+            properties:
+              csp:
+                $ref: '#/$defs/nonzero_number'
+              utility_pv:
+                $ref: '#/$defs/nonzero_number'
+            required:
+              - csp
+              - utility_pv
+        required:
+          - technology_mapping
+          - dc_ac_ratio
+
+      wind:
+        title: Wind powerplant settings.
+        type: object
+        additionalProperties: false
+        properties:
+          excluded_ids:
+            $ref: '#/$defs/excluded_ids'
+          source:
+            title: Data source
+            description: |
+              This module accepts two possible datasources for wind powerplants:
+
+                - gem: download and use the Global Energy Monitor's Global Wind Power Tracker dataset (free, open license).
+                - wemi: use a user provided .xls from the Wind Energy Market Intelligence dataset (paid, closed license).
+            type: string
+            enum:
+              - wemi
+              - gem
+          technology_mapping:
+            allOf:
+              - $ref: '#/$defs/technology_mapping_base'
+              - type: object
+                propertyNames:
+                  enum: [offshore, onshore]
+                additionalProperties:
+                  $ref: '#/$defs/non_empty_string'
+                minProperties: 2
+                maxProperties: 2
+        required:
+          - source
+          - technology_mapping
+
+  fuel_mapping:
+    title: Fuel Mapping
+    description: |
+      We provide a standardised naming convention for combustion fuels (see `workflow/internal/settings.yaml`).
+      In some cases, users might want to simplify these names or disaggregate them further.
+      This optional configuration allows to do just that on a per-fuel basis.
+    type: object
+    propertyNames:
+      enum:
+        - "bioenergy: agricultural waste (biogas)"
+        - "bioenergy: agricultural waste (solids)"
+        - "bioenergy: agricultural waste (syngas)"
+        - "bioenergy: agricultural waste (unknown)"
+        - "bioenergy: biodiesel"
+        - "bioenergy: ethanol"
+        - "bioenergy: paper mill wastes"
+        - "bioenergy: refuse (landfill gas)"
+        - "bioenergy: refuse (municipal and industrial wastes)"
+        - "bioenergy: refuse (syngas)"
+        - "bioenergy: unknown"
+        - "bioenergy: wastewater and sewage sludge (solids or biogas)"
+        - "bioenergy: wood & other biomass (biocoal)"
+        - "bioenergy: wood & other biomass (solids)"
+        - "bioenergy: wood & other biomass (syngas)"
+        - "coal: anthracite"
+        - "coal: bituminous"
+        - "coal: lignite"
+        - "coal: subbituminous"
+        - "coal: unknown"
+        - "coal: waste coal"
+        - "fossil gas: coalbed methane"
+        - "fossil gas: gaseous propane"
+        - "fossil gas: LNG"
+        - "fossil gas: natural gas"
+        - "fossil gas: unknown"
+        - "fossil gas: waste heat from natural gas"
+        - "fossil liquids: crude oil"
+        - "fossil liquids: diesel"
+        - "fossil liquids: fuel oil"
+        - "fossil liquids: gasoline"
+        - "fossil liquids: heavy fuel oil"
+        - "fossil liquids: jet fuel"
+        - "fossil liquids: kerosene"
+        - "fossil liquids: light fuel oil"
+        - "fossil liquids: liquefied petroleum gas"
+        - "fossil liquids: naphtha"
+        - "fossil liquids: petroleum coke"
+        - "fossil liquids: unknown"
+        - "fossil liquids: waste/other oil"
+        - "industrial by-product:"
+        - "industrial by-product: blast furnace gas"
+        - "industrial by-product: coke oven gas"
+        - "industrial by-product: unknown"
+        - "other: hydrogen (blue)"
+        - "other: hydrogen (green)"
+        - "other: hydrogen (unknown)"
+        - "other: tires"
+    additionalProperties:
+      $ref: '#/$defs/non_empty_string'
+
+  imputation:
+    title: Imputation
+    description: >
+      Settings used for imputation / guess work. Mostly related to technology lifetimes.
+      These will be mostly applied during 'imputation' rules before results are generated.
+    type: object
+    additionalProperties: false
+    required:
+      - adjustment_yr
+      - scenario
+      - lifetime_yr
+      - retirement_delay_yr
+    properties:
+      adjustment_yr:
+        title: Adjustment year.
+        description: >
+          Year to use as reference when adjusting capacities to fit historical country statistics.
+        type: integer
+        minimum: 0
+        maximum: 2023
+      scenario:
+        title: Scenario
+        description: >
+          Determines which 'future' facilities to keep beyond the adjustment year. From less to more:
+
+            - historical: only keep existing capacities.
+            - near-future: keeps the above plus projects in construction (RECOMMENDED).
+            - far-future: keeps the above plus projects in pre-construction stages (e.g., those processing permits).
+            - far-off-future: keeps the above plus announced projects that have not reached permitting stages. Highly speculative.
+        type: string
+        enum:
+          - historical
+          - near-future
+          - far-future
+          - far-off-future
+      lifetime_yr:
+        $ref: '#/$defs/year_map'
+      retirement_delay_yr:
+        $ref: '#/$defs/year_map'

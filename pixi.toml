@@ -19,26 +19,9 @@ python = ">=3.12"
 ruff = ">=0.9.9"
 snakefmt = ">=0.10.2"
 snakemake-minimal = ">=8.29.0"
-powerplantmatching = ">=0.7.1,<0.8"
-geopandas = ">=1.0.1,<2"
-pandera-geopandas = ">=0.24.0,<0.25"
-pyarrow = ">=19.0.1,<20"
-pycountry = ">=24.6.1,<25"
-cartopy = ">=0.24.0,<0.25"
-pandera-pandas = ">=0.24.0,<0.25"
-rasterio = ">=1.4.3,<2"
-richdem = ">=2.3.0,<3"
-pystac-client = ">=0.8.6,<0.9"
-libgdal-arrow-parquet = ">=3.10.3,<4"
-click = ">=8.2.1,<9"
-contextily = ">=1.6.2,<2"
-gdal = ">=3.10.3,<4"
-libgdal-core = ">=3.10.3,<4"
-dask = ">=2025.7.0,<2026"
-cmap = ">=0.6.2,<0.7"
 
 [tasks]
-test = {cmd = "pytest tests/"}
+test-integration = {cmd = "pytest tests/clio_test.py"}
 
 [feature.docs.dependencies]
 mkdocs-material = ">=9.6.7"
@@ -52,6 +35,3 @@ build-docs = {cmd = "mkdocs build"}
 
 [environments]
 docs = ["docs"]
-
-[pypi-dependencies]
-gregor = { git = "https://github.com/jnnr/gregor.git", rev = "4d54d11" }

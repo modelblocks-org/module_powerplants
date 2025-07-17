@@ -10,14 +10,10 @@ configfile: workflow.source_path("../config/config.yaml")
 
 
 # Validate the configuration using the schema file.
-# TODO: add validation
-# TODO: ensure validation accounts for chosen technology names
-# TODO: consider letting people configure which categories to process as 'planned'
-# validate(config, workflow.source_path("internal/config.schema.yaml"))
+validate(config, workflow.source_path("internal/config.schema.yaml"))
 
 def additional_config_validation():
-    # Ensure user-set technology mapping is correct
-    # Check lifetime technology names
+    """Ensures technology mapping and lifetime-related names match."""
     lifetime_set = set(config["imputation"]["lifetime_yr"].keys())
     mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_yr"])
     if mismatch:

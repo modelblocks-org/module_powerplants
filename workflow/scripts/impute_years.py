@@ -7,6 +7,7 @@ import click
 import geopandas as gpd
 import pandas as pd
 import yaml
+from pyproj import CRS
 
 HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
