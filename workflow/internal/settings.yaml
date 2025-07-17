@@ -2,10 +2,8 @@
 resources:
   automatic:
     # Links for automatically downloaded files
-    eia_bulk: "https://www.eia.gov/opendata/bulk/INTL.zip"
+    EIA: "https://www.eia.gov/opendata/bulk/INTL.zip"
     GEM:
-      gspt: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Solar-Power-Tracker-February-2025.xlsx
-      gwpt: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Wind-Power-Tracker-February-2025.xlsx
       GBPT: https://globalenergymonitor.org/wp-content/uploads/2024/09/Global-Bioenergy-Power-Tracker-GBPT-September-2024.xlsx
       GCPT: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Coal-Plant-Tracker-January-2025.xlsx
       GGPT: https://globalenergymonitor.org/wp-content/uploads/2025/03/Geothermal-Power-Tracker-March-2025-Final.xlsx

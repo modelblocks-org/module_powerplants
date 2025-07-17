@@ -5,7 +5,7 @@ rule download_eia:
     message:
         "Download the EIA International energy statistics in bulk."
     params:
-        url=internal["resources"]["automatic"]["eia_bulk"],
+        url=internal["resources"]["automatic"]["EIA"],
         zip_file_path="INTL.txt"
     input:
         script=workflow.source_path("../scripts/unzip_webfile.py"),

@@ -1,6 +1,6 @@
 # clio - Powerplants module
 
-A module that collects, harmonizes and aggregates powerplant capacities for energy systems modelling.
+A module that collects, harmonizes and aggregates global powerplant capacities for energy systems modelling.
 
 A modular `snakemake` workflow built for [`clio`](https://clio.readthedocs.io/) data modules.
 

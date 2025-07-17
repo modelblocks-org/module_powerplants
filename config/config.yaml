@@ -78,7 +78,7 @@ category:
       utility_pv: 1.25
 
   wind:
-    source: "wemi" # options: wemi, gem
+    source: "gem" # options: wemi, gem
     technology_mapping:
       offshore: "offshore"
       onshore: "onshore"

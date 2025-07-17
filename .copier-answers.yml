@@ -7,7 +7,7 @@ author_family_name: Ruiz Manuel
 author_given_name: Ivan
 github_org: calliope-project
 license: Apache-2.0
-module_description: A module that collects, harmonizes and aggregates powerplant capacities
-    for energy systems modelling.
+module_description: A module that collects, harmonizes and aggregates global powerplant
+    capacities for energy systems modelling.
 module_long_name: clio - Powerplants module
 module_short_name: module_powerplants

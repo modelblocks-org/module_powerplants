@@ -10,8 +10,13 @@ import pandas as pd
 import rioxarray as rxr
 from cmap import Colormap
 from matplotlib import pyplot as plt
+from xarray import DataArray
 
-FORCED_CRS = "EPSG:4326"
+
+def _check_crs(raster: DataArray):
+    crs = raster.rio.crs
+    if crs is None or not crs.is_valid:
+        raise ValueError(f"The provided raster has an invalid CRS: {crs}.")
 
 
 @click.group()
@@ -54,7 +59,7 @@ def capacity(
     borders_df = _utils.open_borders_gdf(borders_file).set_index("country_id")
     stats_df = pd.read_parquet(stats_file)
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
-    area_potential_da = area_potential_da.rio.write_crs(FORCED_CRS)  # TODO: remove me
+    _check_crs(area_potential_da)
 
     agg_unadjusted_df = pd.read_parquet(aggregated_unadjusted_file)
     unadj_cap_mw = agg_unadjusted_df.groupby("country_id")["output_capacity_mw"].sum()
@@ -100,10 +105,7 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int, name
     borders_df = gpd.read_parquet(borders_file)
 
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
-    # TODO: remove me
-    if not area_potential_da.rio.crs:
-        # Attempt to force a common CRS in broken files
-        area_potential_da = area_potential_da.rio.write_crs(FORCED_CRS)
+    _check_crs(area_potential_da)
 
     # Compute a coarsening factor to avoid memory limits
     nx, ny = area_potential_da.sizes["x"], area_potential_da.sizes["y"]
