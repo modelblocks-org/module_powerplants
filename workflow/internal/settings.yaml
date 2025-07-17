@@ -2,17 +2,17 @@
 resources:
   automatic:
     # Links for automatically downloaded files
-    EIA: "https://www.eia.gov/opendata/bulk/INTL.zip"
+    EIA: "https://zenodo.org/records/16037140/files/EIA-INTL.txt"
     GEM:
-      GBPT: https://globalenergymonitor.org/wp-content/uploads/2024/09/Global-Bioenergy-Power-Tracker-GBPT-September-2024.xlsx
-      GCPT: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Coal-Plant-Tracker-January-2025.xlsx
-      GGPT: https://globalenergymonitor.org/wp-content/uploads/2025/03/Geothermal-Power-Tracker-March-2025-Final.xlsx
-      GNPT: https://globalenergymonitor.org/wp-content/uploads/2024/07/Global-Nuclear-Power-Tracker-July-2024.xlsx
-      GOGPT: https://globalenergymonitor.org/wp-content/uploads/2025/01/Global-Oil-and-Gas-Plant-Tracker-GOGPT-January-2025.xlsx
-      GSPT: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Solar-Power-Tracker-February-2025.xlsx
-      GWPT: https://globalenergymonitor.org/wp-content/uploads/2025/02/Global-Wind-Power-Tracker-February-2025.xlsx
+      GBPT: https://zenodo.org/records/16037140/files/GEM_GBPT.xlsx
+      GCPT: https://zenodo.org/records/16037140/files/GEM_GCPT.xlsx
+      GGPT: https://zenodo.org/records/16037140/files/GEM_GGPT.xlsx
+      GNPT: https://zenodo.org/records/16037140/files/GEM_GNPT.xlsx
+      GOGPT: https://zenodo.org/records/16037140/files/GEM_GOGPT.xlsx
+      GSPT: https://zenodo.org/records/16037140/files/GEM_GSPT.xlsx
+      GWPT: https://zenodo.org/records/16037140/files/GEM_GWPT.xlsx
     GloHydroRes: "https://zenodo.org/records/14526360/files/GloHydroRes_vs1.csv"
-    TZ-SAM: "https://blog.transitionzero.org/hubfs/Data%20Products/TZ-SAM/TZ-SAM_Solar%20Asset%20Mapper%20-%20Q1%202025.zip"
+    TZ-SAM: https://zenodo.org/records/16037140/files/TZ-SAM.gpkg
 fuel_mapping:
   "bioenergy: agricultural waste (biogas)": "biogas"
   "bioenergy: agricultural waste (solids)": "biomass"

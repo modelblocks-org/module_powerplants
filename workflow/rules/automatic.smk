@@ -6,17 +6,14 @@ rule download_eia:
         "Download the EIA International energy statistics in bulk."
     params:
         url=internal["resources"]["automatic"]["EIA"],
-        zip_file_path="INTL.txt"
-    input:
-        script=workflow.source_path("../scripts/unzip_webfile.py"),
     output:
         path="resources/automatic/downloads/EIA-INTL.txt",
     log:
         "logs/download_eia.log",
     conda:
-        "../envs/download.yaml"
+        "../envs/shell.yaml"
     shell:
-        'python {input.script} {params.url} {params.zip_file_path} {output.path}'
+        'curl -sSLo {output.path} "{params.url}"'
 
 
 rule download_tz_sam:
@@ -24,17 +21,14 @@ rule download_tz_sam:
         "Download the Transition Zero - Solar Asset Mapper dataset."
     params:
         url=internal["resources"]["automatic"]["TZ-SAM"],
-        zip_file_path="tz-sam-runs_2025-Q1_outputs_external_analysis_polygons.gpkg"
-    input:
-        script=workflow.source_path("../scripts/unzip_webfile.py"),
     output:
         path="resources/automatic/downloads/TZ-SAM.gpkg"
     log:
         "logs/download_tz_sam.log"
     conda:
-        "../envs/download.yaml"
+        "../envs/shell.yaml"
     shell:
-        'python {input.script} {params.url} {params.zip_file_path} {output.path}'
+        'curl -sSLo {output.path} "{params.url}"'
 
 
 rule download_glohydrores:

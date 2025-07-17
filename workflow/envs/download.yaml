@@ -1,8 +1,0 @@
-name: download
-channels:
-  - conda-forge
-  - nodefaults
-dependencies:
-  - click=8.2.1
-  - python = 3.12.9
-  - requests = 2.32.3
