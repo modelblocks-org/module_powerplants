@@ -64,10 +64,10 @@ def cli():
 
 
 @cli.command()
-@click.argument("input_shapes", type=str)
-@click.argument("input_eia_bulk", type=str)
-@click.argument("output_total", type=str)
-@click.argument("output_categories", type=str)
+@click.argument("input_shapes", type=click.Path(dir_okay=False))
+@click.argument("input_eia_bulk", type=click.Path(dir_okay=False))
+@click.option("-ot", "output_total", type=click.Path(dir_okay=False), required=True)
+@click.option("-oc", "output_categories", type=click.Path(dir_okay=False), required=True)
 def prepare(
     input_shapes: str, input_eia_bulk: str, output_total: str, output_categories: str
 ):
@@ -115,10 +115,10 @@ def prepare(
 
 
 @cli.command()
-@click.argument("input_total", type=str)
-@click.argument("input_categories", type=str)
-@click.argument("output_plot", type=str)
-@click.option("--figsize", type=(float, float), default=(12, 6))
+@click.argument("input_total", type=click.Path(dir_okay=False))
+@click.argument("input_categories", type=click.Path(dir_okay=False))
+@click.option("-o", "output_plot", type=click.Path(dir_okay=False), required=True)
+@click.option("-f", "figsize", type=(float, float), default=(12, 6))
 def plot(
     input_total: str,
     input_categories: str,

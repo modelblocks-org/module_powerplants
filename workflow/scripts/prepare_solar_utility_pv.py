@@ -86,11 +86,11 @@ def get_gem_mismatch(
 
 
 @click.command()
-@click.argument("tz_sam_path", type=str)
-@click.argument("gem_gspt_path", type=str)
-@click.argument("output_path", type=str)
-@click.option("--tech_name", type=str, default="utility_pv")
-@click.option("--dc_ac_ratio", type=float, default=1.25)
+@click.argument("tz_sam_path", type=click.Path(dir_okay=False))
+@click.argument("gem_gspt_path", type=click.Path(dir_okay=False))
+@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
+@click.option("-t", "tech_name", type=str, default="utility_pv")
+@click.option("-r", "dc_ac_ratio", type=float, default=1.25)
 def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_ratio):
     """Obtain utility-scale PV locations by combinging GEM-GSPT and TZ-SAM data.
 

@@ -49,7 +49,10 @@ def build_request_all(
 @pytest.mark.parametrize("aggregation", ["aggregated", "disaggregated"])
 @pytest.mark.parametrize("case", ["MEX", "MNE", "europe"])
 def test_full_run(user_path: Path, case: str, aggregation: str, adjustment: str):
-    """Test a full request of aggregated files."""
+    """Test a full request of categories a given setup can give.
+
+    NNN-aggregated-adjusted is often the most holistic case.
+    """
     cats = TEST_CATEGORIES
     if aggregation == "disaggregated":
         # solar has no disaggregated case due to the lack of point-source rooftop PV.

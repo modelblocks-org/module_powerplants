@@ -8,10 +8,10 @@ import geopandas as gpd
 
 
 @click.command()
-@click.argument("gem_gspt_path", type=str)
-@click.argument("output_path", type=str)
-@click.option("--tech_name", type=str)
-@click.option("--dc_ac_ratio", default=1.25)
+@click.argument("gem_gspt_path", type=click.Path(dir_okay=False))
+@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
+@click.option("-t", "tech_name", type=str, default="csp")
+@click.option("-r", "dc_ac_ratio", default=1.25)
 def main(
     gem_gspt_path: str,
     tech_name: str,

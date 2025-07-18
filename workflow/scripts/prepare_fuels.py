@@ -14,7 +14,7 @@ def cli():
 
 @cli.command()
 @click.argument("fuel_class_file", nargs=-1, type=click.Path(dir_okay=False))
-@click.option("-o", "--output_file", type=str, required=True)
+@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
 @click.option("-p", "--prefix", type=str, default="fc")
 def prepare(fuel_class_file: tuple[str], output_file: str, prefix: str):
     """Prepare harmonised fuel classess across categories.

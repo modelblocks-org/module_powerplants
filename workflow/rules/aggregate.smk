@@ -21,6 +21,8 @@ rule aggregate_capacity:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -o {output.aggregated} 2> {log}
-        python {input.script} plot {output.aggregated} {input.shapes} -c {wildcards.category} -o {output.plot} 2> {log}
+        python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
+            -y {params.year} -o {output.aggregated:q} 2> {log:q}
+        python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
+            -c "{wildcards.category}" -o {output.plot:q} 2> {log:q}
         """

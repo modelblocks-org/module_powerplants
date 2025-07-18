@@ -68,8 +68,10 @@ rule impute_years:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" impute "{input.prepared}" "{input.shapes}" "{params.imputation}" "{params.tech_map}" "{output.imputed}" -c "{params.projected_crs}" 2> "{log}"
-        python "{input.script}" plot "{output.imputed}" "{output.plot}" 2> "{log}"
+        python {input.script:q} impute {input.prepared:q} {input.shapes:q} \
+            -i "{params.imputation}" -t "{params.tech_map}" -c "{params.projected_crs}" \
+            -o "{output.imputed}" 2> {log:q}
+        python {input.script:q} plot {output.imputed:q} -o {output.plot:q} 2> {log:q}
         """
 
 rule impute_category_combination:
@@ -114,6 +116,8 @@ rule impute_disaggregated_capacity_adjustment:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" adjust-disaggregated "{input.stats}" "{input.unadjusted}" -y {params.year} -o "{output.adjusted}" 2> "{log}"
-        python "{input.script}" plot "{input.stats}" "{input.unadjusted}" "{output.adjusted}" -y {params.year} -o "{output.plot}" --disaggregated 2> "{log}"
+        python {input.script:q} adjust-disaggregated {input.stats:q} {input.unadjusted:q} \
+            -y {params.year} -o {output.adjusted:q} 2> {log:q}
+        python {input.script:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
+            -y {params.year} -o {output.plot:q} --disaggregated 2> {log:q}
         """

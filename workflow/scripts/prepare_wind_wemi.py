@@ -43,10 +43,10 @@ def _start_year(raw_df: pd.DataFrame) -> pd.Series:
 
 
 @click.command()
-@click.argument("input_path", type=str)
-@click.argument("technology_mapping", type=str)
-@click.argument("output_path", type=str)
-def main(input_path: str, technology_mapping: str, output_path: str):
+@click.argument("input_path", type=click.Path(dir_okay=False))
+@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
+@click.option("-t", "technology_mapping", type=str, required=True)
+def main(input_path: str, output_path: str, technology_mapping: str):
     """Saves a standardised and validated version of the WEMI dataset."""
     raw_df = pd.read_excel(
         input_path, sheet_name="Windfarms", skiprows=[1], na_values=["#ND"]

@@ -91,28 +91,28 @@ def cli():
 
 
 @cli.command()
-@click.argument("prepared_path", type=str)
-@click.argument("shapes_path", type=str)
-@click.argument("imputation", type=str)
-@click.argument("technology_mapping", type=str)
-@click.argument("output_path", type=str)
-@click.option("-c", "--projected_crs", type=str)
+@click.argument("prepared_path", type=click.Path(dir_okay=False))
+@click.argument("shapes_path", type=click.Path(dir_okay=False))
+@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
+@click.option("-i", "imputation", type=str, required=True)
+@click.option("-t", "technology_mapping", type=str, required=True)
+@click.option("-c", "projected_crs", type=str)
 def impute(
     prepared_path: str,
     shapes_path: str,
+    output_path: str,
     imputation: str,
     technology_mapping: str,
-    output_path: str,
-    projected_crs: str | None
+    projected_crs: str | None,
 ):
     """Add automatic and user imputations to fill missing data.
 
     Args:
         prepared_path (str): cleaned dataset following our schema.
         shapes_path (str): shapes to use.
+        output_path (str): resulting dataset.
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
-        output_path (str): resulting dataset.
         projected_crs (str): crs used to calculate centroids.
     """
     prepared = gpd.read_parquet(prepared_path)
@@ -164,10 +164,10 @@ def impute(
 
 
 @cli.command()
-@click.argument("imputed_path", type=str)
-@click.argument("output_path", type=str)
-@click.option("--colormap", default="tab20")
-def plot(imputed_path: str, output_path: str, colormap):
+@click.argument("imputed_path", type=click.Path(dir_okay=False))
+@click.option("-o", "output_path", type=click.Path(dir_okay=False))
+@click.option("-c", "colormap", type=str, default="tab20")
+def plot(imputed_path: str, output_path: str, colormap: str):
     """Plot stacked bar charts of active powerplant capacity over time per country."""
     df = pd.read_parquet(imputed_path)
     _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)

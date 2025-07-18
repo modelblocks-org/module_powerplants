@@ -31,14 +31,15 @@ rule prepare_solar_utility_pv:
         tz_sam="resources/automatic/downloads/TZ-SAM.gpkg",
         gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        output_path="resources/automatic/prepared/solar_utility_pv.parquet"
+        path="resources/automatic/prepared/solar_utility_pv.parquet"
     log:
         "logs/prepare_solar_utility_pv.log",
     conda:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" "{input.tz_sam}" "{input.gem_gspt}" "{output}" --tech_name "{params.tech_name}" --dc_ac_ratio {params.dc_ac_ratio} 2> "{log}"
+        python {input.script:q} {input.tz_sam:q} {input.gem_gspt:q} \
+            -o {output.path:q} -t "{params.tech_name}" -r {params.dc_ac_ratio} 2> {log:q}
         """
 
 
@@ -52,14 +53,15 @@ rule prepare_solar_csp:
         script=workflow.source_path("../scripts/prepare_solar_csp.py"),
         gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        output_path="resources/automatic/prepared/solar_csp.parquet",
+        path="resources/automatic/prepared/solar_csp.parquet",
     log:
         "logs/prepare_solar_csp.log",
     conda:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script}" "{input.gem_gspt}" "{output}" --tech_name "{params.tech_name}" --dc_ac_ratio "{params.dc_ac_ratio}" 2> {log}
+        python {input.script:q} {input.gem_gspt:q} -o {output.path:q} \
+            -t "{params.tech_name}" -r {params.dc_ac_ratio} 2> {log:q}
         """
 
 
@@ -74,14 +76,15 @@ if config["category"]["wind"]["source"] == "gem":
             script=workflow.source_path("../scripts/prepare_wind_gwpt.py"),
             gem_gwpt="resources/automatic/downloads/GEM_GWPT.xlsx",
         output:
-            output_path="resources/automatic/prepared/wind.parquet",
+            path="resources/automatic/prepared/wind.parquet",
         log:
             "logs/prepare_wind_gem.log",
         conda:
             "../envs/shapes.yaml",
         shell:
             """
-            python "{input.script}" "{input.gem_gwpt}" "{params.tech_map}" "{output}" 2>"{log}"
+            python {input.script:q} {input.gem_gwpt:q} \
+                -t "{params.tech_map}" -o {output:q} 2> {log:q}
             """
 
 elif config["category"]["wind"]["source"] == "wemi":
@@ -95,14 +98,15 @@ elif config["category"]["wind"]["source"] == "wemi":
             script=workflow.source_path("../scripts/prepare_wind_wemi.py"),
             wemi="resources/user/WEMI.xls",
         output:
-            output_path="resources/automatic/prepared/wind.parquet",
+            path="resources/automatic/prepared/wind.parquet",
         log:
             "logs/prepare_wind_wemi.log",
         conda:
             "../envs/shapes.yaml"
         shell:
             """
-            python "{input.script}" "{input.wemi}" "{params.tech_map}" "{output}" 2> "{log}"
+            python {input.script:q} {input.wemi:q} \
+                -t "{params.tech_map}" -o {output.path:q} 2> {log:q}
             """
 
 else:
@@ -216,8 +220,10 @@ rule prepare_statistics:
         "../envs/shapes.yaml"
     shell:
         """
-        python "{input.script}" prepare "{input.shapes}" "{input.eia_bulk}" "{output.total}" "{output.categories}" 2> {log}
-        python "{input.script}" plot "{output.total}" "{output.categories}" "{output.plot}" 2> {log}
+        python {input.script:q} prepare {input.shapes:q} {input.eia_bulk:q} \
+            -ot {output.total:q} -oc {output.categories:q} 2> {log:q}
+        python {input.script:q} plot {output.total:q} {output.categories:q} \
+            -o {output.plot:q} 2> {log:q}
         """
 
 
@@ -235,7 +241,7 @@ rule prepare_fuels:
         "../envs/shapes.yaml"
     shell:
         """
-        python "{input.script}" prepare {input.fuel_classes} -o "{output}" 2> "{log}"
+        python {input.script:q} prepare {input.fuel_classes:q} -o {output:q} 2> {log:q}
         """
 
 
@@ -257,5 +263,6 @@ rule prepare_remapped_fuel_categories:
         "../envs/shapes.yaml"
     shell:
         """
-        python "{input.script}" remap {input.plants} {input.old} {input.new} -o "{output}" 2> "{log}"
+        python {input.script:q} remap {input.plants:q} {input.old:q} {input.new:q} \
+            -o {output:q} 2> {log:q}
         """

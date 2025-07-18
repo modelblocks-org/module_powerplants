@@ -34,9 +34,10 @@ rule proxy_rooftop_solar:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity {input.borders} {input.proxy} {input.agg_unadj} {input.stats} \
-            -o {output.proxy} -y {params.year} -c {params.category} 2> {log}
-        python {input.script} plot {output.proxy} {input.borders} -o {output.plot} 2> {log}
+        python {input.script:q} capacity {input.borders:q} {input.proxy:q} {input.agg_unadj:q} {input.stats:q} \
+            -o {output.proxy:q} -y {params.year} -c "{params.category}" 2> {log:q}
+        python {input.script:q} plot {output.proxy:q} {input.borders:q} \
+            -o {output.plot:q} 2> {log:q}
         """
 
 rule aggregate_large_solar_capacity:
@@ -57,8 +58,10 @@ rule aggregate_large_solar_capacity:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity {input.powerplants} {input.shapes} -y {params.year} -o {output.aggregated} 2> {log}
-        python {input.script} plot {output.aggregated} {input.shapes} -o {output.plot} -c "large solar" 2> {log}
+        python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
+            -y {params.year} -o {output.aggregated:q} 2> {log:q}
+        python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
+            -o {output.plot:q} -c "large solar" 2> {log:q}
         """
 
 
@@ -82,8 +85,10 @@ rule aggregate_solar_capacity:
         "../envs/shapes.yaml",
     shell:
         """
-        python {input.script} capacity-solar {input.large_solar} {input.proxy} {input.shapes} -o {output.aggregated} -c "{params.category}" -t "{params.technology}" 2> {log}
-        python {input.script} plot {output.aggregated} {input.shapes} -c "{params.category}" -o {output.plot} 2> {log}
+        python {input.script:q} capacity-solar {input.large_solar:q} {input.proxy:q} {input.shapes:q} \
+            -o {output.aggregated:q} -c "{params.category}" -t "{params.technology}" 2> {log:q}
+        python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
+            -c "{params.category}" -o {output.plot:q} 2> {log:q}
         """
 
 rule impute_aggregated_capacity_adjustment_solar:
@@ -107,7 +112,10 @@ rule impute_aggregated_capacity_adjustment_solar:
         "../envs/shapes.yaml",
     shell:
         """
-        python "{input.script_impute}" adjust-aggregated "{input.stats}" "{input.unadjusted}" -y {params.year} -o "{output.adjusted}" 2> "{log}"
-        python "{input.script_impute}" plot "{input.stats}" "{input.unadjusted}" "{output.adjusted}" -y {params.year} -o "{output.pdf}" --aggregated 2> "{log}"
-        python "{input.script_aggregate}" plot "{output.adjusted}" "{input.shapes}" -c "solar" -o "{output.png}" 2> "{log}"
+        python {input.script_impute:q} adjust-aggregated {input.stats:q} {input.unadjusted:q} \
+            -y {params.year} -o {output.adjusted:q} 2> {log:q}
+        python {input.script_impute:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
+            -y {params.year} -o {output.pdf:q} --aggregated 2> {log:q}
+        python {input.script_aggregate:q} plot {output.adjusted:q} {input.shapes:q} \
+            -c "solar" -o {output.png:q} 2> {log:q}
         """
