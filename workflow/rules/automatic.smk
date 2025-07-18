@@ -22,9 +22,9 @@ rule download_tz_sam:
     params:
         url=internal["resources"]["automatic"]["TZ-SAM"],
     output:
-        path="resources/automatic/downloads/TZ-SAM.gpkg"
+        path="resources/automatic/downloads/TZ-SAM.gpkg",
     log:
-        "logs/download_tz_sam.log"
+        "logs/download_tz_sam.log",
     conda:
         "../envs/shell.yaml"
     shell:
@@ -35,11 +35,11 @@ rule download_glohydrores:
     message:
         "Download the GloHydroRes dataset."
     params:
-        url=internal["resources"]["automatic"]["GloHydroRes"]
+        url=internal["resources"]["automatic"]["GloHydroRes"],
     output:
-        path="resources/automatic/downloads/GloHydroRes.csv"
+        path="resources/automatic/downloads/GloHydroRes.csv",
     log:
-        "logs/download_glohydrores.log"
+        "logs/download_glohydrores.log",
     conda:
         "../envs/shell.yaml"
     shell:
@@ -50,11 +50,11 @@ rule download_gem:
     message:
         "Download the GEM {wildcards.dataset} dataset."
     params:
-        url=lambda wc: internal["resources"]["automatic"]["GEM"][wc.dataset]
+        url=lambda wc: internal["resources"]["automatic"]["GEM"][wc.dataset],
     output:
-        path="resources/automatic/downloads/GEM_{dataset}.xlsx"
+        path="resources/automatic/downloads/GEM_{dataset}.xlsx",
     log:
-        "logs/download_gem_{dataset}.log"
+        "logs/download_gem_{dataset}.log",
     conda:
         "../envs/shell.yaml"
     shell:

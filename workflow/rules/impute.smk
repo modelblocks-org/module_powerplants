@@ -1,6 +1,14 @@
 """Rules related to imputation and user-set modifications."""
 
-IMPUTED_CAT = {'bioenergy', 'fossil', 'geothermal', 'hydropower', 'nuclear', 'large_solar', 'wind'}
+IMPUTED_CAT = {
+    "bioenergy",
+    "fossil",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "large_solar",
+    "wind",
+}
 IMPUTED_CAT_SPECIAL = {"large_solar"}
 
 
@@ -56,16 +64,16 @@ rule impute_years:
     input:
         script=workflow.source_path("../scripts/impute_years.py"),
         prepared="resources/automatic/prepared/{dataset}.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet"
+        shapes="resources/user/shapes/{shapes}.parquet",
     output:
         imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
-        plot="resources/automatic/{shapes}/imputed/{dataset}.pdf"
+        plot="resources/automatic/{shapes}/imputed/{dataset}.pdf",
     wildcard_constraints:
-        dataset = "|".join(PREPARED_CAT)
+        dataset="|".join(PREPARED_CAT),
     log:
         "logs/impute_years_{shapes}_{dataset}.log",
     conda:
-        "../envs/shapes.yaml",
+        "../envs/shapes.yaml"
     shell:
         """
         python {input.script:q} impute {input.prepared:q} {input.shapes:q} \
@@ -74,24 +82,27 @@ rule impute_years:
         python {input.script:q} plot {output.imputed:q} -o {output.plot:q} 2> {log:q}
         """
 
+
 rule impute_category_combination:
     message:
         "Combine sub-categories and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
-        excluded=lambda wc: config["category"][get_config_category(wc.category)].get("excluded_ids", [])
+        excluded=lambda wc: config["category"][get_config_category(wc.category)].get(
+            "excluded_ids", []
+        ),
     input:
-        to_combine=  lambda wc: get_files_to_combine(wc.shapes, wc.category)
+        to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
     output:
         combined="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         plot="results/{shapes}/disaggregated/unadjusted/{category}.pdf",
-        explore="results/{shapes}/disaggregated/unadjusted/{category}.html"
+        explore="results/{shapes}/disaggregated/unadjusted/{category}.html",
     wildcard_constraints:
-        category = "|".join(IMPUTED_CAT)
+        category="|".join(IMPUTED_CAT),
     log:
         "logs/impute_category_combination_{shapes}_{category}.log",
     conda:
-        "../envs/shapes.yaml",
+        "../envs/shapes.yaml"
     script:
         "../scripts/impute_category_combination.py"
 
@@ -104,16 +115,16 @@ rule impute_disaggregated_capacity_adjustment:
     input:
         script=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
         unadjusted="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
-        stats="results/{shapes}/statistics/category_capacity.parquet"
+        stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
         plot="results/{shapes}/disaggregated/adjusted/{category}.pdf",
     wildcard_constraints:
-        category = "|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL)
+        category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
     log:
         "logs/impute_disaggregated_capacity_adjustment_{shapes}_{category}.log",
     conda:
-        "../envs/shapes.yaml",
+        "../envs/shapes.yaml"
     shell:
         """
         python {input.script:q} adjust-disaggregated {input.stats:q} {input.unadjusted:q} \

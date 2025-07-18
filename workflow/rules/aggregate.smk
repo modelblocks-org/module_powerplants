@@ -5,20 +5,20 @@ rule aggregate_capacity:
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     params:
-        year = config["imputation"]["adjustment_yr"]
+        year=config["imputation"]["adjustment_yr"],
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
         powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet"
+        shapes="resources/user/shapes/{shapes}.parquet",
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
-        plot="results/{shapes}/aggregated/{adjustment}/{category}.png"
+        plot="results/{shapes}/aggregated/{adjustment}/{category}.png",
     wildcard_constraints:
-        category = "|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL)
+        category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
     log:
         "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
-        "../envs/shapes.yaml",
+        "../envs/shapes.yaml"
     shell:
         """
         python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
