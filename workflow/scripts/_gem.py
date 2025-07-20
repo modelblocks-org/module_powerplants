@@ -1,4 +1,4 @@
-"""General utilities for procesing GEM datasets."""
+"""General utilities for processing GEM datasets."""
 
 import re
 from typing import Literal

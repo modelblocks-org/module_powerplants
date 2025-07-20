@@ -17,7 +17,7 @@ def cli():
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
 @click.option("-p", "--prefix", type=str, default="fc")
 def prepare(fuel_class_file: tuple[str], output_file: str, prefix: str):
-    """Prepare harmonised fuel classess across categories.
+    """Prepare harmonised fuel classes across categories.
 
     Args:
         fuel_class_file (tuple[str]): fuel class datasets.

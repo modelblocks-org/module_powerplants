@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.api.types import is_list_like
 
 # Average year where disaggregated datasets were last updated.
-# MUST BE ADJUSTED WHENEVER DATASOURCES ARE UDPATED!
+# MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
 REFERENCE_YR = 2024
 
 

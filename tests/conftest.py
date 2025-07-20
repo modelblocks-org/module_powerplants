@@ -18,7 +18,6 @@ def user_path() -> Path:
     # Otherwise, cleanup and re-download.
     if not Path(user_dir / "test_suite.zip").exists():
         shutil.rmtree(user_dir, ignore_errors=True)
-        breakpoint()
         Path(user_dir).mkdir(parents=True, exist_ok=True)
         test_zip = Path(user_dir / "test_suite.zip")
         urlretrieve(TEST_FILES, test_zip)

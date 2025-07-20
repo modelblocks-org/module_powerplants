@@ -84,7 +84,7 @@ class PlantSchema(DataFrameModel):
     start_year: Series[float]
     "Installation year."
     end_year: Series[float]
-    "Expected decomissioning year."
+    "Expected decommissioning year."
     status: Series[str]
     "Known state of the project."
     # Location / size

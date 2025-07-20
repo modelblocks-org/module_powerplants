@@ -49,7 +49,7 @@ def _start_year(raw_df: pd.DataFrame) -> pd.Series:
 def main(input_path: str, output_path: str, technology_mapping: str):
     """Saves a standardised and validated version of the WEMI dataset."""
     raw_df = pd.read_excel(
-        input_path, sheet_name="Windfarms", skiprows=[1], na_values=["#ND"]
+        input_path, sheet_name="Windfarms", skiprows=[1], na_values=["#ND"]  # codespell:ignore ND
     )
     tech_map = yaml.safe_load(technology_mapping)
     # Cleanup columns with problematic empty values.

@@ -10,7 +10,7 @@ import pandas as pd
 
 
 def _start_year_tz_sam(tz_dam_df: pd.DataFrame):
-    """Assume installation occured in the middle of the detection window."""
+    """Assume installation occurred in the middle of the detection window."""
     delta = (tz_dam_df["constructed_before"] - tz_dam_df["constructed_after"]) / 2
     return (tz_dam_df["constructed_after"] + delta).dt.year
 
