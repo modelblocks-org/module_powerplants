@@ -12,7 +12,11 @@ rule aggregate_capacity:
         shapes="resources/user/shapes/{shapes}.parquet",
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
-        plot="results/{shapes}/aggregated/{adjustment}/{category}.png",
+        plot=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+            caption="../report/aggregate_capacity.rst",
+            category="Powerplants module"
+        ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
     log:

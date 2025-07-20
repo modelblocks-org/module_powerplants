@@ -121,10 +121,11 @@ def plot(aggregated_file: str, shapes_file: str, output_file: str, category: str
         shapes = shapes.set_index("shape_id")
         shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
 
-        fig, ax = plt.subplots(figsize=(8, 8), dpi=300)
+        fig, ax = plt.subplots(layout="constrained", dpi=200)
 
         ax = shapes.plot(
             ax=ax,
+            aspect=None,
             column="output_capacity_mw",
             cmap="magma",
             edgecolor="grey",
