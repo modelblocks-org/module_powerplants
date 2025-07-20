@@ -95,8 +95,18 @@ rule impute_category_combination:
         to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
     output:
         combined="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
-        plot="results/{shapes}/disaggregated/unadjusted/{category}.pdf",
-        explore="results/{shapes}/disaggregated/unadjusted/{category}.html",
+        plot=report(
+            "results/{shapes}/disaggregated/unadjusted/{category}.pdf",
+            caption="../report/impute_category_combination_histogram.rst",
+            category="Powerplants module",
+            subcategory="{category}"
+        ),
+        explore=report(
+            "results/{shapes}/disaggregated/unadjusted/{category}.html",
+            caption="../report/impute_category_combination_map.rst",
+            category="Powerplants module",
+            subcategory="{category}"
+        ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT),
     log:
@@ -118,7 +128,12 @@ rule impute_disaggregated_capacity_adjustment:
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
-        plot="results/{shapes}/disaggregated/adjusted/{category}.pdf",
+        plot=report(
+            "results/{shapes}/disaggregated/adjusted/{category}.pdf",
+            caption="../report/impute_disaggregated_capacity_adjustment.rst",
+            category="Powerplants module",
+            subcategory="{category}"
+        ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
     log:

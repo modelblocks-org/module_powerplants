@@ -15,7 +15,8 @@ rule aggregate_capacity:
         plot=report(
             "results/{shapes}/aggregated/{adjustment}/{category}.png",
             caption="../report/aggregate_capacity.rst",
-            category="Powerplants module"
+            category="Powerplants module",
+            subcategory="{category}"
         ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
