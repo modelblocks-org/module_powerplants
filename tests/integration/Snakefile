@@ -1,23 +1,41 @@
 # Emulate a user configuring the module.
 configfile: workflow.source_path("test_config.yaml")
 
+
 # Import the module and configure it.
 # `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers
 # `prefix:` re-routes all input/output paths of the module, helping to avoid file conflicts.
 module module_powerplants:
-    snakefile: "../../workflow/Snakefile"
-    config: config["module_powerplants"]
-    prefix: "results/integration_test/"
+    snakefile:
+        "../../workflow/Snakefile"
+    config:
+        config["module_powerplants"]
+    prefix:
+        "results/integration_test/"
+
 
 # rename all module rules with a prefix, to avoid naming conflicts.
 use rule * from module_powerplants as module_powerplants_*
 
 
-CATEGORIES = ["bioenergy", "fossil", "geothermal", "hydropower", "nuclear", "solar", "wind"]
+CATEGORIES = [
+    "bioenergy",
+    "fossil",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "solar",
+    "wind",
+]
+
 
 # Request something from the module
 rule all:
-    message: "A generic test case for your module."
+    message:
+        "A generic test case for your module."
     default_target: True
     input:
-        expand("results/integration_test/results/MNE/aggregated/adjusted/{category}.parquet", category=CATEGORIES)
+        expand(
+            "results/integration_test/results/MNE/aggregated/adjusted/{category}.parquet",
+            category=CATEGORIES,
+        ),
