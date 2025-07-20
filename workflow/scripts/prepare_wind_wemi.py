@@ -52,7 +52,7 @@ def main(input_path: str, output_path: str, technology_mapping: str):
         input_path,
         sheet_name="Windfarms",
         skiprows=[1],
-        na_values=["#ND"],  # codespell:ignore ND
+        na_values=["#ND"],  # codespell:ignore
     )
     tech_map = yaml.safe_load(technology_mapping)
     # Cleanup columns with problematic empty values.
