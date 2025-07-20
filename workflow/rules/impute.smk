@@ -12,46 +12,7 @@ IMPUTED_CAT = {
 IMPUTED_CAT_SPECIAL = {"large_solar"}
 
 
-def get_config_category(category):
-    if category == "large_solar":
-        config_cat = "solar"
-    else:
-        config_cat = category
-    return config_cat
 
-
-def get_technology_mapping(filename: str):
-    if "solar" in filename:
-        mapping = config["category"]["solar"]["technology_mapping"]
-    elif "fossil" in filename:
-        tech = filename.removeprefix("fossil_").removesuffix(".parquet")
-        mapping = dict()
-        for tech in ["coal", "oil_gas"]:
-            mapping |= config["category"]["fossil"]["technology_mapping"][tech]
-    else:
-        mapping = config["category"][filename]["technology_mapping"]
-    return mapping
-
-
-def get_files_to_combine(shapes, category):
-    to_combine = []
-    if category == "large_solar":
-        to_combine += [
-            f"resources/automatic/{shapes}/imputed/solar_utility_pv.parquet",
-            f"resources/automatic/{shapes}/imputed/solar_csp.parquet",
-        ]
-    elif category == "fossil":
-        to_combine += [
-            f"resources/automatic/{shapes}/imputed/fossil_coal.parquet",
-            f"resources/automatic/{shapes}/imputed/fossil_oil_gas.parquet",
-        ]
-    else:
-        to_combine.append(f"resources/automatic/{shapes}/imputed/{category}.parquet")
-
-    user_path = f"resources/user/impute/{category}.parquet"
-    if exists(user_path):
-        to_combine.append(user_path)
-    return to_combine
 
 
 rule impute_years:
@@ -88,9 +49,7 @@ rule impute_category_combination:
         "Combine sub-categories and impute user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
-        excluded=lambda wc: config["category"][get_config_category(wc.category)].get(
-            "excluded_ids", []
-        ),
+        excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
     input:
         to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
     output:

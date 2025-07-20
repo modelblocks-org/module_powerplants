@@ -12,44 +12,21 @@ configfile: workflow.source_path("../config/config.yaml")
 # Validate the configuration using the schema file.
 validate(config, workflow.source_path("internal/config.schema.yaml"))
 
-
-def additional_config_validation():
-    """Ensures technology mapping and lifetime-related names match."""
-    lifetime_set = set(config["imputation"]["lifetime_yr"].keys())
-    mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_yr"])
-    if mismatch:
-        raise ValueError(
-            f"Technologies in lifetimes and retirement delays mismatch: {mismatch}."
-        )
-    # Check category technology names
-    tech_map_set = set()
-    for cat in ["bioenergy", "geothermal", "hydropower", "nuclear", "solar", "wind"]:
-        tech_map_set |= set(config["category"][cat]["technology_mapping"].values())
-    for fossil_cat in ["coal", "oil_gas"]:
-        tech_map_set |= set(
-            config["category"]["fossil"]["technology_mapping"][fossil_cat].values()
-        )
-    mismatch = lifetime_set ^ tech_map_set
-    if mismatch:
-        raise ValueError(
-            f"Technology mapping does not match lifetime technologies for {mismatch}"
-        )
-
-
-additional_config_validation()
-
 # Load internal settings separately so users cannot modify them.
 with open(workflow.source_path("internal/settings.yaml"), "r") as f:
     internal = yaml.safe_load(f)
 
 
 # Add all your includes here.
+include: "rules/_utils.smk"
 include: "rules/automatic.smk"
 include: "rules/prepare.smk"
 include: "rules/impute.smk"
 include: "rules/aggregate.smk"
 include: "rules/solar.smk"
 
+# Run additional validation on the configuration file.
+additional_config_validation()
 
 # Add all files to be delivered alongside the workflow here
 workflow.source_path("scripts/_gem.py")
