@@ -66,3 +66,9 @@ def test_full_run(user_path: Path, case: str, aggregation: str, adjustment: str)
         check=True,
         cwd=user_path.parent.parent,
     )
+    assert subprocess.run(
+        f"snakemake --use-conda --cores 4 {request} --report results/{case}/report.html",
+        shell=True,
+        check=True,
+        cwd=user_path.parent.parent,
+    )
