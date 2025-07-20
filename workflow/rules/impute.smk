@@ -12,9 +12,6 @@ IMPUTED_CAT = {
 IMPUTED_CAT_SPECIAL = {"large_solar"}
 
 
-
-
-
 rule impute_years:
     message:
         "Imputing missing years values for {wildcards.shapes}-{wildcards.dataset} dataset."

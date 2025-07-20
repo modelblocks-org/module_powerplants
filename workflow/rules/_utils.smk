@@ -1,5 +1,6 @@
 """Collection of auxiliary functions for this module."""
 
+
 def additional_config_validation():
     """Ensures technology mapping and lifetime-related names match."""
     lifetime_set = set(config["imputation"]["lifetime_yr"].keys())

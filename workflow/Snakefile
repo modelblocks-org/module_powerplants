@@ -25,6 +25,7 @@ include: "rules/impute.smk"
 include: "rules/aggregate.smk"
 include: "rules/solar.smk"
 
+
 # Run additional validation on the configuration file.
 additional_config_validation()
 
