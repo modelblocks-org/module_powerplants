@@ -33,6 +33,7 @@ TEST_CATEGORIES = {
     "wind",
 }
 
+
 def build_request_all(
     case: str,
     categories: Sequence[str],

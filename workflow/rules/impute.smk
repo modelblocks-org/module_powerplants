@@ -99,13 +99,13 @@ rule impute_category_combination:
             "results/{shapes}/disaggregated/unadjusted/{category}.pdf",
             caption="../report/impute_category_combination_histogram.rst",
             category="Powerplants module",
-            subcategory="{category}"
+            subcategory="{category}",
         ),
         explore=report(
             "results/{shapes}/disaggregated/unadjusted/{category}.html",
             caption="../report/impute_category_combination_map.rst",
             category="Powerplants module",
-            subcategory="{category}"
+            subcategory="{category}",
         ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT),

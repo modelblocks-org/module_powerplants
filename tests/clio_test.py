@@ -23,7 +23,9 @@ def integration_path(user_path: Path, module_path: Path):
     """Ensures the minimal integration test is ready."""
     integration_dir = Path(module_path / "tests/integration")
     if integration_dir.exists():
-        shutil.rmtree(integration_dir / "results/", ignore_errors=True)  # clean everything
+        shutil.rmtree(
+            integration_dir / "results/", ignore_errors=True
+        )  # clean everything
     user_integ_dir = integration_dir / "results/integration_test/resources/user/"
     files_to_copy = [
         "borders/MNE.parquet",
@@ -68,8 +70,5 @@ def test_snakemake_all_failure(module_path):
 def test_snakemake_integration_testing(integration_path):
     """Run a light-weight test simulating someone using this module."""
     assert subprocess.run(
-        "snakemake --use-conda --cores 4",
-        shell=True,
-        check=True,
-        cwd=integration_path,
+        "snakemake --use-conda --cores 4", shell=True, check=True, cwd=integration_path
     )

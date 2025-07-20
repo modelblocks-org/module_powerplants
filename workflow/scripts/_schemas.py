@@ -1,7 +1,7 @@
 """Schemas for key files."""
 
 # ruff: noqa: UP007
-from typing import Literal, Optional
+from typing import Literal
 
 import pandera.pandas as pa
 from pandera.pandas import DataFrameModel, Field, check
@@ -56,9 +56,9 @@ class AggregatedPlantSchema(DataFrameModel):
     category: Series[str]
     technology: Series[str]
     output_capacity_mw: Series[float]
-    chp: Optional[Series[bool]]
-    ccs: Optional[Series[bool]]
-    fuel_class: Optional[Series[str]]
+    chp: Series[bool] | None
+    ccs: Series[bool] | None
+    fuel_class: Series[str] | None
 
 
 class PlantSchema(DataFrameModel):
@@ -90,18 +90,16 @@ class PlantSchema(DataFrameModel):
     # Location / size
     geometry: GeoSeries[Point] = Field()
     "Powerplant point data."
-    country_id: Optional[Series[str]] = Field(
-        str_length={"min_value": 3, "max_value": 3}
-    )
+    country_id: Series[str] | None = Field(str_length={"min_value": 3, "max_value": 3})
     # Combustion specifics
-    ccs: Optional[Series[bool]]
+    ccs: Series[bool] | None
     """Identifier for known CCS-enabled powerplants."""
-    chp: Optional[Series[bool]]
+    chp: Series[bool] | None
     """Identifier for known CHP-enabled powerplants."""
-    fuel_class: Optional[Series[str]]
+    fuel_class: Series[str] | None
     """Unique ID in the fuel consumption look-up table."""
     # Hydropower specifics
-    reservoir_km3: Optional[Series[float]] = Field(nullable=True, ge=0)
+    reservoir_km3: Series[float] | None = Field(nullable=True, ge=0)
     """Reservoir volume."""
 
     @check("geometry", element_wise=True)

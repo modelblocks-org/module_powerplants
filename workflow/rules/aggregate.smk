@@ -2,6 +2,7 @@
 
 ADJUSTMENTS = ("adjusted", "unadjusted")
 
+
 rule aggregate_capacity:
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
@@ -17,7 +18,7 @@ rule aggregate_capacity:
             "results/{shapes}/aggregated/{adjustment}/{category}.png",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
-            subcategory="{category}"
+            subcategory="{category}",
         ),
     wildcard_constraints:
         adjustment="|".join(ADJUSTMENTS),

@@ -22,18 +22,14 @@ INTERNAL_TECH_MAPPING = {
 
 
 def _technology(gem_df: pd.DataFrame):
-    return  gem_df["installation_type"].apply(lambda x: INTERNAL_TECH_MAPPING[x])
+    return gem_df["installation_type"].apply(lambda x: INTERNAL_TECH_MAPPING[x])
 
 
 @click.command()
 @click.argument("gem_gwpt_path", type=click.Path(dir_okay=False))
 @click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
 @click.option("-t", "tech_mapping", type=str, required=True)
-def main(
-    gem_gwpt_path: str,
-    output_path: str,
-    tech_mapping: str,
-):
+def main(gem_gwpt_path: str, output_path: str, tech_mapping: str):
     """Obtain concentrated wind power locations using GEM-GSPT data."""
     raw_df = gem.read_gem_dataset(gem_gwpt_path, gem.GEM_GWPT_SHEETS)
     # Remove unknown installation types to avoid misplacement

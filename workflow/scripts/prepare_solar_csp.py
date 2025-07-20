@@ -13,10 +13,7 @@ import geopandas as gpd
 @click.option("-t", "tech_name", type=str, default="csp")
 @click.option("-r", "dc_ac_ratio", default=1.25)
 def main(
-    gem_gspt_path: str,
-    tech_name: str,
-    output_path: str,
-    dc_ac_ratio: float = 1.25,
+    gem_gspt_path: str, tech_name: str, output_path: str, dc_ac_ratio: float = 1.25
 ):
     """Obtain concentrated solar power locations using GEM-GSPT data."""
     raw_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)

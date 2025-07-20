@@ -101,4 +101,3 @@ def open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
     if not borders["country_id"].is_unique:
         raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
     return _schemas.ShapeSchema.validate(borders)
-

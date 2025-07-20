@@ -67,7 +67,9 @@ def cli():
 @click.argument("input_shapes", type=click.Path(dir_okay=False))
 @click.argument("input_eia_bulk", type=click.Path(dir_okay=False))
 @click.option("-ot", "output_total", type=click.Path(dir_okay=False), required=True)
-@click.option("-oc", "output_categories", type=click.Path(dir_okay=False), required=True)
+@click.option(
+    "-oc", "output_categories", type=click.Path(dir_okay=False), required=True
+)
 def prepare(
     input_shapes: str, input_eia_bulk: str, output_total: str, output_categories: str
 ):

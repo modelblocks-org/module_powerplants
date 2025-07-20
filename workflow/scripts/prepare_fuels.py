@@ -48,9 +48,7 @@ def prepare(fuel_class_file: tuple[str], output_file: str, prefix: str):
 @click.argument("old_class_file", type=click.Path(dir_okay=False))
 @click.argument("new_class_file", type=click.Path(dir_okay=False))
 @click.option("-o", "--output_file", type=str, required=True)
-def remap(
-    plants_file: str, old_class_file: str, new_class_file: str, output_file: str
-):
+def remap(plants_file: str, old_class_file: str, new_class_file: str, output_file: str):
     """Re-map powerplant fuel classes to a different class dataset."""
     cat_df = gpd.read_parquet(plants_file)
     old_fuel_df = pd.read_parquet(old_class_file)

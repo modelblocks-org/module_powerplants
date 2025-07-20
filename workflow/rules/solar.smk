@@ -63,8 +63,8 @@ rule aggregate_solar_capacity:
             "results/{shapes}/aggregated/{adjustment}/{category}.png",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
-            subcategory="{category}"
-        )
+            subcategory="{category}",
+        ),
     wildcard_constraints:
         adjustment="unadjusted",
         category="solar",
@@ -104,7 +104,7 @@ rule impute_aggregated_capacity_adjustment_solar:
             "results/{shapes}/aggregated/{adjustment}/{category}.png",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
-            subcategory="{category}"
+            subcategory="{category}",
         ),
     wildcard_constraints:
         adjustment="adjusted",
