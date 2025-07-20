@@ -2,4 +2,4 @@ Adjustment of active {{ snakemake.wildcards.category }} capacity of each country
 
 .. math::
 
-    ActiveCapAdj_{ {{ snakemake.wildcards.category }} , {p}} = eia_{ {{ snakemake.wildcards.category }} , {{ snakemake.params.year }} } * \frac{ ActiveCap_{ {{ snakemake.wildcards.category }} ,{p}} }{\sum_{p} ActiveCap_{ {{ snakemake.wildcards.category }} ,{p}}}
+    ActiveCapAdj_{ {{ snakemake.wildcards.category }} , {p}} = EIACap_{ {{ snakemake.wildcards.category }} , {{ snakemake.params.year }} } * \frac{ ActiveCap_{ {{ snakemake.wildcards.category }} ,{p}} }{\sum_{p} ActiveCap_{ {{ snakemake.wildcards.category }} ,{p}}}

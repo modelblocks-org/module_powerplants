@@ -13,7 +13,7 @@ To fill solar capacity, we follow these steps:
 """
 
 
-rule proxy_rooftop_solar:
+rule proxy_rooftop_pv:
     message:
         "Generating proxy for rooftop capacity {wildcards.shapes}."
     params:
@@ -27,9 +27,14 @@ rule proxy_rooftop_solar:
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
-        plot="results/{shapes}/aggregated/proxies/rooftop_pv.png",
+        plot=report(
+            "results/{shapes}/aggregated/proxies/rooftop_pv.png",
+            caption="../report/proxy_rooftop_pv.rst",
+            category="Powerplants module",
+            subcategory="solar",
+        ),
     log:
-        "logs/proxy_rooftop_solar_{shapes}.log",
+        "logs/proxy_rooftop_pv_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
     shell:
@@ -41,47 +46,30 @@ rule proxy_rooftop_solar:
         """
 
 
-rule aggregate_large_solar_capacity:
-    message:
-        "Aggregating unadjusted large solar capacity for {wildcards.shapes}."
-    params:
-        year=config["imputation"]["adjustment_yr"],
-    input:
-        script=workflow.source_path("../scripts/aggregate.py"),
-        powerplants="results/{shapes}/disaggregated/unadjusted/large_solar.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet",
-    output:
-        aggregated="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
-        plot="results/{shapes}/aggregated/unadjusted/large_solar.png",
-    log:
-        "logs/aggregate_large_solar_capacity_{shapes}.log",
-    conda:
-        "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
-            -y {params.year} -o {output.aggregated:q} 2> {log:q}
-        python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
-            -o {output.plot:q} -c "large solar" 2> {log:q}
-        """
-
-
 rule aggregate_solar_capacity:
     message:
-        "Aggregating capacity for {wildcards.shapes}-unadjusted-solar."
+        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.adjustment}."
     params:
         category="solar",
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
-        large_solar="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
+        large_solar="results/{shapes}/aggregated/{adjustment}/large_solar.parquet",
         proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
         shapes="resources/user/shapes/{shapes}.parquet",
     output:
-        aggregated="results/{shapes}/aggregated/unadjusted/solar.parquet",
-        plot="results/{shapes}/aggregated/unadjusted/solar.png",
+        aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        plot=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+            caption="../report/aggregate_capacity.rst",
+            category="Powerplants module",
+            subcategory="{category}"
+        )
+    wildcard_constraints:
+        adjustment="unadjusted",
+        category="solar",
     log:
-        "logs/aggregate_solar_capacity_{shapes}.log",
+        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
         "../envs/shapes.yaml"
     shell:
@@ -101,15 +89,28 @@ rule impute_aggregated_capacity_adjustment_solar:
     input:
         script_impute=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
         script_aggregate=workflow.source_path("../scripts/aggregate.py"),
-        unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
+        unadjusted="results/{shapes}/aggregated/unadjusted/{category}.parquet",
         shapes="resources/user/shapes/{shapes}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
-        adjusted="results/{shapes}/aggregated/adjusted/solar.parquet",
-        pdf="results/{shapes}/aggregated/adjusted/solar.pdf",
-        png="results/{shapes}/aggregated/adjusted/solar.png",
+        adjusted="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        pdf=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
+            caption="../report/impute_disaggregated_capacity_adjustment.rst",
+            category="Powerplants module",
+            subcategory="{category}",
+        ),
+        png=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+            caption="../report/aggregate_capacity.rst",
+            category="Powerplants module",
+            subcategory="{category}"
+        ),
+    wildcard_constraints:
+        adjustment="adjusted",
+        category="solar",
     log:
-        "logs/impute_capacity_adjustment_solar_{shapes}.log",
+        "logs/impute_capacity_{adjustment}_{category}_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
     shell:

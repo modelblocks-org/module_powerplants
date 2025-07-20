@@ -1,5 +1,6 @@
 """Aggregation to provided shapes."""
 
+ADJUSTMENTS = ("adjusted", "unadjusted")
 
 rule aggregate_capacity:
     message:
@@ -19,7 +20,8 @@ rule aggregate_capacity:
             subcategory="{category}"
         ),
     wildcard_constraints:
-        category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
+        adjustment="|".join(ADJUSTMENTS),
+        category="|".join(IMPUTED_CAT),
     log:
         "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:

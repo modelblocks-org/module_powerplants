@@ -132,7 +132,7 @@ rule impute_disaggregated_capacity_adjustment:
             "results/{shapes}/disaggregated/adjusted/{category}.pdf",
             caption="../report/impute_disaggregated_capacity_adjustment.rst",
             category="Powerplants module",
-            subcategory="{category}"
+            subcategory="{category}",
         ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
