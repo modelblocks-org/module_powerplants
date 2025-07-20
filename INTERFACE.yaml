@@ -6,22 +6,22 @@ resources:
     "shapes/{shape}.parquet": shapefile with the desired regional disaggregation.
 
 results:
-  "{shapes}/aggregated/{adjustment}/{category}.parquet": >
+  "{shape}/aggregated/{adjustment}/{category}.parquet": >
     Aggregated powerplant capacity per polygon in the given shapefile.
     All categories are available.
 
-  "{shapes}/aggregated/proxies/rooftop_pv.tif": >
+  "{shape}/aggregated/proxies/rooftop_pv.tif": >
     Generated proxy raster used to estimate rooftop PV capacity per country.
 
-  "{shapes}/disaggregated/{adjustment}/{category}.parquet": >
+  "{shape}/disaggregated/{adjustment}/{category}.parquet": >
     Resulting point-location powerplant capacity for the requested shapes, adjustment and category.
     Only the 'large_solar' category (utility PV, CSP) can be provided in the case of solar powerplants.
 
-  "{shapes}/statistics/category_capacity.parquet": >
+  "{shape}/statistics/category_capacity.parquet": >
     National-level capacity statistics per category, for all the countries in the shape file.
 
 wildcards:
-  shapes: name of the provided shapefile.
+  shape: name of the provided shapefile.
   adjustment: >
     Whether or not total capacity per country has been re-scaled to fit national statistics.
     Options: "adjusted" or "unadjusted".
