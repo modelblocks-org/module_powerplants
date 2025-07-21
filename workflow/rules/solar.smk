@@ -28,7 +28,7 @@ rule proxy_rooftop_pv:
     output:
         proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
         plot=report(
-            "results/{shapes}/aggregated/proxies/rooftop_pv.png",
+            "results/{shapes}/aggregated/proxies/rooftop_pv.pdf",
             caption="../report/proxy_rooftop_pv.rst",
             category="Powerplants module",
             subcategory="solar",
@@ -60,7 +60,7 @@ rule aggregate_solar_capacity:
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
         plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -94,14 +94,14 @@ rule impute_aggregated_capacity_adjustment_solar:
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         adjusted="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
-        pdf=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
+        adj_plot=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}_adj.pdf",
             caption="../report/impute_disaggregated_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
-        png=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+        map_plot=report(
+            "results/{shapes}/aggregated/{adjustment}/{category}_map.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -118,7 +118,7 @@ rule impute_aggregated_capacity_adjustment_solar:
         python {input.script_impute:q} adjust-aggregated {input.stats:q} {input.unadjusted:q} \
             -y {params.year} -o {output.adjusted:q} 2> {log:q}
         python {input.script_impute:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
-            -y {params.year} -o {output.pdf:q} --aggregated 2> {log:q}
+            -y {params.year} -o {output.adj_plot:q} --aggregated 2> {log:q}
         python {input.script_aggregate:q} plot {output.adjusted:q} {input.shapes:q} \
-            -c "solar" -o {output.png:q} 2> {log:q}
+            -c "solar" -o {output.map_plot:q} 2> {log:q}
         """

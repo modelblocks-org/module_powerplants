@@ -15,7 +15,7 @@ rule aggregate_capacity:
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
         plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.png",
+            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",

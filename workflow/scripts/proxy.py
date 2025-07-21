@@ -113,7 +113,9 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int):
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
 
-    fig, ax = plt.subplots(figsize=(6, 6), layout="tight", dpi=200)
+    fig, ax = plt.subplots(
+        figsize=(6, 6), dpi=300, rasterized=True
+    )
     coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),
@@ -126,8 +128,8 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int):
     )
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
-    ax.set_title(f"Aggregation proxy (coarsened to ~{pixel_count:.1e} pixels)")
-    fig.savefig(output_file)
+    ax.set_title(f"Aggregation proxy (coarsened ~{pixel_count:.1e} pixels)")
+    fig.savefig(output_file, bbox_inches="tight")
 
 
 if __name__ == "__main__":
