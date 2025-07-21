@@ -125,7 +125,6 @@ def plot(aggregated_file: str, shapes_file: str, output_file: str, category: str
 
         ax = shapes.plot(
             ax=ax,
-            aspect=None,
             column="output_capacity_mw",
             cmap="magma",
             edgecolor="grey",

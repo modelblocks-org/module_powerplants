@@ -91,8 +91,7 @@ def capacity(
 @click.argument("borders_file", type=click.Path(dir_okay=False))
 @click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
 @click.option("-p", "--pixels", type=int, default=500_000)
-@click.option("-n", "--name", type=str)
-def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int, name: str):
+def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int):
     """Plot a figure of the generated proxy.
 
     Args:
@@ -100,7 +99,6 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int, name
         borders_file (str): country borders used for the proxy.
         output_file (str): output image file location.
         pixels (int): pixel count.
-        name (str): name of the proxied attribute.
     """
     borders_df = gpd.read_parquet(borders_file)
 
@@ -115,18 +113,17 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int, name
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
 
-    fig, ax = plt.subplots(figsize=(6, 6), layout="tight", dpi=300)
+    fig, ax = plt.subplots(figsize=(6, 6), layout="tight", dpi=200)
     coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),
         add_colorbar=True,
-        cbar_kwargs={"location": "bottom", "label": "Proxied potential"},
+        cbar_kwargs={"location": "right", "label": "Proxied potential"},
         alpha=1,
     )
     borders_df.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
         ax=ax, color="lightgrey", linewidth=0.3, alpha=0.5
     )
-    ax.set_aspect("equal")
     ax.set_xlabel("Longitude")
     ax.set_ylabel("Latitude")
     ax.set_title(f"Aggregation proxy (coarsened to ~{pixel_count:.1e} pixels)")
