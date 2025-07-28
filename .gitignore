@@ -11,6 +11,9 @@
 __pycache__
 *.pyc
 
+### Environments
+.pixi/
+
 ### Snakemake
 .snakemake/
 gurobi.log
