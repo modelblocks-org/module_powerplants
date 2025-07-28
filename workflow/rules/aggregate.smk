@@ -9,7 +9,6 @@ rule aggregate_capacity:
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
-        script=workflow.source_path("../scripts/aggregate.py"),
         powerplants="resources/automatic/{shapes}/{adjustment}/{category}.parquet",
         shapes="resources/user/shapes/{shapes}.parquet",
     output:
@@ -27,10 +26,5 @@ rule aggregate_capacity:
         "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
-            -y {params.year} -o {output.aggregated:q} 2> {log:q}
-        python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
-            -c "{wildcards.category}" -o {output.plot:q} 2>> {log:q}
-        """
+    script:
+        "../scripts/aggregate_capacity.py"

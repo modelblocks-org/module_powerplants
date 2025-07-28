@@ -1,29 +1,23 @@
 """Aggregate powerplant capacity into shapes."""
 
+import sys
+from typing import TYPE_CHECKING, Any
+
 import _plots
 import _schemas
 import _utils
-import click
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 from gregor.aggregate import aggregate_point_to_polygon, aggregate_raster_to_polygon
-from matplotlib import pyplot as plt
+
+if TYPE_CHECKING:
+    snakemake: Any
+sys.stderr = open(snakemake.log[0], "w", buffering=1)
+
 
 CAPACITY_COLUMNS = {"category", "technology", "chp", "ccs", "fuel_class"}
 
 
-@click.group()
-def cli():
-    """CLI for powerplant aggregation to shapes."""
-    pass
-
-
-@cli.command()
-@click.argument("powerplant_file", type=click.Path(dir_okay=False))
-@click.argument("shapes_file", type=click.Path(dir_okay=False))
-@click.option("-y", "--year", type=int, required=True)
-@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
 def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str):
     """Aggregate operating capacity for the given year.
 
@@ -68,27 +62,20 @@ def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str
     _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
 
 
-@cli.command()
-@click.argument("large_pv_agg_file", type=click.Path(dir_okay=False))
-@click.argument("proxy_file", type=click.Path(dir_okay=False))
-@click.argument("shapes_file", type=click.Path(dir_okay=False))
-@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-@click.option("-c", "--category", type=str, required=True)
-@click.option("-t", "--technology", type=str, required=True)
+
 def capacity_solar(
     large_pv_agg_file: str,
     proxy_file: str,
     shapes_file: str,
     output_file: str,
-    category: str,
     technology: str,
 ):
-    """Aggregate using proxy rasters."""
+    """Aggregate rooftop PV using a proxy raster."""
     large_pv = pd.read_parquet(large_pv_agg_file)
     shapes = gpd.read_parquet(shapes_file)
     agg_roof_pv_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
 
-    agg_roof_pv_cap["category"] = category
+    agg_roof_pv_cap["category"] = "solar"
     agg_roof_pv_cap["technology"] = technology
     agg_roof_pv_cap = agg_roof_pv_cap.rename(columns={"sum": "output_capacity_mw"})
     agg_roof_pv_cap = agg_roof_pv_cap.dropna(subset=["output_capacity_mw"])
@@ -101,43 +88,26 @@ def capacity_solar(
     _schemas.AggregatedPlantSchema.validate(solar_mw).to_parquet(output_file)
 
 
-@cli.command()
-@click.argument("aggregated_file", type=click.Path(dir_okay=False))
-@click.argument("shapes_file", type=click.Path(dir_okay=False))
-@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-@click.option("-c", "--category", type=str, default="")
-def plot(aggregated_file: str, shapes_file: str, output_file: str, category: str):
-    """Plot aggregated capacity per region."""
-    shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))
-    agg = _schemas.AggregatedPlantSchema.validate(pd.read_parquet(aggregated_file))
-
-    title = f"Aggregated {category} capacity"
-
-    if agg.empty:
-        _plots.plot_empty(title, output_file)
-    else:
-        cap_by_shape = agg.groupby("shape_id")["output_capacity_mw"].sum()
-
-        shapes = shapes.set_index("shape_id")
-        shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
-
-        fig, ax = plt.subplots(figsize=(6, 6), dpi=300, rasterized=True)
-
-        ax = shapes.plot(
-            ax=ax,
-            column="output_capacity_mw",
-            cmap="magma",
-            edgecolor="grey",
-            linewidth=0.5,
-            legend=True,
-            legend_kwds={"label": "Capacity ($MW$)"},
-            missing_kwds={"color": "lightgrey", "alpha": 0.2},
-        )
-        ax.set_title(title + f" in year {agg.attrs['year']}")
-        ax.set_xlabel("Longitude ($deg$)")
-        ax.set_ylabel("Latitude ($deg$)")
-        fig.savefig(output_file, bbox_inches="tight")
-
 
 if __name__ == "__main__":
-    cli()
+    if snakemake.wildcards.category == "solar":
+        capacity_solar(
+            large_pv_agg_file=snakemake.input.large_solar,
+            proxy_file=snakemake.input.proxy,
+            shapes_file=snakemake.input.shapes,
+            output_file=snakemake.output.aggregated,
+            technology=snakemake.params.technology
+        )
+    else:
+        capacity(
+            powerplant_file=snakemake.input.powerplants,
+            shapes_file=snakemake.input.shapes,
+            year=snakemake.params.year,
+            output_file=snakemake.output.aggregated
+        )
+    _plots.plot_capacity_aggregation(
+        aggregated_file=snakemake.output.aggregated,
+        shapes_file=snakemake.input.shapes,
+        output_file=snakemake.output.plot,
+        category=snakemake.wildcards.category
+    )
