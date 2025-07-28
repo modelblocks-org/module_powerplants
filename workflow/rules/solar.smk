@@ -20,7 +20,6 @@ rule proxy_rooftop_pv:
         category="solar",
         year=config["imputation"]["adjustment_yr"],
     input:
-        script=workflow.source_path("../scripts/proxy.py"),
         borders="resources/user/borders/{shapes}.parquet",
         proxy="resources/user/proxies/rooftop_pv/{shapes}.tif",
         agg_unadj="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
@@ -37,13 +36,8 @@ rule proxy_rooftop_pv:
         "logs/proxy_rooftop_pv_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} capacity {input.borders:q} {input.proxy:q} {input.agg_unadj:q} {input.stats:q} \
-            -o {output.proxy:q} -y {params.year} -c "{params.category}" 2> {log:q}
-        python {input.script:q} plot {output.proxy:q} {input.borders:q} \
-            -o {output.plot:q} 2>> {log:q}
-        """
+    script:
+        "../scripts/proxy.py"
 
 
 rule aggregate_solar_capacity:

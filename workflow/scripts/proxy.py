@@ -1,9 +1,10 @@
 """Functions for proxying missing data."""
 
 import math
+import sys
+from typing import TYPE_CHECKING, Any
 
 import _utils
-import click
 import geopandas as gpd
 import gregor
 import pandas as pd
@@ -12,6 +13,9 @@ from cmap import Colormap
 from matplotlib import pyplot as plt
 from xarray import DataArray
 
+if TYPE_CHECKING:
+    snakemake: Any
+sys.stderr = open(snakemake.log[0], "w", buffering=1)
 
 def _check_crs(raster: DataArray):
     crs = raster.rio.crs
@@ -19,21 +23,7 @@ def _check_crs(raster: DataArray):
         raise ValueError(f"The provided raster has an invalid CRS: {crs}.")
 
 
-@click.group()
-def cli():
-    """CLI for proxy functionality."""
-    pass
-
-
-@cli.command()
-@click.argument("borders_file", type=click.Path(dir_okay=False))
-@click.argument("proxy_file", type=click.Path(dir_okay=False))
-@click.argument("aggregated_unadjusted_file", type=click.Path(dir_okay=False))
-@click.argument("stats_file", type=click.Path(dir_okay=False))
-@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-@click.option("-c", "--category", type=str, required=True)
-@click.option("-y", "--year", type=int, required=True)
-def capacity(
+def proxy_capacity(
     borders_file: str,
     proxy_file: str,
     aggregated_unadjusted_file: str,
@@ -86,12 +76,7 @@ def capacity(
     proxy.rio.to_raster(output_file)
 
 
-@cli.command()
-@click.argument("proxy_file", type=click.Path(dir_okay=False))
-@click.argument("borders_file", type=click.Path(dir_okay=False))
-@click.option("-o", "--output_file", type=click.Path(dir_okay=False), required=True)
-@click.option("-p", "--pixels", type=int, default=500_000)
-def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int):
+def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int = 500_000):
     """Plot a figure of the generated proxy.
 
     Args:
@@ -131,4 +116,17 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int):
 
 
 if __name__ == "__main__":
-    cli()
+    proxy_capacity(
+        borders_file=snakemake.input.borders,
+        proxy_file=snakemake.input.proxy,
+        aggregated_unadjusted_file=snakemake.input.agg_unadj,
+        stats_file=snakemake.input.stats,
+        output_file=snakemake.output.proxy,
+        category=snakemake.params.category,
+        year=snakemake.params.year
+    )
+    plot(
+        proxy_file=snakemake.output.proxy,
+        borders_file=snakemake.input.borders,
+        output_file=snakemake.output.plot,
+    )

@@ -20,7 +20,6 @@ rule impute_years:
         projected_crs=config["projected_crs"],
         tech_map=lambda wc: get_technology_mapping(wc.dataset),
     input:
-        script=workflow.source_path("../scripts/impute_years.py"),
         prepared="resources/automatic/prepared/{dataset}.parquet",
         borders="resources/user/borders/{shapes}.parquet",
     output:
