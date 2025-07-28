@@ -67,11 +67,11 @@ def test_snakemake_all_failure(module_path):
     assert "INVALID (missing locally)" in str(process.stderr)
 
 
-def test_snakemake_integration_testing(module_path):
+def test_snakemake_integration_testing(integration_path):
     """Run a light-weight test simulating someone using this module."""
     assert subprocess.run(
         "snakemake --use-conda --cores 1",
         shell=True,
         check=True,
-        cwd=module_path / "tests/integration",
+        cwd=integration_path,
     )
