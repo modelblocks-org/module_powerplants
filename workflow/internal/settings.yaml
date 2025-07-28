@@ -11,7 +11,7 @@ resources:
       GOGPT: https://zenodo.org/records/16541007/files/GEM_GOGPT.xlsx
       GSPT: https://zenodo.org/records/16541007/files/GEM_GSPT.xlsx
       GWPT: https://zenodo.org/records/16541007/files/GEM_GWPT.xlsx
-    GloHydroRes: "https://zenodo.org/records/16541007/files/GloHydroRes_vs1.csv"
+    GloHydroRes: "https://zenodo.org/records/14526360/files/GloHydroRes_vs1.csv"
     TZ-SAM: https://zenodo.org/records/16541007/files/TZ-SAM.gpkg
 fuel_mapping:
   "bioenergy: agricultural waste (biogas)": "biogas"
