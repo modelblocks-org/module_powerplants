@@ -4,6 +4,7 @@ import math
 import sys
 from typing import TYPE_CHECKING, Any
 
+import _schemas
 import _utils
 import geopandas as gpd
 import gregor
@@ -24,7 +25,24 @@ def _check_crs(raster: DataArray):
         raise ValueError(f"The provided raster has an invalid CRS: {crs}.")
 
 
-def proxy_capacity(
+def _open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
+    """Opens a borders file, removes marine regions, and validates uniqueness.
+
+    Args:
+        borders_file (str): Path to shape with country borders.
+
+    Returns:
+        gpd.GeoDataFrame: dataframe with only land borders.
+    """
+    borders = gpd.read_parquet(borders_file)
+    if "shape_class" in borders.columns:
+        borders = borders[borders["shape_class"] == "land"]
+    if not borders["country_id"].is_unique:
+        raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
+    return _schemas.ShapeSchema.validate(borders)
+
+
+def proxy_rooftop_pv_capacity(
     borders_file: str,
     proxy_file: str,
     aggregated_unadjusted_file: str,
@@ -47,7 +65,7 @@ def proxy_capacity(
         category (str): category to process.
         year (int): year to use for adjustment.
     """
-    borders_df = _utils.open_borders_gdf(borders_file).set_index("country_id")
+    borders_df = _open_borders_gdf(borders_file).set_index("country_id")
     stats_df = pd.read_parquet(stats_file)
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
     _check_crs(area_potential_da)
@@ -117,7 +135,7 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int = 500
 
 
 if __name__ == "__main__":
-    proxy_capacity(
+    proxy_rooftop_pv_capacity(
         borders_file=snakemake.input.borders,
         proxy_file=snakemake.input.proxy,
         aggregated_unadjusted_file=snakemake.input.agg_unadj,

@@ -125,7 +125,8 @@ def impute(
                 "Polygon powerplant geometries detected. Specify a projected CRS."
             )
 
-    shapes = gpd.read_parquet(borders_path)
+    borders = _schemas.ShapeSchema.validate(gpd.read_parquet(borders_path))
+
 
     lifetimes = imputation["lifetime_yr"]
     retirement_delay_yr = imputation["retirement_delay_yr"]
@@ -134,7 +135,7 @@ def impute(
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
         prepared[prepared["status"].isin(scenario)],
-        shapes[["country_id", "geometry"]].dissolve("country_id").reset_index(),
+        borders[["country_id", "geometry"]].dissolve("country_id").reset_index(),
         predicate="intersects",
         how="inner",
     ).drop("index_right", axis="columns")

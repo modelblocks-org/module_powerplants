@@ -95,23 +95,6 @@ def filter_years(
     return filtered
 
 
-def open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
-    """Opens a borders file, removes marine regions, and validates uniqueness.
-
-    Args:
-        borders_file (str): Path to shape with country borders.
-
-    Returns:
-        gpd.GeoDataFrame: dataframe with only land borders.
-    """
-    borders = gpd.read_parquet(borders_file)
-    if "shape_class" in borders.columns:
-        borders = borders[borders["shape_class"] == "land"]
-    if not borders["country_id"].is_unique:
-        raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
-    return _schemas.ShapeSchema.validate(borders)
-
-
 def get_adjusted_capacity(
     operating_plants: pd.DataFrame, expected_capacity: pd.Series
 ) -> pd.Series:
