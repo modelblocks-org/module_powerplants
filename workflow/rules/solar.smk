@@ -46,30 +46,29 @@ rule proxy_rooftop_pv:
         """
 
 
-rule aggregate_solar_capacity:
+rule aggregate_unadjusted_solar_capacity:
     message:
-        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.adjustment}."
+        "Aggregating capacity for {wildcards.shapes}-aggregated-unadjusted."
     params:
         category="solar",
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
-        large_solar="results/{shapes}/aggregated/{adjustment}/large_solar.parquet",
+        large_solar="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
         proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
         shapes="resources/user/shapes/{shapes}.parquet",
     output:
-        aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        aggregated="results/{shapes}/aggregated/unadjusted/{category}.parquet",
         plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
+            "results/{shapes}/aggregated/unadjusted/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     wildcard_constraints:
-        adjustment="unadjusted",
         category="solar",
     log:
-        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
+        "logs/aggregate_capacity_{shapes}_unadjusted_{category}.log",
     conda:
         "../envs/shapes.yaml"
     shell:
@@ -81,7 +80,7 @@ rule aggregate_solar_capacity:
         """
 
 
-rule impute_aggregated_capacity_adjustment_solar:
+rule impute_national_capacity_adjustment_solar:
     message:
         "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
     params:
@@ -96,7 +95,7 @@ rule impute_aggregated_capacity_adjustment_solar:
         adjusted="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
         adj_plot=report(
             "results/{shapes}/aggregated/{adjustment}/{category}_adj.pdf",
-            caption="../report/impute_disaggregated_capacity_adjustment.rst",
+            caption="../report/impute_national_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),

@@ -86,18 +86,18 @@ def capacity_solar(
     """Aggregate using proxy rasters."""
     large_pv = pd.read_parquet(large_pv_agg_file)
     shapes = gpd.read_parquet(shapes_file)
-    aggr_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
+    agg_roof_pv_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
 
-    aggr_cap["category"] = category
-    aggr_cap["technology"] = technology
-    aggr_cap = aggr_cap.rename(columns={"sum": "output_capacity_mw"})
-    aggr_cap = aggr_cap.dropna(subset=["output_capacity_mw"])
+    agg_roof_pv_cap["category"] = category
+    agg_roof_pv_cap["technology"] = technology
+    agg_roof_pv_cap = agg_roof_pv_cap.rename(columns={"sum": "output_capacity_mw"})
+    agg_roof_pv_cap = agg_roof_pv_cap.dropna(subset=["output_capacity_mw"])
 
     valid_cols = set(_schemas.AggregatedPlantSchema.to_schema().columns)
-    aggr_cap = aggr_cap[list(valid_cols & set(aggr_cap.columns))]
+    agg_roof_pv_cap = agg_roof_pv_cap[list(valid_cols & set(agg_roof_pv_cap.columns))]
 
-    solar_mw = pd.concat([aggr_cap, large_pv], ignore_index=True)
-    solar_mw.attrs = large_pv.attrs | aggr_cap.attrs
+    solar_mw = pd.concat([agg_roof_pv_cap, large_pv], ignore_index=True)
+    solar_mw.attrs = large_pv.attrs | agg_roof_pv_cap.attrs
     _schemas.AggregatedPlantSchema.validate(solar_mw).to_parquet(output_file)
 
 

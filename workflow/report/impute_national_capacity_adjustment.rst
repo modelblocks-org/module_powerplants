@@ -1,4 +1,4 @@
-Adjustment of active {{ snakemake.wildcards.category }} capacity of each country in {{ snakemake.wildcards.shapes }} to EIA statistics in {{ snakemake.params.year }}.
+Adjustment of active {{ snakemake.wildcards.category }} national capacity of each country in {{ snakemake.wildcards.shapes }} to EIA statistics in {{ snakemake.params.year }}.
 
 .. math::
 

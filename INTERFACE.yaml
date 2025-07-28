@@ -1,9 +1,9 @@
 # Module Input-Output structure for automated doc. generation
 resources:
   user:
-    "borders/{shape}.parquet": borders of the countries in the provided shapefile.
-    "proxies/rooftop_pv/{shape}.tif": disaggregation proxy raster to use to estimate rooftop PV capacity.
-    "shapes/{shape}.parquet": shapefile with the desired regional disaggregation.
+    "borders/{shape}.parquet": auxiliary GeoParquet with national-level borders for all countries in the shapefile.
+    "proxies/rooftop_pv/{shape}.tif": proxy raster to use to estimate rooftop PV capacity.
+    "shapes/{shape}.parquet": GeoParquet shapefile with the desired regional disaggregation.
 
 results:
   "{shape}/aggregated/{adjustment}/{category}.parquet": >
@@ -12,10 +12,6 @@ results:
 
   "{shape}/aggregated/proxies/rooftop_pv.tif": >
     Generated proxy raster used to estimate rooftop PV capacity per country.
-
-  "{shape}/disaggregated/{adjustment}/{category}.parquet": >
-    Resulting point-location powerplant capacity for the requested shapes, adjustment and category.
-    Only the 'large_solar' category (utility PV, CSP) can be provided in the case of solar powerplants.
 
   "{shape}/statistics/category_capacity.parquet": >
     National-level capacity statistics per category, for all the countries in the shape file.

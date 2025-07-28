@@ -1,4 +1,4 @@
-"""Aggregation to provided shapes."""
+"""Aggregation to user requested shapes."""
 
 ADJUSTMENTS = ("adjusted", "unadjusted")
 
@@ -10,7 +10,7 @@ rule aggregate_capacity:
         year=config["imputation"]["adjustment_yr"],
     input:
         script=workflow.source_path("../scripts/aggregate.py"),
-        powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
+        powerplants="resources/automatic/{shapes}/{adjustment}/{category}.parquet",
         shapes="resources/user/shapes/{shapes}.parquet",
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",

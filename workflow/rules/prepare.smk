@@ -237,7 +237,7 @@ rule prepare_statistics:
         python {input.script:q} prepare {input.shapes:q} {input.eia_bulk:q} \
             -ot {output.total:q} -oc {output.categories:q} 2> {log:q}
         python {input.script:q} plot {output.total:q} {output.categories:q} \
-            -o {output.plot:q} 2> {log:q}
+            -o {output.plot:q} 2>> {log:q}
         """
 
 
