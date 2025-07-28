@@ -221,7 +221,6 @@ rule prepare_statistics:
     message:
         "Get EIA annual country capacity statistics."
     input:
-        script=workflow.source_path("../scripts/prepare_statistics.py"),
         shapes="resources/user/shapes/{shapes}.parquet",
         eia_bulk="resources/automatic/downloads/EIA-INTL.txt",
     output:
@@ -232,13 +231,8 @@ rule prepare_statistics:
         "logs/prepare_statistics_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} prepare {input.shapes:q} {input.eia_bulk:q} \
-        -ot {output.total:q} -oc {output.categories:q} 2> {log:q}
-        python {input.script:q} plot {output.total:q} {output.categories:q} \
-        -o {output.plot:q} 2>> {log:q}
-        """
+    script:
+        "../scripts/prepare_statistics.py"
 
 
 rule prepare_fuels:

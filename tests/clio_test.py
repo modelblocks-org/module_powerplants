@@ -70,8 +70,5 @@ def test_snakemake_all_failure(module_path):
 def test_snakemake_integration_testing(integration_path):
     """Run a light-weight test simulating someone using this module."""
     assert subprocess.run(
-        "snakemake --use-conda --cores 1 --latency-wait 10",
-        shell=True,
-        check=True,
-        cwd=integration_path,
+        "snakemake --use-conda --cores 1", shell=True, check=True, cwd=integration_path
     )

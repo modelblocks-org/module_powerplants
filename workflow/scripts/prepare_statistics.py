@@ -1,15 +1,20 @@
 """Aggregated capacity data at a country level."""
 
 import math
+import sys
+from typing import TYPE_CHECKING, Any
 
 import _plots
 import _schemas
-import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from matplotlib.ticker import MaxNLocator
+
+if TYPE_CHECKING:
+    snakemake: Any
+sys.stderr = open(snakemake.log[0], "w", buffering=1)
 
 CAT_ID = {
     "total": 2,
@@ -57,19 +62,6 @@ def _get_country_capacity(eia_df: pd.DataFrame, country_a3: str):
     return country_capacity
 
 
-@click.group()
-def cli():
-    """Specify sub-command."""
-    pass
-
-
-@cli.command()
-@click.argument("input_shapes", type=click.Path(dir_okay=False))
-@click.argument("input_eia_bulk", type=click.Path(dir_okay=False))
-@click.option("-ot", "output_total", type=click.Path(dir_okay=False), required=True)
-@click.option(
-    "-oc", "output_categories", type=click.Path(dir_okay=False), required=True
-)
 def prepare(
     input_shapes: str, input_eia_bulk: str, output_total: str, output_categories: str
 ):
@@ -116,16 +108,11 @@ def prepare(
     category_statistics.to_parquet(output_categories)
 
 
-@cli.command()
-@click.argument("input_total", type=click.Path(dir_okay=False))
-@click.argument("input_categories", type=click.Path(dir_okay=False))
-@click.option("-o", "output_plot", type=click.Path(dir_okay=False), required=True)
-@click.option("-f", "figsize", type=(float, float), default=(12, 6))
 def plot(
     input_total: str,
     input_categories: str,
     output_plot: str,
-    figsize: tuple[float, float],
+    figsize: tuple[float, float] = (12, 6),
 ):
     """Plot the evolution of country capacity over time for every country."""
     df_cats = pd.read_parquet(input_categories)
@@ -200,4 +187,14 @@ def plot(
 
 
 if __name__ == "__main__":
-    cli()
+    prepare(
+        input_shapes=snakemake.input.shapes,
+        input_eia_bulk=snakemake.input.eia_bulk,
+        output_total=snakemake.output.total,
+        output_categories=snakemake.output.categories,
+    )
+    plot(
+        input_total=snakemake.output.total,
+        input_categories=snakemake.output.categories,
+        output_plot=snakemake.output.plot,
+    )
