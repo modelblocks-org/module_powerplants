@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     snakemake: Any
 sys.stderr = open(snakemake.log[0], "w", buffering=1)
 
+
 def _check_crs(raster: DataArray):
     crs = raster.rio.crs
     if crs is None or not crs.is_valid:
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         stats_file=snakemake.input.stats,
         output_file=snakemake.output.proxy,
         category=snakemake.params.category,
-        year=snakemake.params.year
+        year=snakemake.params.year,
     )
     plot(
         proxy_file=snakemake.output.proxy,
