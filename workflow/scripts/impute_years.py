@@ -127,7 +127,6 @@ def impute(
 
     borders = _schemas.ShapeSchema.validate(gpd.read_parquet(borders_path))
 
-
     lifetimes = imputation["lifetime_yr"]
     retirement_delay_yr = imputation["retirement_delay_yr"]
     scenario = SCENARIO_MAP[imputation["scenario"]]

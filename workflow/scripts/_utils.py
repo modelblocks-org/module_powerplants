@@ -2,7 +2,6 @@
 
 from typing import Literal
 
-import _schemas
 import geopandas as gpd
 import pandas as pd
 from pandas.api.types import is_list_like
