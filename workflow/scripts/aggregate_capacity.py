@@ -62,7 +62,6 @@ def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str
     _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
 
 
-
 def capacity_solar(
     large_pv_agg_file: str,
     proxy_file: str,
@@ -88,7 +87,6 @@ def capacity_solar(
     _schemas.AggregatedPlantSchema.validate(solar_mw).to_parquet(output_file)
 
 
-
 if __name__ == "__main__":
     if snakemake.wildcards.category == "solar":
         capacity_solar(
@@ -96,18 +94,18 @@ if __name__ == "__main__":
             proxy_file=snakemake.input.proxy,
             shapes_file=snakemake.input.shapes,
             output_file=snakemake.output.aggregated,
-            technology=snakemake.params.technology
+            technology=snakemake.params.technology,
         )
     else:
         capacity(
             powerplant_file=snakemake.input.powerplants,
             shapes_file=snakemake.input.shapes,
             year=snakemake.params.year,
-            output_file=snakemake.output.aggregated
+            output_file=snakemake.output.aggregated,
         )
     _plots.plot_capacity_aggregation(
         aggregated_file=snakemake.output.aggregated,
         shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.plot,
-        category=snakemake.wildcards.category
+        category=snakemake.wildcards.category,
     )
