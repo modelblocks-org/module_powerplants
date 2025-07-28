@@ -42,7 +42,7 @@ rule proxy_rooftop_pv:
         python {input.script:q} capacity {input.borders:q} {input.proxy:q} {input.agg_unadj:q} {input.stats:q} \
             -o {output.proxy:q} -y {params.year} -c "{params.category}" 2> {log:q}
         python {input.script:q} plot {output.proxy:q} {input.borders:q} \
-            -o {output.plot:q} 2> {log:q}
+            -o {output.plot:q} 2>> {log:q}
         """
 
 
@@ -76,7 +76,7 @@ rule aggregate_unadjusted_solar_capacity:
         python {input.script:q} capacity-solar {input.large_solar:q} {input.proxy:q} {input.shapes:q} \
             -o {output.aggregated:q} -c "{params.category}" -t "{params.technology}" 2> {log:q}
         python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
-            -c "{params.category}" -o {output.plot:q} 2> {log:q}
+            -c "{params.category}" -o {output.plot:q} 2>> {log:q}
         """
 
 
@@ -117,7 +117,7 @@ rule impute_national_capacity_adjustment_solar:
         python {input.script_impute:q} adjust-aggregated {input.stats:q} {input.unadjusted:q} \
             -y {params.year} -o {output.adjusted:q} 2> {log:q}
         python {input.script_impute:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
-            -y {params.year} -o {output.adj_plot:q} --aggregated 2> {log:q}
+            -y {params.year} -o {output.adj_plot:q} --aggregated 2>> {log:q}
         python {input.script_aggregate:q} plot {output.adjusted:q} {input.shapes:q} \
-            -c "solar" -o {output.map_plot:q} 2> {log:q}
+            -c "solar" -o {output.map_plot:q} 2>> {log:q}
         """

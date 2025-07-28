@@ -32,5 +32,5 @@ rule aggregate_capacity:
         python {input.script:q} capacity {input.powerplants:q} {input.shapes:q} \
             -y {params.year} -o {output.aggregated:q} 2> {log:q}
         python {input.script:q} plot {output.aggregated:q} {input.shapes:q} \
-            -c "{wildcards.category}" -o {output.plot:q} 2> {log:q}
+            -c "{wildcards.category}" -o {output.plot:q} 2>> {log:q}
         """

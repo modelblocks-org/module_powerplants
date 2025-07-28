@@ -37,7 +37,7 @@ rule impute_years:
         python {input.script:q} impute {input.prepared:q} {input.borders:q} \
             -i "{params.imputation}" -t "{params.tech_map}" -c "{params.projected_crs}" \
             -o "{output.imputed}" 2> {log:q}
-        python {input.script:q} plot {output.imputed:q} -o {output.plot:q} 2> {log:q}
+        python {input.script:q} plot {output.imputed:q} -o {output.plot:q} 2>> {log:q}
         """
 
 
@@ -75,7 +75,7 @@ rule impute_national_category_combination:
 
 rule impute_national_capacity_adjustment:
     message:
-        "National-level adjustement of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
+        "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
@@ -101,5 +101,5 @@ rule impute_national_capacity_adjustment:
         python {input.script:q} adjust-disaggregated {input.stats:q} {input.unadjusted:q} \
             -y {params.year} -o {output.adjusted:q} 2> {log:q}
         python {input.script:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
-            -y {params.year} -o {output.plot:q} --disaggregated 2> {log:q}
+            -y {params.year} -o {output.plot:q} --disaggregated 2>> {log:q}
         """
