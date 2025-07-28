@@ -29,7 +29,9 @@ EIA_CAT_MAPPING = {
 EIA_CAT_MAPPING = {k: listify(v) for k, v in EIA_CAT_MAPPING.items()}
 
 
-def get_eia_stats_in_cat_yr(stats: pd.DataFrame, year: int, category: str) -> pd.DataFrame:
+def get_eia_stats_in_cat_yr(
+    stats: pd.DataFrame, year: int, category: str
+) -> pd.DataFrame:
     """Get EIA statistics for a given year and category."""
     stats = stats[stats["year"] == year]
     stats = stats[stats["category"].isin(EIA_CAT_MAPPING[category])]

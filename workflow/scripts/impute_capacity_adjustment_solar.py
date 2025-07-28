@@ -32,12 +32,13 @@ def adjust_aggregated(
 
     _schemas.AggregatedPlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
+
 if __name__ == "__main__":
     adjust_aggregated(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
         year=snakemake.params.year,
-        output_file=snakemake.output.adjusted
+        output_file=snakemake.output.adjusted,
     )
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,
@@ -45,11 +46,11 @@ if __name__ == "__main__":
         adjusted_file=snakemake.output.adjusted,
         year=snakemake.params.year,
         output_file=snakemake.output.adj_plot,
-        is_disagg=False
+        is_disagg=False,
     )
     _plots.plot_capacity_aggregation(
         aggregated_file=snakemake.output.adjusted,
         shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.map_plot,
-        category="solar"
+        category="solar",
     )

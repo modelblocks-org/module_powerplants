@@ -39,7 +39,7 @@ if __name__ == "__main__":
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
         year=snakemake.params.year,
-        output_file=snakemake.output.adjusted
+        output_file=snakemake.output.adjusted,
     )
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,
@@ -47,5 +47,5 @@ if __name__ == "__main__":
         adjusted_file=snakemake.output.adjusted,
         year=snakemake.params.year,
         output_file=snakemake.output.plot,
-        is_disagg=True
+        is_disagg=True,
     )
