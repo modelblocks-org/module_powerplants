@@ -80,7 +80,7 @@ rule aggregate_unadjusted_solar_capacity:
         """
 
 
-rule impute_national_capacity_adjustment_solar:
+rule impute_capacity_adjustment_solar:
     message:
         "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
     params:
@@ -88,36 +88,26 @@ rule impute_national_capacity_adjustment_solar:
     input:
         script_impute=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
         script_aggregate=workflow.source_path("../scripts/aggregate.py"),
-        unadjusted="results/{shapes}/aggregated/unadjusted/{category}.parquet",
+        unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
         shapes="resources/user/shapes/{shapes}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
-        adjusted="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        adjusted="results/{shapes}/aggregated/adjusted/solar.parquet",
         adj_plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}_adj.pdf",
-            caption="../report/impute_national_capacity_adjustment.rst",
+            "results/{shapes}/aggregated/adjusted/solar_adj.pdf",
+            caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
-            subcategory="{category}",
+            subcategory="solar",
         ),
         map_plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}_map.pdf",
+            "results/{shapes}/aggregated/adjusted/solar_map.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
-            subcategory="{category}",
+            subcategory="solar",
         ),
-    wildcard_constraints:
-        adjustment="adjusted",
-        category="solar",
     log:
-        "logs/impute_capacity_{adjustment}_{category}_{shapes}.log",
+        "logs/impute_capacity_adjusted_solar_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script_impute:q} adjust-aggregated {input.stats:q} {input.unadjusted:q} \
-            -y {params.year} -o {output.adjusted:q} 2> {log:q}
-        python {input.script_impute:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
-            -y {params.year} -o {output.adj_plot:q} --aggregated 2>> {log:q}
-        python {input.script_aggregate:q} plot {output.adjusted:q} {input.shapes:q} \
-            -c "solar" -o {output.map_plot:q} 2>> {log:q}
-        """
+    script:
+        "../scripts/impute_capacity_adjustment_solar.py"

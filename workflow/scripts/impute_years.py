@@ -1,12 +1,17 @@
 """Imputation of missing values."""
 
+import sys
+from typing import TYPE_CHECKING, Any
+
 import _plots
 import _schemas
 import _utils
-import click
 import geopandas as gpd
 import pandas as pd
-import yaml
+
+if TYPE_CHECKING:
+    snakemake: Any
+sys.stderr = open(snakemake.log[0], "w")
 
 HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
@@ -17,7 +22,7 @@ SCENARIO_MAP = {
 }
 
 
-def impute_start_year(
+def _impute_start_year(
     prepared_df: pd.DataFrame, lifetimes: dict[str, int]
 ) -> pd.Series:
     """Fill start year using reasonable assumptions and user settings."""
@@ -42,7 +47,7 @@ def impute_start_year(
     return start_year
 
 
-def impute_end_year(
+def _impute_end_year(
     df: pd.DataFrame, lifetimes: dict[str, int], delay: dict[str, int]
 ) -> pd.Series:
     """Impute end_year using lifetime.
@@ -64,7 +69,7 @@ def impute_end_year(
     return result
 
 
-def impute_status(df: pd.DataFrame) -> pd.Series:
+def _impute_status(df: pd.DataFrame) -> pd.Series:
     """Impute powerplant status.
 
     Must be called after start/end years are complete.
@@ -83,32 +88,19 @@ def impute_status(df: pd.DataFrame) -> pd.Series:
     return status
 
 
-@click.group()
-def cli():
-    """Specify sub-command."""
-    pass
-
-
-@cli.command()
-@click.argument("prepared_path", type=click.Path(dir_okay=False))
-@click.argument("shapes_path", type=click.Path(dir_okay=False))
-@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
-@click.option("-i", "imputation", type=str, required=True)
-@click.option("-t", "technology_mapping", type=str, required=True)
-@click.option("-c", "projected_crs", type=str)
 def impute(
     prepared_path: str,
-    shapes_path: str,
+    borders_path: str,
     output_path: str,
     imputation: str,
     technology_mapping: str,
-    projected_crs: str | None,
+    projected_crs: str,
 ):
     """Add automatic and user imputations to fill missing data.
 
     Args:
         prepared_path (str): cleaned dataset following our schema.
-        shapes_path (str): shapes to use.
+        borders_path (str): country-level shapes to use.
         output_path (str): resulting dataset.
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
@@ -133,13 +125,11 @@ def impute(
                 "Polygon powerplant geometries detected. Specify a projected CRS."
             )
 
-    shapes = gpd.read_parquet(shapes_path)
+    shapes = gpd.read_parquet(borders_path)
 
-    tech_map = yaml.safe_load(technology_mapping)
-    imputation_cnf = yaml.safe_load(imputation)
-    lifetimes = imputation_cnf["lifetime_yr"]
-    retirement_delay_yr = imputation_cnf["retirement_delay_yr"]
-    scenario = SCENARIO_MAP[imputation_cnf["scenario"]]
+    lifetimes = imputation["lifetime_yr"]
+    retirement_delay_yr = imputation["retirement_delay_yr"]
+    scenario = SCENARIO_MAP[imputation["scenario"]]
 
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
@@ -151,26 +141,30 @@ def impute(
 
     if not imputed.empty:
         # Adjust project dates
-        imputed["start_year"] = impute_start_year(imputed, lifetimes)
-        imputed["end_year"] = impute_end_year(imputed, lifetimes, retirement_delay_yr)
+        imputed["start_year"] = _impute_start_year(imputed, lifetimes)
+        imputed["end_year"] = _impute_end_year(imputed, lifetimes, retirement_delay_yr)
 
         # Drop projects with insufficient date data and then adjust status.
         imputed = imputed.dropna(subset=["start_year", "end_year"])
-        imputed["status"] = impute_status(imputed)
+        imputed["status"] = _impute_status(imputed)
 
-    schema = _schemas.build_schema(tech_map, "impute")
+    schema = _schemas.build_schema(technology_mapping, "impute")
     schema.validate(imputed).to_parquet(output_path)
 
 
-@cli.command()
-@click.argument("imputed_path", type=click.Path(dir_okay=False))
-@click.option("-o", "output_path", type=click.Path(dir_okay=False))
-@click.option("-c", "colormap", type=str, default="tab20")
-def plot(imputed_path: str, output_path: str, colormap: str):
+def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
     """Plot stacked bar charts of active powerplant capacity over time per country."""
     df = pd.read_parquet(imputed_path)
     _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
 
 
 if __name__ == "__main__":
-    cli()
+    impute(
+        prepared_path=snakemake.input.prepared,
+        borders_path=snakemake.input.borders,
+        output_path=snakemake.output.imputed,
+        imputation=snakemake.params.imputation,
+        technology_mapping=snakemake.params.tech_map,
+        projected_crs=snakemake.params.projected_crs,
+    )
+    plot(imputed_path=snakemake.output.imputed, output_path=snakemake.output.plot)

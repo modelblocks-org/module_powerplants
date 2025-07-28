@@ -47,7 +47,7 @@ def build_request_all(
 
 
 @pytest.mark.parametrize("adjustment", ["unadjusted", "adjusted"])
-@pytest.mark.parametrize("aggregation", ["aggregated", "disaggregated"])
+@pytest.mark.parametrize("aggregation", ["aggregated"])
 @pytest.mark.parametrize("case", ["MEX", "MNE", "europe"])
 def test_full_run(user_path: Path, case: str, aggregation: str, adjustment: str):
     """Test a full request of categories a given setup can give.

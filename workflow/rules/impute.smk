@@ -32,16 +32,11 @@ rule impute_years:
         "logs/impute_years_{shapes}_{dataset}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} impute {input.prepared:q} {input.borders:q} \
-            -i "{params.imputation}" -t "{params.tech_map}" -c "{params.projected_crs}" \
-            -o "{output.imputed}" 2> {log:q}
-        python {input.script:q} plot {output.imputed:q} -o {output.plot:q} 2>> {log:q}
-        """
+    script:
+        "../scripts/impute_years.py"
 
 
-rule impute_national_category_combination:
+rule impute_category_combination:
     message:
         "National-level imputation of user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     params:
@@ -53,53 +48,47 @@ rule impute_national_category_combination:
         combined="resources/automatic/{shapes}/unadjusted/{category}.parquet",
         plot=report(
             "resources/automatic/{shapes}/unadjusted/{category}.pdf",
-            caption="../report/impute_national_category_combination_histogram.rst",
+            caption="../report/impute_category_combination_histogram.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
         explore=report(
             "resources/automatic/{shapes}/unadjusted/{category}.html",
-            caption="../report/impute_national_category_combination_map.rst",
+            caption="../report/impute_category_combination_map.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT),
     log:
-        "logs/impute_national_category_combination_{shapes}_{category}.log",
+        "logs/impute_category_combination_{shapes}_{category}.log",
     conda:
         "../envs/shapes.yaml"
     script:
         "../scripts/impute_category_combination.py"
 
 
-rule impute_national_capacity_adjustment:
+rule impute_capacity_adjustment:
     message:
         "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
-        script=workflow.source_path("../scripts/impute_capacity_adjustment.py"),
         unadjusted="resources/automatic/{shapes}/unadjusted/{category}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         adjusted="resources/automatic/{shapes}/adjusted/{category}.parquet",
         plot=report(
             "resources/automatic/{shapes}/adjusted/{category}.pdf",
-            caption="../report/impute_national_capacity_adjustment.rst",
+            caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
     log:
-        "logs/impute_national_capacity_adjustment_{shapes}_{category}.log",
+        "logs/impute_capacity_adjustment_{shapes}_{category}.log",
     conda:
         "../envs/shapes.yaml"
-    shell:
-        """
-        python {input.script:q} adjust-disaggregated {input.stats:q} {input.unadjusted:q} \
-            -y {params.year} -o {output.adjusted:q} 2> {log:q}
-        python {input.script:q} plot {input.stats:q} {input.unadjusted:q} {output.adjusted:q} \
-            -y {params.year} -o {output.plot:q} --disaggregated 2>> {log:q}
-        """
+    script:
+        "../scripts/impute_capacity_adjustment.py"

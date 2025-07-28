@@ -29,6 +29,13 @@ EIA_CAT_MAPPING = {
 EIA_CAT_MAPPING = {k: listify(v) for k, v in EIA_CAT_MAPPING.items()}
 
 
+def get_eia_stats_in_cat_yr(stats: pd.DataFrame, year: int, category: str) -> pd.DataFrame:
+    """Get EIA statistics for a given year and category."""
+    stats = stats[stats["year"] == year]
+    stats = stats[stats["category"].isin(EIA_CAT_MAPPING[category])]
+    return stats
+
+
 def get_point_col(
     raw: pd.DataFrame, lon_col: str, lat_col: str, crs: str = "EPSG:4326"
 ) -> gpd.GeoSeries:
@@ -101,3 +108,48 @@ def open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
     if not borders["country_id"].is_unique:
         raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
     return _schemas.ShapeSchema.validate(borders)
+
+
+def get_adjusted_capacity(
+    operating_plants: pd.DataFrame, expected_capacity: pd.Series
+) -> pd.Series:
+    """Adjust powerplant capacity the total expected capacity per country.
+
+    Args:
+        operating_plants (pd.DataFrame): dataframe with all operating plants to adjust.
+        expected_capacity (pd.Series): expected category capacity per country.
+
+    Returns:
+        pd.Series: adjusted powerplant capacity.
+    """
+    adjusted_cap_mw = (
+        operating_plants["output_capacity_mw"]
+        / operating_plants.groupby("country_id")["output_capacity_mw"].transform("sum")
+    ) * operating_plants["country_id"].map(expected_capacity)
+    return adjusted_cap_mw
+
+
+def adjust_capacity(plants, stats, year, is_disagg):
+    """Adjust capacity to national statistics in the given year.
+
+    Will keep future projects in the disaggregated case.
+    """
+    category = check_single_category(plants)
+    stats = get_eia_stats_in_cat_yr(stats, year, category)
+    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
+
+    if is_disagg:
+        operating = filter_years(plants, year, how="operating")
+    else:
+        operating = plants
+
+    adjusted_cap = get_adjusted_capacity(operating, expected_capacity)
+
+    if is_disagg:
+        # Add future projects (unaltered)
+        adjusted = filter_years(plants, year, how="future")
+    else:
+        adjusted = operating
+
+    adjusted.loc[adjusted_cap.index, "output_capacity_mw"] = adjusted_cap
+    return adjusted.reset_index(drop=True)
