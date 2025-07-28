@@ -2,6 +2,8 @@
 
 A module that collects, harmonizes and aggregates global powerplant capacities for energy systems modelling.
 
+![Example of European shapes](./docs/europe_example.png)
+
 A modular `snakemake` workflow built for [`clio`](https://clio.readthedocs.io/) data modules.
 
 ## Using this module
