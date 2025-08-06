@@ -17,7 +17,6 @@ There are three degrees of testing:
 """
 
 import subprocess
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -33,12 +32,12 @@ TEST_CATEGORIES = {
     "wind",
 }
 
+type Aggregation = Literal["aggregated", "disaggregated"]
+type Adjustment = Literal["adjusted", "unadjusted"]
+
 
 def build_request_all(
-    case: str,
-    categories: Sequence[str],
-    level: Literal["aggregated", "disaggregated"],
-    adjustment: Literal["adjusted", "unadjusted"],
+    case: str, categories: set[str], level: Aggregation, adjustment: Adjustment
 ):
     """Construct a request for the given categories."""
     return " ".join(
@@ -49,7 +48,9 @@ def build_request_all(
 @pytest.mark.parametrize("adjustment", ["unadjusted", "adjusted"])
 @pytest.mark.parametrize("aggregation", ["aggregated"])
 @pytest.mark.parametrize("case", ["MEX", "MNE", "europe"])
-def test_full_run(user_path: Path, case: str, aggregation: str, adjustment: str):
+def test_full_run(
+    user_path: Path, case: str, aggregation: Aggregation, adjustment: Adjustment
+):
     """Test a full request of categories a given setup can give.
 
     NNN-aggregated-adjusted is often the most holistic case.
