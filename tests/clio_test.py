@@ -27,10 +27,7 @@ def integration_path(user_path: Path, module_path: Path):
             integration_dir / "results/", ignore_errors=True
         )  # clean everything
     user_integ_dir = integration_dir / "results/integration_test/resources/user/"
-    files_to_copy = [
-        "proxies/rooftop_pv/MNE.tif",
-        "shapes/MNE.parquet",
-    ]
+    files_to_copy = ["proxies/rooftop_pv/MNE.tif", "shapes/MNE.parquet"]
     for file in files_to_copy:
         destination_file = Path(user_integ_dir / file)
         destination_file.parent.mkdir(parents=True, exist_ok=True)

@@ -131,7 +131,9 @@ def impute(
     retirement_delay_yr = imputation["retirement_delay_yr"]
     scenario = SCENARIO_MAP[imputation["scenario"]]
 
-    countries_gdf = shapes[["country_id", "geometry"]].dissolve("country_id").reset_index()
+    countries_gdf = (
+        shapes[["country_id", "geometry"]].dissolve("country_id").reset_index()
+    )
     countries_gdf["geometry"] = countries_gdf.buffer(0)
 
     # Get facilities within the provided regions and for the given scenario
