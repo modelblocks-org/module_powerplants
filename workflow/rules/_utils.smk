@@ -46,6 +46,10 @@ def get_technology_mapping(filename: str):
 
 
 def get_files_to_combine(shapes, category):
+    """Produce a list of subcategory files to combine.
+
+    Will also append imputed data files if present.
+    """
     to_combine = []
     if category == "large_solar":
         to_combine += [
@@ -60,7 +64,7 @@ def get_files_to_combine(shapes, category):
     else:
         to_combine.append(f"resources/automatic/{shapes}/imputed/{category}.parquet")
 
-    user_path = f"resources/user/impute/{category}.parquet"
+    user_path = f"resources/user/{shapes}/impute/{category}.parquet"
     if exists(user_path):
         to_combine.append(user_path)
     return to_combine

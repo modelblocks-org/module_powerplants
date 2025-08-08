@@ -21,7 +21,7 @@ rule impute_years:
         tech_map=lambda wc: get_technology_mapping(wc.dataset),
     input:
         prepared="resources/automatic/prepared/{dataset}.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet",
+        shapes="resources/user/{shapes}/shapes.parquet",
     output:
         imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
         plot="resources/automatic/{shapes}/imputed/{dataset}.pdf",
@@ -44,15 +44,15 @@ rule impute_category_combination:
     input:
         to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
     output:
-        combined="resources/automatic/{shapes}/unadjusted/{category}.parquet",
+        combined="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         plot=report(
-            "resources/automatic/{shapes}/unadjusted/{category}.pdf",
+            "results/{shapes}/disaggregated/unadjusted/{category}.pdf",
             caption="../report/impute_category_combination_histogram.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
         explore=report(
-            "resources/automatic/{shapes}/unadjusted/{category}.html",
+            "results/{shapes}/disaggregated/unadjusted/{category}.html",
             caption="../report/impute_category_combination_map.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -73,12 +73,12 @@ rule impute_capacity_adjustment:
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
-        unadjusted="resources/automatic/{shapes}/unadjusted/{category}.parquet",
+        unadjusted="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
-        adjusted="resources/automatic/{shapes}/adjusted/{category}.parquet",
+        adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
         plot=report(
-            "resources/automatic/{shapes}/adjusted/{category}.pdf",
+            "results/{shapes}/disaggregated/adjusted/{category}.pdf",
             caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",

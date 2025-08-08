@@ -20,14 +20,14 @@ rule proxy_rooftop_pv:
         category="solar",
         year=config["imputation"]["adjustment_yr"],
     input:
-        shapes="resources/user/shapes/{shapes}.parquet",
-        proxy="resources/user/proxies/rooftop_pv/{shapes}.tif",
+        shapes="resources/user/{shapes}/shapes.parquet",
+        proxy="resources/user/{shapes}/proxies/rooftop_pv.tif",
         agg_unadj="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
-        proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
+        proxy="results/{shapes}/proxies/rooftop_pv.tif",
         plot=report(
-            "results/{shapes}/aggregated/proxies/rooftop_pv.pdf",
+            "results/{shapes}/proxies/rooftop_pv.pdf",
             caption="../report/proxy_rooftop_pv.rst",
             category="Powerplants module",
             subcategory="solar",
@@ -47,8 +47,8 @@ rule aggregate_solar_capacity:
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     input:
         large_solar="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
-        proxy="results/{shapes}/aggregated/proxies/rooftop_pv.tif",
-        shapes="resources/user/shapes/{shapes}.parquet",
+        proxy="results/{shapes}/proxies/rooftop_pv.tif",
+        shapes="resources/user/{shapes}/shapes.parquet",
     output:
         aggregated="results/{shapes}/aggregated/unadjusted/{category}.parquet",
         plot=report(
@@ -74,7 +74,7 @@ rule impute_capacity_adjustment_solar:
         year=config["imputation"]["adjustment_yr"],
     input:
         unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet",
+        shapes="resources/user/{shapes}/shapes.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
     output:
         adjusted="results/{shapes}/aggregated/adjusted/solar.parquet",

@@ -1,8 +1,18 @@
 # Module Input-Output structure for automated doc. generation
 resources:
   user:
-    "proxies/rooftop_pv/{shape}.tif": proxy raster to use to estimate rooftop PV capacity.
-    "shapes/{shape}.parquet": GeoParquet shapefile with the desired regional disaggregation.
+    "{shape}/impute/{category}.parquet": |
+      Files with point-specific powerplant data to impute on top of the files produced by this module.
+      Useful when important powerplant facilities are missing in the source datasets.
+
+      Can also be used to replace data when combined with `excluded_ids` in the configuration.
+
+    "{shape}/proxies/rooftop_pv.tif": proxy raster to use to estimate rooftop PV capacity.
+
+    "{shape}/shapes.parquet": |
+      GeoParquet shapefile with the desired regional disaggregation.
+
+      IMPORTANT: shapes must add up to whole countries to ensure proxied national statistics are correct.
 
 results:
   "{shape}/aggregated/{adjustment}/{category}.parquet": >

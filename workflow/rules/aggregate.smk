@@ -9,8 +9,8 @@ rule aggregate_capacity:
     params:
         year=config["imputation"]["adjustment_yr"],
     input:
-        powerplants="resources/automatic/{shapes}/{adjustment}/{category}.parquet",
-        shapes="resources/user/shapes/{shapes}.parquet",
+        powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
+        shapes="resources/user/{shapes}/shapes.parquet",
     output:
         aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
         plot=report(

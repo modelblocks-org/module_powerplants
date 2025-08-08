@@ -221,7 +221,7 @@ rule prepare_statistics:
     message:
         "Get EIA annual country capacity statistics."
     input:
-        shapes="resources/user/shapes/{shapes}.parquet",
+        shapes="resources/user/{shapes}/shapes.parquet",
         eia_bulk="resources/automatic/downloads/EIA-INTL.txt",
     output:
         total="results/{shapes}/statistics/total_capacity.parquet",
