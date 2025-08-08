@@ -25,25 +25,27 @@ def _check_crs(raster: DataArray):
         raise ValueError(f"The provided raster has an invalid CRS: {crs}.")
 
 
-def _open_borders_gdf(borders_file: str) -> gpd.GeoDataFrame:
-    """Opens a borders file, removes marine regions, and validates uniqueness.
+def _get_borders_gdf(shapes_file: str) -> gpd.GeoDataFrame:
+    """Constructs country borders by removing marine regions and dissolving land regions.
 
     Args:
-        borders_file (str): Path to shape with country borders.
+        shapes_file (str): Path to shapefile with national regions.
 
     Returns:
         gpd.GeoDataFrame: dataframe with only land borders.
     """
-    borders = gpd.read_parquet(borders_file)
-    if "shape_class" in borders.columns:
-        borders = borders[borders["shape_class"] == "land"]
-    if not borders["country_id"].is_unique:
-        raise ValueError(f"Borders file contains duplicate countries: {borders_file}")
-    return _schemas.ShapeSchema.validate(borders)
+    shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))
+    if "shape_class" in shapes.columns:
+        shapes = shapes[shapes["shape_class"] == "land"]
+    shapes = shapes[["country_id", "geometry"]].dissolve("country_id").reset_index()
+    if not shapes["country_id"].is_unique:
+        raise ValueError(f"Borders file contains duplicate countries: {shapes_file}")
+    shapes["geometry"] = shapes.buffer(0)
+    return shapes
 
 
 def proxy_rooftop_pv_capacity(
-    borders_file: str,
+    shapes_file: str,
     proxy_file: str,
     aggregated_unadjusted_file: str,
     stats_file: str,
@@ -57,7 +59,7 @@ def proxy_rooftop_pv_capacity(
     If unadjusted capacity exceeds statistics, the country will be dismissed.
 
     Args:
-        borders_file (str): country borders.
+        shapes_file (str): shapefile at national level.
         proxy_file (str): proxy raster file.
         aggregated_unadjusted_file (str): file with unadjusted capacity.
         stats_file (str): country_statistics.
@@ -65,7 +67,7 @@ def proxy_rooftop_pv_capacity(
         category (str): category to process.
         year (int): year to use for adjustment.
     """
-    borders_df = _open_borders_gdf(borders_file).set_index("country_id")
+    borders_df = _get_borders_gdf(shapes_file).set_index("country_id")
     stats_df = pd.read_parquet(stats_file)
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
     _check_crs(area_potential_da)
@@ -82,7 +84,6 @@ def proxy_rooftop_pv_capacity(
     missing_cap_mw = missing_cap_mw.where(missing_cap_mw >= 0, 0)
     borders_df["output_capacity_mw"] = missing_cap_mw
 
-    # borders_df = borders_df.reset_index(drop=True)
     proxy = gregor.disaggregate.disaggregate_polygon_to_raster(
         borders_df, column="output_capacity_mw", proxy=area_potential_da
     )
@@ -95,16 +96,16 @@ def proxy_rooftop_pv_capacity(
     proxy.rio.to_raster(output_file)
 
 
-def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int = 500_000):
+def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_000):
     """Plot a figure of the generated proxy.
 
     Args:
         proxy_file (str): proxy file generated.
-        borders_file (str): country borders used for the proxy.
+        shapes_file (str): shapes used for the proxy.
         output_file (str): output image file location.
         pixels (int): pixel count.
     """
-    borders_df = gpd.read_parquet(borders_file)
+    shapes_gdf = gpd.read_parquet(shapes_file)
 
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
     _check_crs(area_potential_da)
@@ -125,7 +126,7 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int = 500
         cbar_kwargs={"location": "right", "label": "Proxied potential"},
         alpha=1,
     )
-    borders_df.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
+    shapes_gdf.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
         ax=ax, color="lightgrey", linewidth=0.3, alpha=0.5
     )
     ax.set_xlabel("Longitude")
@@ -136,7 +137,7 @@ def plot(proxy_file: str, borders_file: str, output_file: str, pixels: int = 500
 
 if __name__ == "__main__":
     proxy_rooftop_pv_capacity(
-        borders_file=snakemake.input.borders,
+        shapes_file=snakemake.input.shapes,
         proxy_file=snakemake.input.proxy,
         aggregated_unadjusted_file=snakemake.input.agg_unadj,
         stats_file=snakemake.input.stats,
@@ -146,6 +147,6 @@ if __name__ == "__main__":
     )
     plot(
         proxy_file=snakemake.output.proxy,
-        borders_file=snakemake.input.borders,
+        shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.plot,
     )

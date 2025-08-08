@@ -21,7 +21,7 @@ rule impute_years:
         tech_map=lambda wc: get_technology_mapping(wc.dataset),
     input:
         prepared="resources/automatic/prepared/{dataset}.parquet",
-        borders="resources/user/borders/{shapes}.parquet",
+        shapes="resources/user/shapes/{shapes}.parquet",
     output:
         imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
         plot="resources/automatic/{shapes}/imputed/{dataset}.pdf",

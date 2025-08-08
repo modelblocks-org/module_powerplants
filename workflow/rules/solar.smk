@@ -20,7 +20,7 @@ rule proxy_rooftop_pv:
         category="solar",
         year=config["imputation"]["adjustment_yr"],
     input:
-        borders="resources/user/borders/{shapes}.parquet",
+        shapes="resources/user/shapes/{shapes}.parquet",
         proxy="resources/user/proxies/rooftop_pv/{shapes}.tif",
         agg_unadj="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",

@@ -28,7 +28,6 @@ def integration_path(user_path: Path, module_path: Path):
         )  # clean everything
     user_integ_dir = integration_dir / "results/integration_test/resources/user/"
     files_to_copy = [
-        "borders/MNE.parquet",
         "proxies/rooftop_pv/MNE.tif",
         "shapes/MNE.parquet",
     ]

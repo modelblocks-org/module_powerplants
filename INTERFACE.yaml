@@ -1,7 +1,6 @@
 # Module Input-Output structure for automated doc. generation
 resources:
   user:
-    "borders/{shape}.parquet": auxiliary GeoParquet with national-level borders for all countries in the shapefile.
     "proxies/rooftop_pv/{shape}.tif": proxy raster to use to estimate rooftop PV capacity.
     "shapes/{shape}.parquet": GeoParquet shapefile with the desired regional disaggregation.
 

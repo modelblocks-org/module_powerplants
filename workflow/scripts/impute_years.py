@@ -90,17 +90,17 @@ def _impute_status(df: pd.DataFrame) -> pd.Series:
 
 def impute(
     prepared_path: str,
-    borders_path: str,
+    shapes_path: str,
     output_path: str,
-    imputation: str,
-    technology_mapping: str,
+    imputation: dict,
+    technology_mapping: dict,
     projected_crs: str,
 ):
     """Add automatic and user imputations to fill missing data.
 
     Args:
         prepared_path (str): cleaned dataset following our schema.
-        borders_path (str): country-level shapes to use.
+        shapes_path (str): country-level shapes to use.
         output_path (str): resulting dataset.
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
@@ -125,16 +125,19 @@ def impute(
                 "Polygon powerplant geometries detected. Specify a projected CRS."
             )
 
-    borders = _schemas.ShapeSchema.validate(gpd.read_parquet(borders_path))
+    shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_path))
 
     lifetimes = imputation["lifetime_yr"]
     retirement_delay_yr = imputation["retirement_delay_yr"]
     scenario = SCENARIO_MAP[imputation["scenario"]]
 
+    countries_gdf = shapes[["country_id", "geometry"]].dissolve("country_id").reset_index()
+    countries_gdf["geometry"] = countries_gdf.buffer(0)
+
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
         prepared[prepared["status"].isin(scenario)],
-        borders[["country_id", "geometry"]].dissolve("country_id").reset_index(),
+        countries_gdf,
         predicate="intersects",
         how="inner",
     ).drop("index_right", axis="columns")
@@ -161,7 +164,7 @@ def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
 if __name__ == "__main__":
     impute(
         prepared_path=snakemake.input.prepared,
-        borders_path=snakemake.input.borders,
+        shapes_path=snakemake.input.shapes,
         output_path=snakemake.output.imputed,
         imputation=snakemake.params.imputation,
         technology_mapping=snakemake.params.tech_map,
