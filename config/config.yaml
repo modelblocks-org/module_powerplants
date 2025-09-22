@@ -107,7 +107,7 @@ imputation:
     pumped storage: 80
     reciprocating engine: 20
     reservoir: 80
-    rooftop pv: 5
+    rooftop pv: 25
     run of river: 80
     steam turbine: 30
     utility pv: 25
