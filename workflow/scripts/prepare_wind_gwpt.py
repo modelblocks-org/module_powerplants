@@ -1,8 +1,7 @@
 """Prepare a clean wind power dataset using our schemas.
 
-Uses the Wind Energy Market Intelligence (WEMI) dataset.
-This is a paid dataset updated yearly.
-Available here: https://www.thewindpower.net/about_en.php
+Uses the Global Wind Power Tracker (GEM-GWPT) dataset.
+A free alternative to the WEMI dataset.
 """
 
 import _gem as gem
@@ -30,7 +29,7 @@ def _technology(gem_df: pd.DataFrame):
 @click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
 @click.option("-t", "tech_mapping", type=str, required=True)
 def main(gem_gwpt_path: str, output_path: str, tech_mapping: str):
-    """Obtain concentrated wind power locations using GEM-GSPT data."""
+    """Obtain wind power locations using GEM-GWPT data."""
     raw_df = gem.read_gem_dataset(gem_gwpt_path, gem.GEM_GWPT_SHEETS)
     # Remove unknown installation types to avoid misplacement
     raw_df = raw_df[raw_df["installation_type"] != "Unknown"]
