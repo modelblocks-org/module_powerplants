@@ -2,12 +2,12 @@
 resources:
   user:
     "{shape}/impute/{category}.parquet": |
-      Files with point-specific powerplant data to impute on top of the files produced by this module.
+      Optional. Files with point-specific powerplant data to impute on top of the files produced by this module.
       Useful when important powerplant facilities are missing in the source datasets.
 
       Can also be used to replace data when combined with `excluded_ids` in the configuration.
 
-    "{shape}/proxies/rooftop_pv.tif": proxy raster to use to estimate rooftop PV capacity.
+    "{shape}/proxies/rooftop_pv.tif": Proxy raster to use to estimate rooftop PV capacity.
 
     "{shape}/shapes.parquet": |
       GeoParquet shapefile with the desired regional disaggregation.

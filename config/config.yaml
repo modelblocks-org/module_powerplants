@@ -70,11 +70,11 @@ category:
 
   solar:
     technology_mapping:
-      csp: "concentrated solar"
+      csp: "concentrating solar power"
       rooftop_pv: "rooftop pv"
       utility_pv: "utility pv"
     dc_ac_ratio:
-      csp: 1.25
+      # Typical rule of thumb ratio. See https://doi.org/10.1016/j.apenergy.2016.05.134
       utility_pv: 1.25
 
   wind:
@@ -90,13 +90,14 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
-  adjustment_yr: 2023
+  adjustment_year: 2023
   scenario: "near-future" # near-future, far-future, far-off-future
-  lifetime_yr:
+  lifetime_years:
+    # General lifetime assumptions. Adjust as needed!
     bioenergy turbine: 25
     ccgt: 20
     coal turbine: 50
-    concentrated solar: 25
+    concentrating solar power: 25
     high enthalpy geothermal: 30
     igcc: 25
     low enthalpy geothermal: 30
@@ -111,11 +112,13 @@ imputation:
     run of river: 80
     steam turbine: 30
     utility pv: 25
-  retirement_delay_yr:
+  retirement_delay_years:
+    # Assumed extension past reference year.
+    # Only applies if a powerplant is still operating past the lifetime_years assumption
     bioenergy turbine: 5
     ccgt: 5
     coal turbine: 5
-    concentrated solar: 2
+    concentrating solar power: 2
     high enthalpy geothermal: 5
     igcc: 5
     low enthalpy geothermal: 5

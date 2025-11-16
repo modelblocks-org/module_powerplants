@@ -9,7 +9,8 @@ IMPUTED_CAT = {
     "large_solar",
     "wind",
 }
-IMPUTED_CAT_SPECIAL = {"large_solar"}  # unique case due to missing data
+# Intermediate categories for cases that require proxies for aggregation.
+IMPUTED_CAT_WITHOUT_ADJUSTMENT = {"large_solar"}
 
 
 rule impute_years:
@@ -26,7 +27,7 @@ rule impute_years:
         imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
         plot="resources/automatic/{shapes}/imputed/{dataset}.pdf",
     wildcard_constraints:
-        dataset="|".join(PREPARED_CAT),
+        dataset="|".join(PREPARED_PLANT_CAT),
     log:
         "logs/impute_years_{shapes}_{dataset}.log",
     conda:
@@ -71,7 +72,7 @@ rule impute_capacity_adjustment:
     message:
         "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
     params:
-        year=config["imputation"]["adjustment_yr"],
+        year=config["imputation"]["adjustment_year"],
     input:
         unadjusted="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
         stats="results/{shapes}/statistics/category_capacity.parquet",
@@ -84,7 +85,7 @@ rule impute_capacity_adjustment:
             subcategory="{category}",
         ),
     wildcard_constraints:
-        category="|".join(IMPUTED_CAT - IMPUTED_CAT_SPECIAL),
+        category="|".join(IMPUTED_CAT - IMPUTED_CAT_WITHOUT_ADJUSTMENT),
     log:
         "logs/impute_capacity_adjustment_{shapes}_{category}.log",
     conda:

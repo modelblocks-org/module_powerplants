@@ -237,17 +237,15 @@ properties:
                 maxProperties: 3
           dc_ac_ratio:
             title: DC to AC convertion ratio.
-            description: >
-              Used to convert MWdc to MWac to ensure all solar projects use a consistent capacity unit.
+            description: |
+              Used to convert MWdc to MWac to ensure all PV projects use a consistent capacity unit.
+              Genarally, 1.25 is recommended. See https://doi.org/10.1016/j.apenergy.2016.05.134
             type: object
             additionalProperties: false
             properties:
-              csp:
-                $ref: '#/$defs/nonzero_number'
               utility_pv:
                 $ref: '#/$defs/nonzero_number'
             required:
-              - csp
               - utility_pv
         required:
           - technology_mapping
@@ -353,12 +351,12 @@ properties:
     type: object
     additionalProperties: false
     required:
-      - adjustment_yr
+      - adjustment_year
       - scenario
-      - lifetime_yr
-      - retirement_delay_yr
+      - lifetime_years
+      - retirement_delay_years
     properties:
-      adjustment_yr:
+      adjustment_year:
         title: Adjustment year.
         description: >
           Year to use as reference when adjusting capacities to fit historical country statistics.
@@ -380,7 +378,7 @@ properties:
           - near-future
           - far-future
           - far-off-future
-      lifetime_yr:
+      lifetime_years:
         $ref: '#/$defs/year_map'
-      retirement_delay_yr:
+      retirement_delay_years:
         $ref: '#/$defs/year_map'

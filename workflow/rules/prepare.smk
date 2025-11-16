@@ -1,7 +1,7 @@
 """Rules in this file focus on parsing and cleaning data into shared schemas."""
 
 PREPARED_FUEL_CAT = ("bioenergy", "fossil_coal", "fossil_oil_gas")
-PREPARED_CAT = (
+PREPARED_PLANT_CAT = (
     "bioenergy",
     "fossil_coal",
     "fossil_oil_gas",
@@ -56,9 +56,9 @@ rule prepare_solar_utility_pv:
 
 rule prepare_solar_csp:
     message:
-        "Preparing concentrated solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
+        "Preparing concentrating solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
-        dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["csp"],
+        dc_ac_ratio=1, # CSP is already an AC technology
         tech_name=config["category"]["solar"]["technology_mapping"]["csp"],
     input:
         script=workflow.source_path("../scripts/prepare_solar_csp.py"),

@@ -127,8 +127,8 @@ def impute(
 
     shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_path))
 
-    lifetimes = imputation["lifetime_yr"]
-    retirement_delay_yr = imputation["retirement_delay_yr"]
+    lifetimes = imputation["lifetime_years"]
+    retirement_delay_years = imputation["retirement_delay_years"]
     scenario = SCENARIO_MAP[imputation["scenario"]]
 
     countries_gdf = (
@@ -147,7 +147,7 @@ def impute(
     if not imputed.empty:
         # Adjust project dates
         imputed["start_year"] = _impute_start_year(imputed, lifetimes)
-        imputed["end_year"] = _impute_end_year(imputed, lifetimes, retirement_delay_yr)
+        imputed["end_year"] = _impute_end_year(imputed, lifetimes, retirement_delay_years)
 
         # Drop projects with insufficient date data and then adjust status.
         imputed = imputed.dropna(subset=["start_year", "end_year"])

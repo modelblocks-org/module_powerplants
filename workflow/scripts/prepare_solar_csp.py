@@ -1,4 +1,4 @@
-"""Prepare a clean concentrated solar dataset using our schemas."""
+"""Prepare a clean CSP dataset using our schemas."""
 
 import _gem as gem
 import _schemas
@@ -15,7 +15,7 @@ import geopandas as gpd
 def main(
     gem_gspt_path: str, tech_name: str, output_path: str, dc_ac_ratio: float = 1.25
 ):
-    """Obtain concentrated solar power locations using GEM-GSPT data."""
+    """Obtain CSP power locations using GEM-GSPT data."""
     raw_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
     raw_df = raw_df[raw_df["technology_type"] == "Solar Thermal"]
 

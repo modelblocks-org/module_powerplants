@@ -18,7 +18,7 @@ rule proxy_rooftop_pv:
         "Generating proxy for rooftop capacity {wildcards.shapes}."
     params:
         category="solar",
-        year=config["imputation"]["adjustment_yr"],
+        year=config["imputation"]["adjustment_year"],
     input:
         shapes="resources/user/{shapes}/shapes.parquet",
         proxy="resources/user/{shapes}/proxies/rooftop_pv.tif",
@@ -71,7 +71,7 @@ rule impute_capacity_adjustment_solar:
     message:
         "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
     params:
-        year=config["imputation"]["adjustment_yr"],
+        year=config["imputation"]["adjustment_year"],
     input:
         unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
         shapes="resources/user/{shapes}/shapes.parquet",

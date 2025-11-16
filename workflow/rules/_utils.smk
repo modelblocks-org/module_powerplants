@@ -3,8 +3,8 @@
 
 def additional_config_validation():
     """Ensures technology mapping and lifetime-related names match."""
-    lifetime_set = set(config["imputation"]["lifetime_yr"].keys())
-    mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_yr"])
+    lifetime_set = set(config["imputation"]["lifetime_years"].keys())
+    mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_years"])
     if mismatch:
         raise ValueError(
             f"Technologies in lifetimes and retirement delays mismatch: {mismatch}."
@@ -25,6 +25,12 @@ def additional_config_validation():
 
 
 def get_excluded_powerplant_ids(category):
+    """Handle cases where the naming in /results/.../disaggregated and configuration files mismatch.
+
+    These are categories that include technologies poorly tracked at individual level.
+    Proxying processes are necessary, and /disaggregated/ uses a different name to deter
+    improper handling.
+    """
     if category == "large_solar":
         config_cat = "solar"
     else:

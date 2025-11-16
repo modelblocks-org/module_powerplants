@@ -7,7 +7,7 @@ rule aggregate_capacity:
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     params:
-        year=config["imputation"]["adjustment_yr"],
+        year=config["imputation"]["adjustment_year"],
     input:
         powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
         shapes="resources/user/{shapes}/shapes.parquet",

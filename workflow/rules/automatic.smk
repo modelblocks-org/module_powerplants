@@ -13,7 +13,9 @@ rule download_eia:
     conda:
         "../envs/shell.yaml"
     shell:
-        'curl -sSLo {output.path:q} "{params.url}"'
+        """
+        curl -sSLo {output.path:q} {params.url:q}
+        """
 
 
 rule download_tz_sam:
@@ -28,7 +30,9 @@ rule download_tz_sam:
     conda:
         "../envs/shell.yaml"
     shell:
-        'curl -sSLo {output.path:q} "{params.url}"'
+        """
+        curl -sSLo {output.path:q} {params.url:q}
+        """
 
 
 rule download_glohydrores:
@@ -43,7 +47,9 @@ rule download_glohydrores:
     conda:
         "../envs/shell.yaml"
     shell:
-        'curl -sSLo {output.path:q} "{params.url}"'
+        """
+        curl -sSLo {output.path:q} {params.url:q}
+        """
 
 
 rule download_gem:
@@ -58,4 +64,6 @@ rule download_gem:
     conda:
         "../envs/shell.yaml"
     shell:
-        'curl -sSLo {output.path:q} "{params.url}"'
+        """
+        curl -sSLo {output.path:q} {params.url:q}
+        """
