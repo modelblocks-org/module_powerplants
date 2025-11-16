@@ -58,7 +58,7 @@ rule prepare_solar_csp:
     message:
         "Preparing concentrating solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
-        dc_ac_ratio=1, # CSP is already an AC technology
+        dc_ac_ratio=1,  # CSP is already an AC technology
         tech_name=config["category"]["solar"]["technology_mapping"]["csp"],
     input:
         script=workflow.source_path("../scripts/prepare_solar_csp.py"),

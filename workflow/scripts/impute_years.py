@@ -147,7 +147,9 @@ def impute(
     if not imputed.empty:
         # Adjust project dates
         imputed["start_year"] = _impute_start_year(imputed, lifetimes)
-        imputed["end_year"] = _impute_end_year(imputed, lifetimes, retirement_delay_years)
+        imputed["end_year"] = _impute_end_year(
+            imputed, lifetimes, retirement_delay_years
+        )
 
         # Drop projects with insufficient date data and then adjust status.
         imputed = imputed.dropna(subset=["start_year", "end_year"])
