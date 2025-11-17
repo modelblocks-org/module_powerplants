@@ -28,7 +28,7 @@ $defs:
       $ref: '#/$defs/non_empty_string'
     additionalProperties:
       type: integer
-      minimum: 0
+      minimum: 1
 
   technology_mapping_base:
     title: Technology Mapping

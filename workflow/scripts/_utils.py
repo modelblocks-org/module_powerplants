@@ -8,7 +8,7 @@ from pandas.api.types import is_list_like
 
 # Average year where disaggregated datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
-REFERENCE_YR = 2024
+DATASET_YEAR = 2024
 
 
 def listify(item) -> list:

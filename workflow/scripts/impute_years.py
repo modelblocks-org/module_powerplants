@@ -54,7 +54,7 @@ def _impute_end_year(
 
     Old plants operating beyond lifetime will retired with a given delay.
     """
-    ref_year = _utils.REFERENCE_YR
+    ref_year = _utils.DATASET_YEAR
 
     # Impute expected end year only if no data is present.
     expected_end = df["start_year"] + df["technology"].map(lifetimes)
@@ -75,7 +75,7 @@ def _impute_status(df: pd.DataFrame) -> pd.Series:
     Must be called after start/end years are complete.
     """
     status = df["status"].copy()
-    ref_year = _utils.REFERENCE_YR
+    ref_year = _utils.DATASET_YEAR
     status.loc[ref_year < df["start_year"]] = "planned"
     status.loc[(df["start_year"] <= ref_year) & (ref_year < df["end_year"])] = (
         "operating"
@@ -83,7 +83,7 @@ def _impute_status(df: pd.DataFrame) -> pd.Series:
     status.loc[df["end_year"] <= ref_year] = "retired"
 
     if status.isna().any():
-        raise ValueError("Entries with ambiguous states where left in the dataframe.")
+        raise ValueError("Entries with ambiguous states were left in the dataframe.")
 
     return status
 
