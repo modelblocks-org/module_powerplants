@@ -9,6 +9,7 @@ dependencies:
   - geopandas = 1.0.1
   - ipdb = 0.13.13
   - openpyxl = 3.1.5
+  - numpy = 2.3.5
   - matplotlib = 3.10.3
   - pandas = 2.3.0
   - pandera-geopandas = 0.24.0
