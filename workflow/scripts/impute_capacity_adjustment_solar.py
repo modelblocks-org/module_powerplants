@@ -25,11 +25,11 @@ def adjust_aggregated(
 
     # Filter only relevant countries
     plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
+
     if plants.empty:
         adjusted_plants = plants
     else:
         adjusted_plants = _utils.adjust_capacity(plants, stats, year, is_disagg=False)
-
     _schemas.AggregatedPlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
 

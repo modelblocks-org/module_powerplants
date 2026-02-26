@@ -8,6 +8,7 @@ import _schemas
 import _utils
 import geopandas as gpd
 import pandas as pd
+import numpy as np
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -155,6 +156,8 @@ def impute(
         imputed = imputed.dropna(subset=["start_year", "end_year"])
         imputed["status"] = _impute_status(imputed)
 
+    imputed = split_duplicates(imputed)
+
     schema = _schemas.build_schema(technology_mapping, "impute")
     schema.validate(imputed).to_parquet(output_path)
 
@@ -163,6 +166,38 @@ def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
     """Plot stacked bar charts of active powerplant capacity over time per country."""
     df = pd.read_parquet(imputed_path)
     _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
+
+
+def split_duplicates(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Split powerplants with duplicated IDs by evenly distributing capacity."""
+    dup_mask = df["powerplant_id"].duplicated(keep=False)
+
+    if not dup_mask.any():
+        return df
+    
+    df = df.copy()
+
+    # how many times each ID appears
+    counts = df.loc[dup_mask, "powerplant_id"].map(df["powerplant_id"].value_counts())
+
+    # split capacity evenly
+    df.loc[dup_mask, "output_capacity_mw"] = (
+        df.loc[dup_mask, "output_capacity_mw"] / counts
+    )
+
+    # create deterministic suffixes
+    df.loc[dup_mask, "powerplant_id"] = (
+        df.loc[dup_mask]
+        .groupby("powerplant_id")
+        .cumcount()
+        .astype(str)
+        .radd("_duplicate")
+        .radd(df.loc[dup_mask, "powerplant_id"])
+    )
+
+    df = df.reset_index(drop=True)
+
+    return df
 
 
 if __name__ == "__main__":

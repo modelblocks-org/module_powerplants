@@ -120,20 +120,41 @@ def adjust_capacity(plants, stats, year, is_disagg):
     """
     category = check_single_category(plants)
     stats = get_eia_stats_in_cat_yr(stats, year, category)
-    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
+
+    expected_capacity = stats.groupby("country_id")["capacity_mw"].sum()
 
     if is_disagg:
-        operating = filter_years(plants, year, how="operating")
+        operating = filter_years(plants, year, how="operating").copy()
     else:
-        operating = plants
+        operating = plants.copy()
 
     adjusted_cap = get_adjusted_capacity(operating, expected_capacity)
 
     if is_disagg:
-        # Add future projects (unaltered)
-        adjusted = filter_years(plants, year, how="future")
+        adjusted = filter_years(plants, year, how="future").copy()
     else:
-        adjusted = operating
+        adjusted = operating.copy()
 
-    adjusted.loc[adjusted_cap.index, "output_capacity_mw"] = adjusted_cap
+    # --- identify rows with missing stats ---
+    mask_nan = adjusted_cap.isna()
+
+    if mask_nan.any():
+        kept_unadjusted = (
+            operating.loc[mask_nan, ["category", "country_id"]]
+            .drop_duplicates()
+            .sort_values(["category", "country_id"])
+        )
+
+        print(
+            "[adjust_capacity] Kept unadjusted capacity for the following "
+            "category-country pairs:"
+        )
+        for _, row in kept_unadjusted.iterrows():
+            print(f"  - {row['category']} / {row['country_id']}")
+
+    # --- only overwrite where adjustment is valid ---
+    adjusted.loc[
+        adjusted_cap.index[~mask_nan], "output_capacity_mw"
+    ] = adjusted_cap[~mask_nan]
+
     return adjusted.reset_index(drop=True)
