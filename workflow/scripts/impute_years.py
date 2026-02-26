@@ -8,7 +8,6 @@ import _schemas
 import _utils
 import geopandas as gpd
 import pandas as pd
-import numpy as np
 
 if TYPE_CHECKING:
     snakemake: Any
@@ -174,7 +173,7 @@ def split_duplicates(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
 
     if not dup_mask.any():
         return df
-    
+
     df = df.copy()
 
     # how many times each ID appears

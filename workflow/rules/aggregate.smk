@@ -18,7 +18,7 @@ rule aggregate_capacity:
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
-        )
+        ),
     wildcard_constraints:
         adjustment="|".join(ADJUSTMENTS),
         category="|".join(IMPUTED_CAT),

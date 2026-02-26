@@ -153,8 +153,8 @@ def adjust_capacity(plants, stats, year, is_disagg):
             print(f"  - {row['category']} / {row['country_id']}")
 
     # --- only overwrite where adjustment is valid ---
-    adjusted.loc[
-        adjusted_cap.index[~mask_nan], "output_capacity_mw"
-    ] = adjusted_cap[~mask_nan]
+    adjusted.loc[adjusted_cap.index[~mask_nan], "output_capacity_mw"] = adjusted_cap[
+        ~mask_nan
+    ]
 
     return adjusted.reset_index(drop=True)
