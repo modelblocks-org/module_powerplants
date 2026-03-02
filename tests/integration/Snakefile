@@ -1,15 +1,19 @@
 # Emulate a user configuring the module.
 configfile: workflow.source_path("./test_config.yaml")
 
+
 # Emulate how another workflow might create inputs for this module.
 rule create_external_input:
-    message: "Example of a rule external to your module."
+    message:
+        "Example of a rule external to your module."
     output:
-        text_file = "results/module_powerplants/resources/user/user_message.md"
+        text_file="results/module_powerplants/resources/user/user_message.md",
     run:
         from pathlib import Path
         from textwrap import dedent
-        text = dedent("""Modular workflows can be used by more than one project!
+
+        text = dedent(
+            """Modular workflows can be used by more than one project!
             For example, this text comes from a file external to the module.
             Try your best to make this workflow reusable so that others may benefit from your methods."""
         )
@@ -17,20 +21,27 @@ rule create_external_input:
         with file_path.open("w") as f:
             f.write(text)
 
+
 # Import the module and configure it.
 # `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers
 # `prefix:` re-routes all input/output paths of the module, helping to avoid file conflicts.
 module module_powerplants:
-    snakefile: "../../workflow/Snakefile"
-    config: config["module_powerplants"]
-    prefix: "results/module_powerplants/"
+    snakefile:
+        "../../workflow/Snakefile"
+    config:
+        config["module_powerplants"]
+    prefix:
+        "results/module_powerplants/"
+
 
 # rename all module rules with a prefix, to avoid naming conflicts.
 use rule * from module_powerplants as module_powerplants_*
 
+
 # Request something from the module
 rule all:
-    message: "A generic test case for your module."
+    message:
+        "A generic test case for your module."
     default_target: True
     input:
-        "results/module_powerplants/results/combined_text.md"
+        "results/module_powerplants/results/combined_text.md",
