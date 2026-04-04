@@ -2,7 +2,6 @@
 configfile: workflow.source_path("test_config.yaml")
 
 
-
 # Import the module and configure it.
 # `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers
 # `prefix:` re-routes all input/output paths of the module, helping to avoid file conflicts.

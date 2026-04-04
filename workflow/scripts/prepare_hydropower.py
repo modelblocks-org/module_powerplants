@@ -23,9 +23,11 @@ def _technology(gem_df: pd.DataFrame, tech_mapping: dict[str, str]) -> pd.Series
 def _head_m(gem_df: pd.DataFrame) -> pd.Series:
     """Imputes the dam height if the head height is not available."""
     return gem_df.apply(
-        lambda x: x["dam_height_m"]
-        if pd.isna(x["head_m"]) and x["dam_height_m"] >= 0
-        else x["head_m"],
+        lambda x: (
+            x["dam_height_m"]
+            if pd.isna(x["head_m"]) and x["dam_height_m"] >= 0
+            else x["head_m"]
+        ),
         axis="columns",
     )
 
