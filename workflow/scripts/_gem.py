@@ -85,9 +85,11 @@ def output_capacity_mw_gspt(
 
     cap_df = pd.concat([gem_df["capacity_(mw)"], rating], axis="columns")
     return cap_df.apply(
-        lambda x: x["capacity_(mw)"]
-        if x["capacity_rating"] == "AC"
-        else x["capacity_(mw)"] / dc_ac_ratio,
+        lambda x: (
+            x["capacity_(mw)"]
+            if x["capacity_rating"] == "AC"
+            else x["capacity_(mw)"] / dc_ac_ratio
+        ),
         axis="columns",
     )
 

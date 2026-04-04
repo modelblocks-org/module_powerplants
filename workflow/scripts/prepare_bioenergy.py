@@ -20,9 +20,11 @@ def _start_year(gem_df: pd.DataFrame):
     GBPT has a separate column for fossil powerplants that were converted to bioenergy.
     """
     return gem_df.apply(
-        lambda x: pd.to_numeric(x["unit_conversion_year"], errors="coerce")
-        if pd.notna(x["unit_conversion_year"])
-        else pd.to_numeric(x["start_year"], errors="coerce"),
+        lambda x: (
+            pd.to_numeric(x["unit_conversion_year"], errors="coerce")
+            if pd.notna(x["unit_conversion_year"])
+            else pd.to_numeric(x["start_year"], errors="coerce")
+        ),
         axis="columns",
     )
 

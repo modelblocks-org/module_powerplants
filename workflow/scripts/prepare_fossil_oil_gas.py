@@ -20,9 +20,11 @@ def _retired_year(gem_df: pd.DataFrame):
     GOGPT has two separate columns for this, requiring special handling.
     """
     return gem_df.apply(
-        lambda x: pd.to_numeric(x["retired_year"], errors="coerce")
-        if pd.notna(x["retired_year"])
-        else pd.to_numeric(x["planned_retire"], errors="coerce"),
+        lambda x: (
+            pd.to_numeric(x["retired_year"], errors="coerce")
+            if pd.notna(x["retired_year"])
+            else pd.to_numeric(x["planned_retire"], errors="coerce")
+        ),
         axis="columns",
     )
 

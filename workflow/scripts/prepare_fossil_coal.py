@@ -30,9 +30,11 @@ def _retired_year(gem_df: pd.DataFrame):
     GCPT has two separate columns for this, requiring special handling.
     """
     return gem_df.apply(
-        lambda x: pd.to_numeric(x["retired_year"], errors="coerce")
-        if pd.notna(x["retired_year"])
-        else pd.to_numeric(x["planned_retirement"], errors="coerce"),
+        lambda x: (
+            pd.to_numeric(x["retired_year"], errors="coerce")
+            if pd.notna(x["retired_year"])
+            else pd.to_numeric(x["planned_retirement"], errors="coerce")
+        ),
         axis="columns",
     )
 
@@ -46,9 +48,11 @@ def _ccs(gem_df: pd.DataFrame) -> pd.Series:
         gem_df[["combustion_technology", "coal_type"]]
         .fillna("")
         .apply(
-            lambda x: True
-            if ("CCS" in x["combustion_technology"] or "CCS" in x["coal_type"])
-            else False,
+            lambda x: (
+                True
+                if ("CCS" in x["combustion_technology"] or "CCS" in x["coal_type"])
+                else False
+            ),
             axis="columns",
         )
     )
