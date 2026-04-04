@@ -24,8 +24,8 @@ rule impute_years:
         prepared="resources/automatic/prepared/{dataset}.parquet",
         dissolved_shapes=rules.prepare_shapes.output.dissolved,
     output:
-        imputed="resources/automatic/{shapes}/imputed/{dataset}.parquet",
-        plot="resources/automatic/{shapes}/imputed/{dataset}.pdf",
+        imputed="resources/automatic/shapes/{shapes}/imputed/{dataset}.parquet",
+        plot="resources/automatic/shapes/{shapes}/imputed/{dataset}.pdf",
     wildcard_constraints:
         dataset="|".join(PREPARED_PLANT_CAT),
     log:
