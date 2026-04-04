@@ -1,2 +1,136 @@
-# A minimal example of how to configure this module
-dummy_text: This is a user input.
+projected_crs: "epsg:8857"
+
+category:
+  bioenergy:
+    technology_mapping:
+      "unknown": "bioenergy turbine"
+
+  fossil:
+    excluded_ids:
+      # Remove all 'mobile' powerstations in Nigeria
+      - GEM_L100000408946-G100000413230
+      - GEM_L100000408946-G100000413232
+    technology_mapping:
+      coal:
+        CFB: "coal turbine"
+        IGCC: "igcc"
+        subcritical: "coal turbine"
+        supercritical: "coal turbine"
+        ultra-supercritical: "coal turbine"
+        unknown: "coal turbine"
+      oil_gas:
+        AFC: "ccgt"
+        ICCC: "ccgt"
+        IGCC: "igcc"
+        ISCC: "ccgt"
+        combined cycle: "ccgt"
+        gas turbine: "ocgt"
+        internal combustion: "reciprocating engine"
+        steam turbine: "steam turbine"
+        unknown: "ocgt"
+
+  geothermal:
+    technology_mapping:
+      "advanced geothermal systems (AGS)": "high enthalpy geothermal"
+      "binary cycle": "low enthalpy geothermal"
+      "dry steam": "high enthalpy geothermal"
+      "enhanced geothermal systems (EGS)": "high enthalpy geothermal"
+      "flash steam - double": "low enthalpy geothermal"
+      "flash steam - single": "high enthalpy geothermal"
+      "flash steam - triple": "low enthalpy geothermal"
+      "flash steam - unknown": "high enthalpy geothermal"
+      "geopressured geothermal system (GGS)": "high enthalpy geothermal"
+      "unknown": "high enthalpy geothermal"
+
+  hydropower:
+    technology_mapping:
+      Canal: "run of river"
+      PS: "pumped storage"
+      ROR: "run of river"
+      STO: "reservoir"
+      unknown: "reservoir"
+
+  nuclear:
+    technology_mapping:
+      boiling water reactor: "nuclear reactor"
+      fast breeder reactor: "nuclear reactor"
+      fast neutron reactor: "nuclear reactor"
+      gas-cooled reactor: "nuclear reactor"
+      heavy water gas-cooled reactor: "nuclear reactor"
+      heavy water light water reactor: "nuclear reactor"
+      high temperature gas reactor: "nuclear reactor"
+      liquid-metal-cooled fast reactor: "nuclear reactor"
+      light water graphite reactor: "nuclear reactor"
+      molten salt reactor: "nuclear reactor"
+      pressurized heavy water reactor: "nuclear reactor"
+      pressurized water reactor: "nuclear reactor"
+      small modular reactor: "nuclear reactor"
+      steam-generating heavy water reactor: "nuclear reactor"
+      unknown: "nuclear reactor"
+
+  solar:
+    technology_mapping:
+      csp: "concentrating solar power"
+      rooftop_pv: "rooftop pv"
+      utility_pv: "utility pv"
+    dc_ac_ratio:
+      # Typical rule of thumb ratio. See https://doi.org/10.1016/j.apenergy.2016.05.134
+      utility_pv: 1.25
+
+  wind:
+    source: "gem" # options: wemi, gem
+    technology_mapping:
+      offshore: "offshore"
+      onshore: "onshore"
+
+
+fuel_mapping:
+  "bioenergy: unknown": "biomass"
+  "coal: unknown": "brown coal"
+  "fossil gas: unknown": "natural gas"
+
+imputation:
+  adjustment_year: 2023
+  shape_overlap_correction: "split_capacity" # strict or split_capacity
+  scenario: "near-future" # near-future, far-future, far-off-future
+  lifetime_years:
+    # General lifetime assumptions. Adjust as needed!
+    bioenergy turbine: 25
+    ccgt: 20
+    coal turbine: 50
+    concentrating solar power: 25
+    high enthalpy geothermal: 30
+    igcc: 25
+    low enthalpy geothermal: 30
+    nuclear reactor: 50
+    ocgt: 20
+    offshore: 25
+    onshore: 25
+    pumped storage: 80
+    reciprocating engine: 20
+    reservoir: 80
+    rooftop pv: 25
+    run of river: 80
+    steam turbine: 30
+    utility pv: 25
+  retirement_delay_years:
+    # Assumed extension past reference year.
+    # Only applies if a powerplant is still operating past the lifetime_years assumption
+    bioenergy turbine: 5
+    ccgt: 5
+    coal turbine: 5
+    concentrating solar power: 2
+    high enthalpy geothermal: 5
+    igcc: 5
+    low enthalpy geothermal: 5
+    nuclear reactor: 5
+    ocgt: 5
+    offshore: 2
+    onshore: 2
+    pumped storage: 10
+    reciprocating engine: 5
+    reservoir: 10
+    rooftop pv: 5
+    run of river: 10
+    steam turbine: 5
+    utility pv: 2

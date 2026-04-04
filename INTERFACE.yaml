@@ -1,20 +1,35 @@
 # Module Input-Output structure for automated doc. generation
 resources:
   user:
-    user_message.md: "Example file emulating external files requested from a user."
-  automatic:
-    dummy_readme.md: "Example file emulating downloads determined by internal settings."
-results:
-  combined_text.md: "Example file emulating module results."
+    "{shape}/impute/{category}.parquet": |
+      Optional. Files with point-specific powerplant data to impute on top of the files produced by this module.
+      Useful when important powerplant facilities are missing in the source datasets.
 
-# Wildcard example:
-# resources:
-#   user:
-#     shapes_{resolution}.geojson: region geometries.
-#   automatic:
-#     technology_data.parquet: dataset with technology characteristics.
-# results:
-#   '{resolution}/tech_capacity.parquet': description of output data.
-#   '{resolution}/results_image.png': description of output image.
-# wildcards:
-#   resolution: description of the wildcard’s purpose.
+      Can also be used to replace data when combined with `excluded_ids` in the configuration.
+
+    "{shape}/proxies/rooftop_pv.tif": Proxy raster to use to estimate rooftop PV capacity.
+
+    "{shape}/shapes.parquet": |
+      GeoParquet shapefile with the desired regional disaggregation.
+
+      IMPORTANT: shapes must add up to whole countries to ensure proxied national statistics are correct.
+
+results:
+  "{shape}/aggregated/{adjustment}/{category}.parquet": >
+    Aggregated powerplant capacity per polygon in the given shapefile.
+    All categories are available.
+
+  "{shape}/aggregated/proxies/rooftop_pv.tif": >
+    Generated proxy raster used to estimate rooftop PV capacity per country.
+
+  "{shape}/statistics/category_capacity.parquet": >
+    National-level capacity statistics per category, for all the countries in the shape file.
+
+wildcards:
+  shape: name of the provided shapefile.
+  adjustment: >
+    Whether or not total capacity per country has been re-scaled to fit national statistics.
+    Options: "adjusted" or "unadjusted".
+  category: >
+    Powerplant category. A total of seven are available:
+    bioenergy, fossil, geothermal, hydropower, nuclear, solar and wind.
