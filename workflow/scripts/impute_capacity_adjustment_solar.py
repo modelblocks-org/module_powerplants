@@ -1,4 +1,4 @@
-"""Adjustment of powerplant capacity for generic cases."""
+"""Adjustment of powerplant capacity for cases that used proxies."""
 
 import sys
 from typing import TYPE_CHECKING, Any
@@ -23,12 +23,10 @@ def adjust_aggregated(
     stats = pd.read_parquet(stats_file)
     plants = pd.read_parquet(unadjusted_file)
 
-    # Filter only relevant countries
-    plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
     if plants.empty:
         adjusted_plants = plants
     else:
-        adjusted_plants = _utils.adjust_capacity(plants, stats, year, is_disagg=False)
+        adjusted_plants = _utils.adjust_aggregated_capacity(plants, stats, year)
 
     _schemas.AggregatedPlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
@@ -40,6 +38,7 @@ if __name__ == "__main__":
         year=snakemake.params.year,
         output_file=snakemake.output.adjusted,
     )
+
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
@@ -48,6 +47,7 @@ if __name__ == "__main__":
         output_file=snakemake.output.adj_plot,
         is_disagg=False,
     )
+
     _plots.plot_capacity_aggregation(
         aggregated_file=snakemake.output.adjusted,
         shapes_file=snakemake.input.shapes,

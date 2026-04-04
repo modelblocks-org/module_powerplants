@@ -78,9 +78,10 @@ def filter_years(
     Args:
         powerplants_df (pd.DataFrame): powerplant dataset to filter.
         year (int): year to filter.
-        how (Literal["operating", "future"], optional): filtering approach. Defaults to "operating".
-        - operating: only active powerplants in the given year.
-        - future: active and planned powerplant projects in the given year.
+        how (Literal["operating", "future"], optional): filtering approach.
+            Defaults to "operating".
+            - operating: only active powerplants in the given year.
+            - future: active and planned powerplant projects in the given year.
 
     Returns:
         pd.DataFrame: copy of the given dataframe after filtering applied.
@@ -92,6 +93,11 @@ def filter_years(
     elif how == "future":
         filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
     return filtered
+
+
+def _clean_positive_capacity(plants: pd.DataFrame) -> pd.DataFrame:
+    """Remove rows with non-positive capacity."""
+    return plants[plants["output_capacity_mw"] > 0].copy()
 
 
 def get_adjusted_capacity(
@@ -113,7 +119,7 @@ def get_adjusted_capacity(
     return adjusted_cap_mw
 
 
-def adjust_capacity(plants, stats, year, is_disagg):
+def adjust_disaggregated_capacity(plants, stats, year):
     """Adjust capacity to national statistics in the given year.
 
     Will keep future projects in the disaggregated case.
@@ -122,18 +128,36 @@ def adjust_capacity(plants, stats, year, is_disagg):
     stats = get_eia_stats_in_cat_yr(stats, year, category)
     expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
 
-    if is_disagg:
-        operating = filter_years(plants, year, how="operating")
-    else:
-        operating = plants
+    adjusted = _clean_positive_capacity(filter_years(plants, year, how="future"))
+    operating = filter_years(adjusted, year, how="operating")
+    operating = operating[operating["country_id"].isin(expected_capacity.index)]
+
+    # Remove operating rows that cannot be matched to the requested year's stats.
+    adjusted = adjusted.drop(
+        index=filter_years(adjusted, year, how="operating").index.difference(
+            operating.index
+        )
+    )
+
+    if operating.empty:
+        return adjusted.reset_index(drop=True)
 
     adjusted_cap = get_adjusted_capacity(operating, expected_capacity)
-
-    if is_disagg:
-        # Add future projects (unaltered)
-        adjusted = filter_years(plants, year, how="future")
-    else:
-        adjusted = operating
-
     adjusted.loc[adjusted_cap.index, "output_capacity_mw"] = adjusted_cap
+    return adjusted.reset_index(drop=True)
+
+
+def adjust_aggregated_capacity(plants, stats, year):
+    """Adjust capacity to national statistics in the given year."""
+    category = check_single_category(plants)
+    stats = get_eia_stats_in_cat_yr(stats, year, category)
+    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
+
+    adjusted = _clean_positive_capacity(plants)
+    adjusted = adjusted[adjusted["country_id"].isin(expected_capacity.index)]
+
+    if adjusted.empty:
+        return adjusted.reset_index(drop=True)
+
+    adjusted["output_capacity_mw"] = get_adjusted_capacity(adjusted, expected_capacity)
     return adjusted.reset_index(drop=True)

@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
@@ -155,6 +154,8 @@ def impute(
         imputed = imputed.dropna(subset=["start_year", "end_year"])
         imputed["status"] = _impute_status(imputed)
 
+    imputed = handle_polygon_overlaps(imputed, imputation["shape_overlap_correction"])
+
     schema = _schemas.build_schema(technology_mapping, "impute")
     schema.validate(imputed).to_parquet(output_path)
 
@@ -165,7 +166,40 @@ def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
     _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
 
 
+def handle_polygon_overlaps(df: gpd.GeoDataFrame, method: str) -> gpd.GeoDataFrame:
+    """Handle duplicate powerplant assignments caused by overlapping shapes."""
+    if method not in {"strict", "split_capacity"}:
+        raise ValueError(
+            f"Unsupported polygon overlap method {method!r}. "
+            "Expected 'strict' or 'split_capacity'."
+        )
+
+    dup_mask = df["powerplant_id"].duplicated(keep=False)
+
+    if dup_mask.any():
+        duplicate_ids = df.loc[dup_mask, "powerplant_id"]
+
+        if method == "strict":
+            raise ValueError(
+                "Found duplicate IDs, likely due to overlapping polygons: "
+                f"{', '.join(map(str, duplicate_ids.unique()))}. "
+                "Please adjust your shapes, or enable the 'split_capacity' correction."
+            )
+
+        counts = duplicate_ids.map(df["powerplant_id"].value_counts())
+
+        df.loc[dup_mask, "output_capacity_mw"] = (
+            df.loc[dup_mask, "output_capacity_mw"] / counts
+        )
+
+        suffixes = df.loc[dup_mask].groupby("powerplant_id").cumcount().astype(str)
+        df.loc[dup_mask, "powerplant_id"] = duplicate_ids + "_duplicate_" + suffixes
+
+    return df.reset_index(drop=True)
+
+
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     impute(
         prepared_path=snakemake.input.prepared,
         shapes_path=snakemake.input.shapes,

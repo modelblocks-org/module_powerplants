@@ -24,12 +24,10 @@ def adjust_disaggregated(
     stats = pd.read_parquet(stats_file)
     plants = gpd.read_parquet(unadjusted_file)
 
-    # Filter only relevant countries
-    plants = plants[plants["country_id"].isin(stats["country_id"].unique())]
     if plants.empty:
         adjusted_plants = plants
     else:
-        adjusted_plants = _utils.adjust_capacity(plants, stats, year, is_disagg=True)
+        adjusted_plants = _utils.adjust_disaggregated_capacity(plants, stats, year)
 
     _schemas.PlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
@@ -41,6 +39,7 @@ if __name__ == "__main__":
         year=snakemake.params.year,
         output_file=snakemake.output.adjusted,
     )
+
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,

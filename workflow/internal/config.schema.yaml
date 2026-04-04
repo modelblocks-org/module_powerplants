@@ -352,6 +352,7 @@ properties:
     additionalProperties: false
     required:
       - adjustment_year
+      - shape_overlap_correction
       - scenario
       - lifetime_years
       - retirement_delay_years
@@ -363,6 +364,15 @@ properties:
         type: integer
         minimum: 0
         maximum: 2023
+      shape_overlap_correction:
+        title: Shape overlap correction method
+        description: |
+          Approach to handling powerplants that land on shape overlaps.
+          Either 'strict' (raise errors) or 'split_capacity' (divide powerplant capacity equally across overlapping shapes).
+        type: string
+        enum:
+          - strict
+          - split_capacity
       scenario:
         title: Scenario
         description: >
