@@ -1,4 +1,4 @@
-name: shapes
+name: powerplants
 channels:
   - conda-forge
   - nodefaults

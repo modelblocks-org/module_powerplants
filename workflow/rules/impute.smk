@@ -31,7 +31,7 @@ rule impute_years:
     log:
         "logs/impute_years_{shapes}_{dataset}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/impute_years.py"
 
@@ -63,7 +63,7 @@ rule impute_category_combination:
     log:
         "logs/impute_category_combination_{shapes}_{category}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/impute_category_combination.py"
 
@@ -89,6 +89,6 @@ rule impute_capacity_adjustment:
     log:
         "logs/impute_capacity_adjustment_{shapes}_{category}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/impute_capacity_adjustment.py"

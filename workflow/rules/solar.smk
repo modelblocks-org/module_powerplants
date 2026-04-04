@@ -35,7 +35,7 @@ rule proxy_rooftop_pv:
     log:
         "logs/proxy_rooftop_pv_{shapes}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/proxy.py"
 
@@ -62,7 +62,7 @@ rule aggregate_solar_capacity:
     log:
         "logs/aggregate_capacity_{shapes}_unadjusted_{category}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/aggregate_capacity.py"
 
@@ -93,6 +93,6 @@ rule impute_capacity_adjustment_solar:
     log:
         "logs/impute_capacity_adjusted_solar_{shapes}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/impute_capacity_adjustment_solar.py"

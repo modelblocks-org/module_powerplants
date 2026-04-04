@@ -32,7 +32,7 @@ rule prepare_shapes:
     log:
         "logs/{shapes}/prepare_shapes.log"
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_shapes.py"
 
@@ -49,7 +49,7 @@ rule prepare_hydropower:
     log:
         "logs/prepare_hydropower.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_hydropower.py"
 
@@ -69,7 +69,7 @@ rule prepare_solar_utility_pv:
     log:
         "logs/prepare_solar_utility_pv.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     shell:
         """
         python {input.script:q} {input.tz_sam:q} {input.gem_gspt:q} \
@@ -91,7 +91,7 @@ rule prepare_solar_csp:
     log:
         "logs/prepare_solar_csp.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     shell:
         """
         python {input.script:q} {input.gem_gspt:q} -o {output.path:q} \
@@ -114,7 +114,7 @@ if config["category"]["wind"]["source"] == "gem":
         log:
             "logs/prepare_wind_gem.log",
         conda:
-            "../envs/shapes.yaml"
+            "../envs/powerplants.yaml"
         shell:
             """
             python {input.script:q} {input.gem_gwpt:q} \
@@ -136,7 +136,7 @@ elif config["category"]["wind"]["source"] == "wemi":
         log:
             "logs/prepare_wind_wemi.log",
         conda:
-            "../envs/shapes.yaml"
+            "../envs/powerplants.yaml"
         shell:
             """
             python {input.script:q} {input.wemi:q} \
@@ -163,7 +163,7 @@ rule prepare_fossil_coal:
     log:
         "logs/prepare_fossil_coal.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_fossil_coal.py"
 
@@ -182,7 +182,7 @@ rule prepare_bioenergy:
     log:
         "logs/prepare_bioenergy.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_bioenergy.py"
 
@@ -201,7 +201,7 @@ rule prepare_fossil_oil_gas:
     log:
         "logs/prepare_fossil_oil_gas.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_fossil_oil_gas.py"
 
@@ -218,7 +218,7 @@ rule prepare_nuclear:
     log:
         "logs/prepare_nuclear.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_nuclear.py"
 
@@ -235,7 +235,7 @@ rule prepare_geothermal:
     log:
         "logs/prepare_geothermal.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_geothermal.py"
 
@@ -253,7 +253,7 @@ rule prepare_statistics:
     log:
         "logs/prepare_statistics_{shapes}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/prepare_statistics.py"
 
@@ -271,7 +271,7 @@ rule prepare_fuels:
     log:
         "logs/prepare_fuels.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     shell:
         """
         python {input.script:q} prepare {input.fuel_classes:q} -o {output:q} 2> {log:q}
@@ -293,7 +293,7 @@ rule prepare_remapped_fuel_categories:
     wildcard_constraints:
         category="|".join(PREPARED_FUEL_CAT),
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     shell:
         """
         python {input.script:q} remap {input.plants:q} {input.old:q} {input.new:q} \

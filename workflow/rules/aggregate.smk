@@ -25,6 +25,6 @@ rule aggregate_capacity:
     log:
         "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     script:
         "../scripts/aggregate_capacity.py"
