@@ -88,34 +88,34 @@ def _impute_status(df: pd.DataFrame) -> pd.Series:
 
 
 def impute(
-    prepared_path: str,
-    shapes_path: str,
-    output_path: str,
+    prepared_cat_gdf: gpd.GeoDataFrame,
+    countries_gdf: gpd.GeoDataFrame,
     imputation: dict,
     technology_mapping: dict,
     projected_crs: str,
-):
+) -> gpd.GeoDataFrame:
     """Add automatic and user imputations to fill missing data.
 
     Args:
-        prepared_path (str): cleaned dataset following our schema.
-        shapes_path (str): country-level shapes to use.
+        prepared_cat_gdf (gpd.GeoDataFrame): cleaned category dataset following our schema.
+        countries_gdf (str): country-level shapes to use.
         output_path (str): resulting dataset.
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
         projected_crs (str): crs used to calculate centroids.
     """
-    prepared = gpd.read_parquet(prepared_path)
-    _utils.check_single_category(prepared)
+    _utils.check_single_category(prepared_cat_gdf)
 
     # Re-map polygons to their centroid to simplify further processing.
     # TODO: consider splitting them between shapes instead?
-    polygon_mask = prepared[prepared.geometry.geom_type != "Point"].index
+    polygon_mask = prepared_cat_gdf[
+        prepared_cat_gdf.geometry.geom_type != "Point"
+    ].index
     if polygon_mask.any():
         if projected_crs:
-            prev_crs = prepared.crs
-            prepared.loc[polygon_mask, "geometry"] = (
-                prepared.loc[polygon_mask, "geometry"]
+            prev_crs = prepared_cat_gdf.crs
+            prepared_cat_gdf.loc[polygon_mask, "geometry"] = (
+                prepared_cat_gdf.loc[polygon_mask, "geometry"]
                 .to_crs(projected_crs)
                 .centroid.to_crs(prev_crs)
             )
@@ -124,20 +124,13 @@ def impute(
                 "Polygon powerplant geometries detected. Specify a projected CRS."
             )
 
-    shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_path))
-
     lifetimes = imputation["lifetime_years"]
     retirement_delay_years = imputation["retirement_delay_years"]
     scenario = SCENARIO_MAP[imputation["scenario"]]
 
-    countries_gdf = (
-        shapes[["country_id", "geometry"]].dissolve("country_id").reset_index()
-    )
-    countries_gdf["geometry"] = countries_gdf.buffer(0)
-
     # Get facilities within the provided regions and for the given scenario
     imputed = gpd.sjoin(
-        prepared[prepared["status"].isin(scenario)],
+        prepared_cat_gdf[prepared_cat_gdf["status"].isin(scenario)],
         countries_gdf,
         predicate="intersects",
         how="inner",
@@ -154,16 +147,12 @@ def impute(
         imputed = imputed.dropna(subset=["start_year", "end_year"])
         imputed["status"] = _impute_status(imputed)
 
-    imputed = handle_polygon_overlaps(imputed, imputation["shape_overlap_correction"])
+        imputed = handle_polygon_overlaps(
+            imputed, imputation["shape_overlap_correction"]
+        )
 
     schema = _schemas.build_schema(technology_mapping, "impute")
-    schema.validate(imputed).to_parquet(output_path)
-
-
-def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
-    """Plot stacked bar charts of active powerplant capacity over time per country."""
-    df = pd.read_parquet(imputed_path)
-    _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
+    return schema.validate(imputed)
 
 
 def handle_polygon_overlaps(df: gpd.GeoDataFrame, method: str) -> gpd.GeoDataFrame:
@@ -198,14 +187,21 @@ def handle_polygon_overlaps(df: gpd.GeoDataFrame, method: str) -> gpd.GeoDataFra
     return df.reset_index(drop=True)
 
 
-if __name__ == "__main__":
-    sys.stderr = open(snakemake.log[0], "w")
-    impute(
-        prepared_path=snakemake.input.prepared,
-        shapes_path=snakemake.input.shapes,
-        output_path=snakemake.output.imputed,
+def main() -> None:
+    """Main snakemake process."""
+    imputed_gdf = impute(
+        prepared_cat_gdf=gpd.read_parquet(snakemake.input.prepared),
+        countries_gdf=gpd.read_parquet(snakemake.input.dissolved_shapes),
         imputation=snakemake.params.imputation,
         technology_mapping=snakemake.params.tech_map,
         projected_crs=snakemake.params.projected_crs,
     )
-    plot(imputed_path=snakemake.output.imputed, output_path=snakemake.output.plot)
+    imputed_gdf.to_parquet(snakemake.output.imputed)
+    _plots.plot_disaggregated_capacity_buildup(
+        imputed_gdf, snakemake.output.plot, "seaborn:tab20"
+    )
+
+
+if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
+    main()

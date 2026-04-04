@@ -7,6 +7,7 @@ import _utils
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+from cmap import Colormap
 from matplotlib import pyplot as plt
 from matplotlib import ticker as mticker
 from matplotlib.patches import Patch
@@ -52,7 +53,7 @@ def plot_disaggregated_capacity_buildup(
 
     # Tech type color range
     tech_types = sorted(df["technology"].dropna().unique())
-    cmap = plt.get_cmap(colormap)
+    cmap = Colormap(colormap).to_mpl()
     colors = [cmap(i) for i in np.linspace(0, 1, len(tech_types))]
 
     # Figure (always 2 columns, flexible rows)

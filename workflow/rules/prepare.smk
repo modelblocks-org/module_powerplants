@@ -14,6 +14,29 @@ PREPARED_PLANT_CAT = (
 )
 
 
+rule prepare_shapes:
+    message:
+        "Preparing intermediate shapefile versions to speed up processing."
+    params:
+        crs=config["projected_crs"],
+    input:
+        shapes="resources/user/{shapes}/shapes.parquet",
+    output:
+        dissolved="resources/automatic/shapes/{shapes}/dissolved.parquet",
+        dissolved_plt=report(
+            "resources/automatic/shapes/{shapes}/dissolved.png",
+            caption="../report/prepare_shapes.rst",
+            category="Powerplants module",
+            subcategory="preparation"
+        )
+    log:
+        "logs/{shapes}/prepare_shapes.log"
+    conda:
+        "../envs/shapes.yaml"
+    script:
+        "../scripts/prepare_shapes.py"
+
+
 rule prepare_hydropower:
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
