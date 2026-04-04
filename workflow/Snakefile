@@ -18,8 +18,22 @@ with open(workflow.source_path("internal/settings.yaml"), "r") as f:
 
 
 # Add all your includes here.
+include: "rules/_utils.smk"
 include: "rules/automatic.smk"
-include: "rules/dummy.smk"
+include: "rules/prepare.smk"
+include: "rules/impute.smk"
+include: "rules/aggregate.smk"
+include: "rules/solar.smk"
+
+
+# Run additional validation on the configuration file.
+additional_config_validation()
+
+# Add all files to be delivered alongside the workflow here
+workflow.source_path("scripts/_gem.py")
+workflow.source_path("scripts/_plots.py")
+workflow.source_path("scripts/_schemas.py")
+workflow.source_path("scripts/_utils.py")
 
 
 rule all:

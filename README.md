@@ -1,6 +1,8 @@
 # clio - Powerplants module
 
-A module that collects, harmonizes and aggregates powerplant capacities for energy systems modelling.
+A module that collects, harmonizes and aggregates global powerplant capacities for energy systems modelling.
+
+![Example of European shapes](./docs/europe_example.png)
 
 A modular `snakemake` workflow built for [`clio`](https://clio.readthedocs.io/) data modules.
 
@@ -23,7 +25,7 @@ pixi install --all
 For testing, simply run:
 
 ```shell
-pixi run test
+pixi run test-integration
 ```
 
 To view the documentation locally, use:
@@ -37,5 +39,5 @@ To test a minimal example of a workflow using this module:
 ```shell
 pixi shell    # activate this project's environment
 cd tests/integration/  # navigate to the integration example
-snakemake --use-conda  # run the workflow!
+snakemake --use-conda --cores 2  # run the workflow!
 ```
