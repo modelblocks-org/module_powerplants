@@ -133,7 +133,11 @@ def adjust_disaggregated_capacity(plants, stats, year):
     operating = operating[operating["country_id"].isin(expected_capacity.index)]
 
     # Remove operating rows that cannot be matched to the requested year's stats.
-    adjusted = adjusted.drop(index=filter_years(adjusted, year, how="operating").index.difference(operating.index))
+    adjusted = adjusted.drop(
+        index=filter_years(adjusted, year, how="operating").index.difference(
+            operating.index
+        )
+    )
 
     if operating.empty:
         return adjusted.reset_index(drop=True)
