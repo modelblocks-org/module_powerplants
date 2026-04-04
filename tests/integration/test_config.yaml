@@ -87,6 +87,7 @@ module_powerplants:
 
   imputation:
     adjustment_year: 2023
+    shape_overlap_correction: "split_capacity"
     scenario: "near-future" # near-future, far-future, far-off-future
     lifetime_years:
       bioenergy turbine: 25

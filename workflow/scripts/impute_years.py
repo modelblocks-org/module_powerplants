@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
@@ -155,7 +154,7 @@ def impute(
         imputed = imputed.dropna(subset=["start_year", "end_year"])
         imputed["status"] = _impute_status(imputed)
 
-    imputed = split_duplicates(imputed)
+    imputed = handle_polygon_overlaps(imputed, imputation["shape_overlap_correction"])
 
     schema = _schemas.build_schema(technology_mapping, "impute")
     schema.validate(imputed).to_parquet(output_path)
@@ -167,39 +166,40 @@ def plot(imputed_path: str, output_path: str, colormap: str = "tab20"):
     _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
 
 
-def split_duplicates(df: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
-    """Split powerplants with duplicated IDs by evenly distributing capacity."""
+def handle_polygon_overlaps(df: gpd.GeoDataFrame, method: str) -> gpd.GeoDataFrame:
+    """Handle duplicate powerplant assignments caused by overlapping shapes."""
+    if method not in {"strict", "split_capacity"}:
+        raise ValueError(
+            f"Unsupported polygon overlap method {method!r}. "
+            "Expected 'strict' or 'split_capacity'."
+        )
+
     dup_mask = df["powerplant_id"].duplicated(keep=False)
 
-    if not dup_mask.any():
-        return df
+    if dup_mask.any():
+        duplicate_ids = df.loc[dup_mask, "powerplant_id"]
 
-    df = df.copy()
+        if method == "strict":
+            raise ValueError(
+                "Found duplicate IDs, likely due to overlapping polygons: "
+                f"{', '.join(map(str, duplicate_ids.unique()))}. "
+                "Please adjust your shapes, or enable the 'split_capacity' correction."
+            )
 
-    # how many times each ID appears
-    counts = df.loc[dup_mask, "powerplant_id"].map(df["powerplant_id"].value_counts())
+        counts = duplicate_ids.map(df["powerplant_id"].value_counts())
 
-    # split capacity evenly
-    df.loc[dup_mask, "output_capacity_mw"] = (
-        df.loc[dup_mask, "output_capacity_mw"] / counts
-    )
+        df.loc[dup_mask, "output_capacity_mw"] = (
+            df.loc[dup_mask, "output_capacity_mw"] / counts
+        )
 
-    # create deterministic suffixes
-    df.loc[dup_mask, "powerplant_id"] = (
-        df.loc[dup_mask]
-        .groupby("powerplant_id")
-        .cumcount()
-        .astype(str)
-        .radd("_duplicate")
-        .radd(df.loc[dup_mask, "powerplant_id"])
-    )
+        suffixes = df.loc[dup_mask].groupby("powerplant_id").cumcount().astype(str)
+        df.loc[dup_mask, "powerplant_id"] = duplicate_ids + "_duplicate_" + suffixes
 
-    df = df.reset_index(drop=True)
-
-    return df
+    return df.reset_index(drop=True)
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     impute(
         prepared_path=snakemake.input.prepared,
         shapes_path=snakemake.input.shapes,
