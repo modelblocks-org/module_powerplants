@@ -54,40 +54,25 @@ rule prepare_hydropower:
         "../scripts/prepare_hydropower.py"
 
 
-rule prepare_solar_utility_pv:
+rule prepare_large_solar:
     message:
         "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     params:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["utility_pv"],
         utility_pv_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
+        csp_name=config["category"]["solar"]["technology_mapping"]["csp"],
     input:
         tz_sam="<resources>/automatic/downloads/TZ-SAM.gpkg",
         gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        path="<resources>/automatic/prepared/solar_utility_pv.parquet",
+        utility_pv="<resources>/automatic/prepared/solar_utility_pv.parquet",
+        csp="<resources>/automatic/prepared/solar_csp.parquet",
     log:
-        "<logs>/prepare_solar_utility_pv.log",
+        "<logs>/prepare_large_solar.log",
     conda:
         "../envs/powerplants.yaml"
     script:
-        "../scripts/prepare_solar_utility_pv.py"
-
-
-rule prepare_solar_csp:
-    message:
-        "Preparing concentrating solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
-    params:
-        csp_name=config["category"]["solar"]["technology_mapping"]["csp"],
-    input:
-        gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
-    output:
-        path="<resources>/automatic/prepared/solar_csp.parquet",
-    log:
-        "<logs>/prepare_solar_csp.log",
-    conda:
-        "../envs/powerplants.yaml"
-    script:
-        "../scripts/prepare_solar_csp.py"
+        "../scripts/prepare_large_solar.py"
 
 
 if config["category"]["wind"]["source"] == "gem":
