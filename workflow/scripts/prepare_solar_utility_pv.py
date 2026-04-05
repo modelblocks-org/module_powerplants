@@ -1,12 +1,17 @@
 """Processing of the Tranzition Zero Solar Asset Mapper (TZ-SAM) dataset."""
 
+import sys
+from typing import TYPE_CHECKING, Any
+
 import _gem as gem
 import _schemas
 import _utils
-import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+
+if TYPE_CHECKING:
+    snakemake: Any
 
 
 def _start_year_tz_sam(tz_dam_df: pd.DataFrame):
@@ -85,13 +90,9 @@ def get_gem_mismatch(
     return future_gem_df.loc[~future_gem_df.index.isin(intersecting.index)]
 
 
-@click.command()
-@click.argument("tz_sam_path", type=click.Path(dir_okay=False))
-@click.argument("gem_gspt_path", type=click.Path(dir_okay=False))
-@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
-@click.option("-t", "tech_name", type=str, default="utility_pv")
-@click.option("-r", "dc_ac_ratio", type=float, default=1.25)
-def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_ratio):
+def prepare_solar_utility_pv(
+    tz_sam_path: str, gem_gspt_path: str, tech_name: str, dc_ac_ratio: float = 1.25
+):
     """Obtain utility-scale PV locations by combinging GEM-GSPT and TZ-SAM data.
 
     - TZ-SAM is the primary source for current facilities
@@ -148,7 +149,19 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_rat
     utility_pv = utility_pv.reset_index(drop=True)
 
     schema = _schemas.build_schema({"utility_pv": tech_name}, "prepare")
-    schema.validate(utility_pv).to_parquet(output_path)
+    return schema.validate(utility_pv)
+
+
+def main() -> None:
+    """Main snakemake process."""
+    sys.stderr = open(snakemake.log[0], "w")
+    utility_pv_gdf = prepare_solar_utility_pv(
+        snakemake.input.tz_sam,
+        snakemake.input.gem_gspt,
+        snakemake.params.utility_pv_name,
+        snakemake.params.dc_ac_ratio,
+    )
+    utility_pv_gdf.to_parquet(snakemake.output.path)
 
 
 if __name__ == "__main__":

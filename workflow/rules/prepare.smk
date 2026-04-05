@@ -59,9 +59,8 @@ rule prepare_solar_utility_pv:
         "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     params:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["utility_pv"],
-        tech_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
+        utility_pv_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
     input:
-        script=workflow.source_path("../scripts/prepare_solar_utility_pv.py"),
         tz_sam="<resources>/automatic/downloads/TZ-SAM.gpkg",
         gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
@@ -70,11 +69,8 @@ rule prepare_solar_utility_pv:
         "<logs>/prepare_solar_utility_pv.log",
     conda:
         "../envs/powerplants.yaml"
-    shell:
-        """
-        python {input.script:q} {input.tz_sam:q} {input.gem_gspt:q} \
-            -o {output.path:q} -t "{params.tech_name}" -r {params.dc_ac_ratio} 2> {log:q}
-        """
+    script:
+        "../scripts/prepare_solar_utility_pv.py"
 
 
 rule prepare_solar_csp:
