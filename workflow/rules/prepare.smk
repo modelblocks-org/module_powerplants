@@ -144,36 +144,20 @@ rule prepare_bioenergy:
         "../scripts/prepare_bioenergy.py"
 
 
-rule prepare_fossil_coal:
-    message:
-        "Preparing coal powerplants using the Global Coal Power Tracker (GCPT) dataset."
-    params:
-        technology_mapping=config["category"]["fossil"]["technology_mapping"]["coal"],
-        fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
-    input:
-        gem_gcpt="<resources>/automatic/downloads/GEM_GCPT.xlsx",
-    output:
-        plants=temp("<resources>/automatic/temp/plants_fossil_coal.parquet"),
-        fuels=temp("<resources>/automatic/temp/fuels_fossil_coal.parquet"),
-    log:
-        "<logs>/prepare_fossil_coal.log",
-    conda:
-        "../envs/powerplants.yaml"
-    script:
-        "../scripts/prepare_fossil_coal.py"
-
-
 rule prepare_fossil_oil_gas:
     message:
         "Preparing oil and gas powerplants using the Global Oil and Gas Power Tracker (GOGPT) dataset."
     params:
-        technology_mapping=config["category"]["fossil"]["technology_mapping"]["oil_gas"],
+        technology_mapping=config["category"]["fossil"]["technology_mapping"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
     input:
+        gem_gcpt="<resources>/automatic/downloads/GEM_GCPT.xlsx",
         gem_gogpt="<resources>/automatic/downloads/GEM_GOGPT.xlsx",
     output:
-        plants=temp("<resources>/automatic/temp/plants_fossil_oil_gas.parquet"),
-        fuels=temp("<resources>/automatic/temp/fuels_fossil_oil_gas.parquet"),
+        og_plants=temp("<resources>/automatic/temp/plants_fossil_oil_gas.parquet"),
+        og_fuels=temp("<resources>/automatic/temp/fuels_fossil_oil_gas.parquet"),
+        coal_plants=temp("<resources>/automatic/temp/plants_fossil_coal.parquet"),
+        coal_fuels=temp("<resources>/automatic/temp/fuels_fossil_coal.parquet"),
     log:
         "<logs>/prepare_fossil_oil_gas.log",
     conda:
