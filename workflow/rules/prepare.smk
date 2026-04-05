@@ -8,8 +8,7 @@ PREPARED_PLANT_CAT = (
     "geothermal",
     "hydropower",
     "nuclear",
-    "solar_csp",
-    "solar_utility_pv",
+    "large_solar",
     "wind",
 )
 
@@ -65,8 +64,7 @@ rule prepare_large_solar:
         tz_sam="<resources>/automatic/downloads/TZ-SAM.gpkg",
         gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        utility_pv="<resources>/automatic/prepared/solar_utility_pv.parquet",
-        csp="<resources>/automatic/prepared/solar_csp.parquet",
+        large_solar="<resources>/automatic/prepared/large_solar.parquet",
     log:
         "<logs>/prepare_large_solar.log",
     conda:

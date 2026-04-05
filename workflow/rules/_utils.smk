@@ -57,12 +57,7 @@ def get_files_to_combine(shapes, category):
     Will also append imputed data files if present.
     """
     to_combine = []
-    if category == "large_solar":
-        to_combine += [
-            f"<resources>/automatic/shapes/{shapes}/imputed/solar_utility_pv.parquet",
-            f"<resources>/automatic/shapes/{shapes}/imputed/solar_csp.parquet",
-        ]
-    elif category == "fossil":
+    if category == "fossil":
         to_combine += [
             f"<resources>/automatic/shapes/{shapes}/imputed/fossil_coal.parquet",
             f"<resources>/automatic/shapes/{shapes}/imputed/fossil_oil_gas.parquet",

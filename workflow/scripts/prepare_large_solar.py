@@ -186,7 +186,6 @@ def prepare_solar_csp(
     return schema.validate(csp_df)
 
 
-
 def main() -> None:
     """Main snakemake process."""
     sys.stderr = open(snakemake.log[0], "w")
@@ -198,8 +197,11 @@ def main() -> None:
     )
     csp_gdf = prepare_solar_csp(snakemake.input.gem_gspt, snakemake.params.csp_name)
 
-    utility_pv_gdf.to_parquet(snakemake.output.utility_pv)
-    csp_gdf.to_parquet(snakemake.output.csp)
+    # Combine into one large category
+    large_solar_gdf = pd.concat(
+        [utility_pv_gdf, csp_gdf], ignore_index=True, sort=False, axis="index"
+    )
+    large_solar_gdf.to_parquet(snakemake.output.large_solar)
 
 
 if __name__ == "__main__":
