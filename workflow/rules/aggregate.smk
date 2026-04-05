@@ -9,12 +9,12 @@ rule aggregate_capacity:
     params:
         year=config["imputation"]["adjustment_year"],
     input:
-        powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
-        shapes="resources/user/{shapes}/shapes.parquet",
+        powerplants="<results>/{shapes}/disaggregated/{adjustment}/{category}.parquet",
+        shapes="<shapes>",
     output:
-        aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        aggregated="<results>/{shapes}/aggregated/{adjustment}/{category}.parquet",
         plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
+            "<results>/{shapes}/aggregated/{adjustment}/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -23,7 +23,7 @@ rule aggregate_capacity:
         adjustment="|".join(ADJUSTMENTS),
         category="|".join(IMPUTED_CAT),
     log:
-        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
+        "<logs>/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
         "../envs/powerplants.yaml"
     script:

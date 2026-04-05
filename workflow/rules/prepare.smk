@@ -20,17 +20,17 @@ rule prepare_shapes:
     params:
         crs=config["projected_crs"],
     input:
-        shapes="resources/user/{shapes}/shapes.parquet",
+        shapes="<shapes>",
     output:
-        dissolved="resources/automatic/shapes/{shapes}/dissolved.parquet",
+        dissolved="<resources>/automatic/shapes/{shapes}/dissolved.parquet",
         dissolved_plt=report(
-            "resources/automatic/shapes/{shapes}/dissolved.png",
+            "<resources>/automatic/shapes/{shapes}/dissolved.png",
             caption="../report/prepare_shapes.rst",
             category="Powerplants module",
             subcategory="preparation"
         )
     log:
-        "logs/{shapes}/prepare_shapes.log"
+        "<logs>/{shapes}/prepare_shapes.log"
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -43,11 +43,11 @@ rule prepare_hydropower:
     params:
         technology_mapping=config["category"]["hydropower"]["technology_mapping"],
     input:
-        glohydrores_path="resources/automatic/downloads/GloHydroRes.csv",
+        glohydrores_path="<resources>/automatic/downloads/GloHydroRes.csv",
     output:
-        output_path="resources/automatic/prepared/hydropower.parquet",
+        output_path="<resources>/automatic/prepared/hydropower.parquet",
     log:
-        "logs/prepare_hydropower.log",
+        "<logs>/prepare_hydropower.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -62,12 +62,12 @@ rule prepare_solar_utility_pv:
         tech_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
     input:
         script=workflow.source_path("../scripts/prepare_solar_utility_pv.py"),
-        tz_sam="resources/automatic/downloads/TZ-SAM.gpkg",
-        gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
+        tz_sam="<resources>/automatic/downloads/TZ-SAM.gpkg",
+        gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        path="resources/automatic/prepared/solar_utility_pv.parquet",
+        path="<resources>/automatic/prepared/solar_utility_pv.parquet",
     log:
-        "logs/prepare_solar_utility_pv.log",
+        "<logs>/prepare_solar_utility_pv.log",
     conda:
         "../envs/powerplants.yaml"
     shell:
@@ -85,11 +85,11 @@ rule prepare_solar_csp:
         tech_name=config["category"]["solar"]["technology_mapping"]["csp"],
     input:
         script=workflow.source_path("../scripts/prepare_solar_csp.py"),
-        gem_gspt="resources/automatic/downloads/GEM_GSPT.xlsx",
+        gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
-        path="resources/automatic/prepared/solar_csp.parquet",
+        path="<resources>/automatic/prepared/solar_csp.parquet",
     log:
-        "logs/prepare_solar_csp.log",
+        "<logs>/prepare_solar_csp.log",
     conda:
         "../envs/powerplants.yaml"
     shell:
@@ -108,11 +108,11 @@ if config["category"]["wind"]["source"] == "gem":
             tech_map=config["category"]["wind"]["technology_mapping"],
         input:
             script=workflow.source_path("../scripts/prepare_wind_gwpt.py"),
-            gem_gwpt="resources/automatic/downloads/GEM_GWPT.xlsx",
+            gem_gwpt="<resources>/automatic/downloads/GEM_GWPT.xlsx",
         output:
-            path="resources/automatic/prepared/wind.parquet",
+            path="<resources>/automatic/prepared/wind.parquet",
         log:
-            "logs/prepare_wind_gem.log",
+            "<logs>/prepare_wind_gem.log",
         conda:
             "../envs/powerplants.yaml"
         shell:
@@ -130,11 +130,11 @@ elif config["category"]["wind"]["source"] == "wemi":
             tech_map=config["category"]["wind"]["technology_mapping"],
         input:
             script=workflow.source_path("../scripts/prepare_wind_wemi.py"),
-            wemi="resources/user/WEMI.xls",
+            wemi="<resources>/user/WEMI.xls",
         output:
-            path="resources/automatic/prepared/wind.parquet",
+            path="<resources>/automatic/prepared/wind.parquet",
         log:
-            "logs/prepare_wind_wemi.log",
+            "<logs>/prepare_wind_wemi.log",
         conda:
             "../envs/powerplants.yaml"
         shell:
@@ -156,12 +156,12 @@ rule prepare_fossil_coal:
         technology_mapping=config["category"]["fossil"]["technology_mapping"]["coal"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
     input:
-        gem_gcpt="resources/automatic/downloads/GEM_GCPT.xlsx",
+        gem_gcpt="<resources>/automatic/downloads/GEM_GCPT.xlsx",
     output:
-        plants=temp("resources/automatic/temp/plants_fossil_coal.parquet"),
-        fuels=temp("resources/automatic/temp/fuels_fossil_coal.parquet"),
+        plants=temp("<resources>/automatic/temp/plants_fossil_coal.parquet"),
+        fuels=temp("<resources>/automatic/temp/fuels_fossil_coal.parquet"),
     log:
-        "logs/prepare_fossil_coal.log",
+        "<logs>/prepare_fossil_coal.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -175,12 +175,12 @@ rule prepare_bioenergy:
         technology_mapping=config["category"]["bioenergy"]["technology_mapping"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
     input:
-        gem_gbpt="resources/automatic/downloads/GEM_GBPT.xlsx",
+        gem_gbpt="<resources>/automatic/downloads/GEM_GBPT.xlsx",
     output:
-        plants=temp("resources/automatic/temp/plants_bioenergy.parquet"),
-        fuels=temp("resources/automatic/temp/fuels_bioenergy.parquet"),
+        plants=temp("<resources>/automatic/temp/plants_bioenergy.parquet"),
+        fuels=temp("<resources>/automatic/temp/fuels_bioenergy.parquet"),
     log:
-        "logs/prepare_bioenergy.log",
+        "<logs>/prepare_bioenergy.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -194,12 +194,12 @@ rule prepare_fossil_oil_gas:
         technology_mapping=config["category"]["fossil"]["technology_mapping"]["oil_gas"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
     input:
-        gem_gogpt="resources/automatic/downloads/GEM_GOGPT.xlsx",
+        gem_gogpt="<resources>/automatic/downloads/GEM_GOGPT.xlsx",
     output:
-        plants=temp("resources/automatic/temp/plants_fossil_oil_gas.parquet"),
-        fuels=temp("resources/automatic/temp/fuels_fossil_oil_gas.parquet"),
+        plants=temp("<resources>/automatic/temp/plants_fossil_oil_gas.parquet"),
+        fuels=temp("<resources>/automatic/temp/fuels_fossil_oil_gas.parquet"),
     log:
-        "logs/prepare_fossil_oil_gas.log",
+        "<logs>/prepare_fossil_oil_gas.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -212,11 +212,11 @@ rule prepare_nuclear:
     params:
         technology_mapping=config["category"]["nuclear"]["technology_mapping"],
     input:
-        gem_gnpt="resources/automatic/downloads/GEM_GNPT.xlsx",
+        gem_gnpt="<resources>/automatic/downloads/GEM_GNPT.xlsx",
     output:
-        plants="resources/automatic/prepared/nuclear.parquet",
+        plants="<resources>/automatic/prepared/nuclear.parquet",
     log:
-        "logs/prepare_nuclear.log",
+        "<logs>/prepare_nuclear.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -229,11 +229,11 @@ rule prepare_geothermal:
     params:
         technology_mapping=config["category"]["geothermal"]["technology_mapping"],
     input:
-        gem_ggpt="resources/automatic/downloads/GEM_GGPT.xlsx",
+        gem_ggpt="<resources>/automatic/downloads/GEM_GGPT.xlsx",
     output:
-        plants="resources/automatic/prepared/geothermal.parquet",
+        plants="<resources>/automatic/prepared/geothermal.parquet",
     log:
-        "logs/prepare_geothermal.log",
+        "<logs>/prepare_geothermal.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -244,14 +244,14 @@ rule prepare_statistics:
     message:
         "Get EIA annual country capacity statistics."
     input:
-        shapes="resources/user/{shapes}/shapes.parquet",
-        eia_bulk="resources/automatic/downloads/EIA-INTL.txt",
+        shapes="<shapes>",
+        eia_bulk="<resources>/automatic/downloads/EIA-INTL.txt",
     output:
-        total="results/{shapes}/statistics/total_capacity.parquet",
-        categories="results/{shapes}/statistics/category_capacity.parquet",
-        plot="results/{shapes}/statistics/category_capacity.pdf",
+        total="<results>/{shapes}/statistics/total_capacity.parquet",
+        categories="<results>/{shapes}/statistics/category_capacity.parquet",
+        plot="<results>/{shapes}/statistics/category_capacity.pdf",
     log:
-        "logs/prepare_statistics_{shapes}.log",
+        "<logs>/prepare_statistics_{shapes}.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -264,12 +264,12 @@ rule prepare_fuels:
     input:
         script=workflow.source_path("../scripts/prepare_fuels.py"),
         fuel_classes=expand(
-            "resources/automatic/temp/fuels_{cat}.parquet", cat=PREPARED_FUEL_CAT
+            "<resources>/automatic/temp/fuels_{cat}.parquet", cat=PREPARED_FUEL_CAT
         ),
     output:
-        "results/fuel_classes.parquet",
+        "<results>/fuel_classes.parquet",
     log:
-        "logs/prepare_fuels.log",
+        "<logs>/prepare_fuels.log",
     conda:
         "../envs/powerplants.yaml"
     shell:
@@ -283,13 +283,13 @@ rule prepare_remapped_fuel_categories:
         "Remap fuel classes of combustion plants to harmonised ones."
     input:
         script=workflow.source_path("../scripts/prepare_fuels.py"),
-        plants="resources/automatic/temp/plants_{category}.parquet",
-        old="resources/automatic/temp/fuels_{category}.parquet",
-        new="results/fuel_classes.parquet",
+        plants="<resources>/automatic/temp/plants_{category}.parquet",
+        old="<resources>/automatic/temp/fuels_{category}.parquet",
+        new="<results>/fuel_classes.parquet",
     output:
-        "resources/automatic/prepared/{category}.parquet",
+        "<resources>/automatic/prepared/{category}.parquet",
     log:
-        "logs/prepare_remapped_fuel_categories_{category}.log",
+        "<logs>/prepare_remapped_fuel_categories_{category}.log",
     wildcard_constraints:
         category="|".join(PREPARED_FUEL_CAT),
     conda:

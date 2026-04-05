@@ -20,20 +20,20 @@ rule proxy_rooftop_pv:
         category="solar",
         year=config["imputation"]["adjustment_year"],
     input:
-        shapes="resources/user/{shapes}/shapes.parquet",
-        proxy="resources/user/{shapes}/proxies/rooftop_pv.tif",
-        agg_unadj="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
-        stats="results/{shapes}/statistics/category_capacity.parquet",
+        shapes="<shapes>",
+        proxy="<proxy_rooftop_pv>",
+        agg_unadj="<results>/{shapes}/aggregated/unadjusted/large_solar.parquet",
+        stats="<results>/{shapes}/statistics/category_capacity.parquet",
     output:
-        proxy="results/{shapes}/proxies/rooftop_pv.tif",
+        proxy="<results>/{shapes}/proxies/rooftop_pv.tif",
         plot=report(
-            "results/{shapes}/proxies/rooftop_pv.pdf",
+            "<results>/{shapes}/proxies/rooftop_pv.pdf",
             caption="../report/proxy_rooftop_pv.rst",
             category="Powerplants module",
             subcategory="solar",
         ),
     log:
-        "logs/proxy_rooftop_pv_{shapes}.log",
+        "<logs>/proxy_rooftop_pv_{shapes}.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -46,13 +46,13 @@ rule aggregate_solar_capacity:
     params:
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     input:
-        large_solar="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
-        proxy="results/{shapes}/proxies/rooftop_pv.tif",
-        shapes="resources/user/{shapes}/shapes.parquet",
+        large_solar="<results>/{shapes}/aggregated/unadjusted/large_solar.parquet",
+        proxy="<results>/{shapes}/proxies/rooftop_pv.tif",
+        shapes="<shapes>",
     output:
-        aggregated="results/{shapes}/aggregated/unadjusted/{category}.parquet",
+        aggregated="<results>/{shapes}/aggregated/unadjusted/{category}.parquet",
         plot=report(
-            "results/{shapes}/aggregated/unadjusted/{category}.pdf",
+            "<results>/{shapes}/aggregated/unadjusted/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -60,7 +60,7 @@ rule aggregate_solar_capacity:
     wildcard_constraints:
         category="solar",
     log:
-        "logs/aggregate_capacity_{shapes}_unadjusted_{category}.log",
+        "<logs>/aggregate_capacity_{shapes}_unadjusted_{category}.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -73,25 +73,25 @@ rule impute_capacity_adjustment_solar:
     params:
         year=config["imputation"]["adjustment_year"],
     input:
-        unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
-        shapes="resources/user/{shapes}/shapes.parquet",
-        stats="results/{shapes}/statistics/category_capacity.parquet",
+        unadjusted="<results>/{shapes}/aggregated/unadjusted/solar.parquet",
+        shapes="<shapes>",
+        stats="<results>/{shapes}/statistics/category_capacity.parquet",
     output:
-        adjusted="results/{shapes}/aggregated/adjusted/solar.parquet",
+        adjusted="<results>/{shapes}/aggregated/adjusted/solar.parquet",
         adj_plot=report(
-            "results/{shapes}/aggregated/adjusted/solar_adj.pdf",
+            "<results>/{shapes}/aggregated/adjusted/solar_adj.pdf",
             caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="solar",
         ),
         map_plot=report(
-            "results/{shapes}/aggregated/adjusted/solar_map.pdf",
+            "<results>/{shapes}/aggregated/adjusted/solar_map.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="solar",
         ),
     log:
-        "logs/impute_capacity_adjusted_solar_{shapes}.log",
+        "<logs>/impute_capacity_adjusted_solar_{shapes}.log",
     conda:
         "../envs/powerplants.yaml"
     script:

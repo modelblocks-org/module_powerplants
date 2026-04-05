@@ -21,15 +21,15 @@ rule impute_years:
         projected_crs=config["projected_crs"],
         tech_map=lambda wc: get_technology_mapping(wc.dataset),
     input:
-        prepared="resources/automatic/prepared/{dataset}.parquet",
+        prepared="<resources>/automatic/prepared/{dataset}.parquet",
         dissolved_shapes=rules.prepare_shapes.output.dissolved,
     output:
-        imputed="resources/automatic/shapes/{shapes}/imputed/{dataset}.parquet",
-        plot="resources/automatic/shapes/{shapes}/imputed/{dataset}.pdf",
+        imputed="<resources>/automatic/shapes/{shapes}/imputed/{dataset}.parquet",
+        plot="<resources>/automatic/shapes/{shapes}/imputed/{dataset}.pdf",
     wildcard_constraints:
         dataset="|".join(PREPARED_PLANT_CAT),
     log:
-        "logs/impute_years_{shapes}_{dataset}.log",
+        "<logs>/impute_years_{shapes}_{dataset}.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -45,15 +45,15 @@ rule impute_category_combination:
     input:
         to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
     output:
-        combined="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
+        combined="<results>/{shapes}/disaggregated/unadjusted/{category}.parquet",
         plot=report(
-            "results/{shapes}/disaggregated/unadjusted/{category}.pdf",
+            "<results>/{shapes}/disaggregated/unadjusted/{category}.pdf",
             caption="../report/impute_category_combination_histogram.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
         explore=report(
-            "results/{shapes}/disaggregated/unadjusted/{category}.html",
+            "<results>/{shapes}/disaggregated/unadjusted/{category}.html",
             caption="../report/impute_category_combination_map.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -61,7 +61,7 @@ rule impute_category_combination:
     wildcard_constraints:
         category="|".join(IMPUTED_CAT),
     log:
-        "logs/impute_category_combination_{shapes}_{category}.log",
+        "<logs>/impute_category_combination_{shapes}_{category}.log",
     conda:
         "../envs/powerplants.yaml"
     script:
@@ -74,12 +74,12 @@ rule impute_capacity_adjustment:
     params:
         year=config["imputation"]["adjustment_year"],
     input:
-        unadjusted="results/{shapes}/disaggregated/unadjusted/{category}.parquet",
-        stats="results/{shapes}/statistics/category_capacity.parquet",
+        unadjusted="<results>/{shapes}/disaggregated/unadjusted/{category}.parquet",
+        stats="<results>/{shapes}/statistics/category_capacity.parquet",
     output:
-        adjusted="results/{shapes}/disaggregated/adjusted/{category}.parquet",
+        adjusted="<results>/{shapes}/disaggregated/adjusted/{category}.parquet",
         plot=report(
-            "results/{shapes}/disaggregated/adjusted/{category}.pdf",
+            "<results>/{shapes}/disaggregated/adjusted/{category}.pdf",
             caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -87,7 +87,7 @@ rule impute_capacity_adjustment:
     wildcard_constraints:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_WITHOUT_ADJUSTMENT),
     log:
-        "logs/impute_capacity_adjustment_{shapes}_{category}.log",
+        "<logs>/impute_capacity_adjustment_{shapes}_{category}.log",
     conda:
         "../envs/powerplants.yaml"
     script:

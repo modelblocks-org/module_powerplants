@@ -25,7 +25,7 @@ def additional_config_validation():
 
 
 def get_excluded_powerplant_ids(category):
-    """Handle cases where the naming in /results/.../disaggregated and configuration files mismatch.
+    """Handle cases where the naming in /<results>/.../disaggregated and configuration files mismatch.
 
     These are categories that include technologies poorly tracked at individual level.
     Proxying processes are necessary, and /disaggregated/ uses a different name to deter
@@ -59,18 +59,18 @@ def get_files_to_combine(shapes, category):
     to_combine = []
     if category == "large_solar":
         to_combine += [
-            f"resources/automatic/shapes/{shapes}/imputed/solar_utility_pv.parquet",
-            f"resources/automatic/shapes/{shapes}/imputed/solar_csp.parquet",
+            f"<resources>/automatic/shapes/{shapes}/imputed/solar_utility_pv.parquet",
+            f"<resources>/automatic/shapes/{shapes}/imputed/solar_csp.parquet",
         ]
     elif category == "fossil":
         to_combine += [
-            f"resources/automatic/shapes/{shapes}/imputed/fossil_coal.parquet",
-            f"resources/automatic/shapes/{shapes}/imputed/fossil_oil_gas.parquet",
+            f"<resources>/automatic/shapes/{shapes}/imputed/fossil_coal.parquet",
+            f"<resources>/automatic/shapes/{shapes}/imputed/fossil_oil_gas.parquet",
         ]
     else:
-        to_combine.append(f"resources/automatic/shapes/{shapes}/imputed/{category}.parquet")
+        to_combine.append(f"<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet")
 
-    user_path = f"resources/user/{shapes}/impute/{category}.parquet"
+    user_path = f"<resources>/user/{shapes}/impute/{category}.parquet"
     if exists(user_path):
         to_combine.append(user_path)
     return to_combine

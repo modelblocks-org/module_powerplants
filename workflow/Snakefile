@@ -2,7 +2,21 @@ import yaml
 
 from snakemake.utils import min_version, validate
 
-min_version("8.10")
+min_version("9.19")
+
+
+# !!!!! IMPORTANT !!!!!
+# Define pathvars for all user resource files and result files
+# This allows users to re-wire how the module is used in their workflow with ease.
+pathvars:
+    # User resources
+    shapes="<resources>/user/{shapes}/shapes.parquet",
+    proxy_rooftop_pv="<resources>/user/{shapes}/proxies/rooftop_pv.tif",
+    imputed_powerplants="<resources>/user/{shapes}/impute/{category}.parquet",
+    # Module results
+    aggregated_capacity="<results>/{shape}/aggregated/{adjustment}/{category}.parquet",
+    disaggregated_capacity="<results>/{shape}/disaggregated/{adjustment}/{category}.parquet",
+    statistics="<results>/{shape}/statistics/category_capacity.parquet",
 
 
 # Load the example configuration. This will be overridden by users.
@@ -43,7 +57,7 @@ rule all:
     output:
         "INVALID",
     log:
-        stderr="logs/all.stderr",
+        stderr="<logs>/all.stderr",
     conda:
         "envs/shell.yaml"
     shell:
