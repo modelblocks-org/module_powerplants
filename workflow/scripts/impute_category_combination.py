@@ -64,7 +64,7 @@ def explore(imputed_path: str, output_path: str, colormap="tab20"):
 
 if __name__ == "__main__":
     impute(
-        input_paths=snakemake.input.to_combine,
+        input_paths=[snakemake.input.internal, *snakemake.input.user],
         output_path=snakemake.output.combined,
         tech_mapping=snakemake.params.tech_map,
         excluded=snakemake.params.excluded,

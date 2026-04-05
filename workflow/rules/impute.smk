@@ -15,7 +15,7 @@ rule impute_years:
         imputed="<resources>/automatic/shapes/{shapes}/imputed/{dataset}.parquet",
         plot="<resources>/automatic/shapes/{shapes}/imputed/{dataset}.pdf",
     wildcard_constraints:
-        dataset="|".join(PREPARED_PLANT_CAT),
+        dataset="|".join(IMPUTED_CAT),
     log:
         "<logs>/impute_years_{shapes}_{dataset}.log",
     conda:
@@ -31,7 +31,17 @@ rule impute_category_combination:
         tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
         excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
     input:
-        to_combine=lambda wc: get_files_to_combine(wc.shapes, wc.category),
+        internal="<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet",
+        user=lambda wc: (
+            ["<imputed_powerplants>"]
+            if exists(
+                workflow.pathvars.apply("<imputed_powerplants>").format(
+                    shapes=wc.shapes,
+                    category=wc.category,
+                )
+            )
+            else []
+        )
     output:
         combined="<results>/{shapes}/disaggregated/unadjusted/{category}.parquet",
         plot=report(

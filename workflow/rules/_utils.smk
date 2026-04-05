@@ -78,27 +78,14 @@ def get_technology_mapping(filename: str):
     return mapping
 
 
-def get_files_to_combine(shapes, category):
-    """Produce a list of subcategory files to combine.
-
-    Will also append imputed data files if present.
-    """
-    to_combine = []
-    to_combine.append(f"<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet")
-
-    user_path = f"<resources>/user/{shapes}/impute/{category}.parquet"
-    if exists(user_path):
-        to_combine.append(user_path)
-    return to_combine
-
 
 def get_files_to_remap(category: str, prefix: str):
     """Produce a list of fuel category files to combine."""
     to_combine = []
     if category == "fossil":
         to_combine += [
-            f"<resources>/automatic/temp/{prefix}_coal.parquet",
-            f"<resources>/automatic/temp/{prefix}_oil.parquet",
+            f"<resources>/automatic/temp/{prefix}_fossil_coal.parquet",
+            f"<resources>/automatic/temp/{prefix}_fossil_oil_gas.parquet",
         ]
     else:
         to_combine.append(f"<resources>/automatic/temp/{prefix}_{category}.parquet")
