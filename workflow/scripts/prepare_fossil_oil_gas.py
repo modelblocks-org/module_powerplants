@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 
 def _retired_year(gem_df: pd.DataFrame):
@@ -29,13 +28,11 @@ def _retired_year(gem_df: pd.DataFrame):
     )
 
 
-def main(
+def prepare_gem_gogpt(
     gem_gogpt_path: str,
     technology_mapping: dict[str, str],
     fuel_mapping: dict[str, str],
-    output_plants_path: str,
-    output_fuels_path: str,
-):
+) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain oil and gas power plants using GEM-GOGPT data."""
     raw_df = gem.read_gem_dataset(
         gem_gogpt_path, ["Gas & Oil Units", "sub-threshold units"]
@@ -44,7 +41,6 @@ def main(
     fuels_df, fuel_class = gem.get_unique_fuel_dataset(
         raw_df["fuel"], fuel_mapping, "fossil gas: unknown", "og"
     )
-    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
     oil_gas_df = gpd.GeoDataFrame(
         {
@@ -67,14 +63,20 @@ def main(
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
-    schema.validate(oil_gas_df).to_parquet(output_plants_path)
+    return schema.validate(oil_gas_df), _schemas.FuelSchema.validate(fuels_df)
 
 
-if __name__ == "__main__":
-    main(
+def main() -> None:
+    """Main snakemake process."""
+    og_plants, og_fuels = prepare_gem_gogpt(
         gem_gogpt_path=snakemake.input.gem_gogpt,
         technology_mapping=snakemake.params.technology_mapping,
         fuel_mapping=snakemake.params.fuel_mapping,
-        output_plants_path=snakemake.output.plants,
-        output_fuels_path=snakemake.output.fuels,
     )
+    og_plants.to_parquet(snakemake.output.plants)
+    og_fuels.to_parquet(snakemake.output.fuels)
+
+
+if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
+    main()

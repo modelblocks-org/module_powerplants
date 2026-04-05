@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 STATUS_MAPPING = {
     "announced": "announced",
@@ -71,22 +70,16 @@ def _fuel(gem_df: pd.DataFrame) -> pd.Series:
     )
 
 
-def main(
-    gem_gcpt_path: str,
-    technology_mapping: dict[str, str],
-    fuel_mapping: dict[str, str],
-    output_plants_path: str,
-    output_fuels_path: str,
-):
+def prepare_gem_gcpt(
+    gem_gcpt_path: str, technology_mapping: dict[str, str], fuel_mapping: dict[str, str]
+) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain coal power locations using GEM-GCPT data."""
     raw_df = gem.read_gem_dataset(gem_gcpt_path, ["Units"])
 
     # Create fuel lookups
-
     fuels_df, fuel_class = gem.get_unique_fuel_dataset(
         _fuel(raw_df), fuel_mapping, "coal: unknown", "c"
     )
-    _schemas.FuelSchema.validate(fuels_df).to_parquet(output_fuels_path)
 
     coal_df = gpd.GeoDataFrame(
         {
@@ -109,14 +102,20 @@ def main(
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
-    schema.validate(coal_df).to_parquet(output_plants_path)
+    return schema.validate(coal_df), _schemas.FuelSchema.validate(fuels_df)
 
 
-if __name__ == "__main__":
-    main(
+def main() -> None:
+    """Main snakemake process."""
+    coal_plants, coal_fuels = prepare_gem_gcpt(
         gem_gcpt_path=snakemake.input.gem_gcpt,
         technology_mapping=snakemake.params.technology_mapping,
         fuel_mapping=snakemake.params.fuel_mapping,
-        output_plants_path=snakemake.output.plants,
-        output_fuels_path=snakemake.output.fuels,
     )
+    coal_plants.to_parquet(snakemake.output.plants)
+    coal_fuels.to_parquet(snakemake.output.fuels)
+
+
+if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
+    main()
