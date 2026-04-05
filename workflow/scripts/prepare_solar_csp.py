@@ -1,20 +1,19 @@
 """Prepare a clean CSP dataset using our schemas."""
 
+import sys
+from typing import TYPE_CHECKING, Any
+
 import _gem as gem
 import _schemas
 import _utils
-import click
 import geopandas as gpd
 
+if TYPE_CHECKING:
+    snakemake: Any
 
-@click.command()
-@click.argument("gem_gspt_path", type=click.Path(dir_okay=False))
-@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
-@click.option("-t", "tech_name", type=str, default="csp")
-@click.option("-r", "dc_ac_ratio", default=1.25)
-def main(
-    gem_gspt_path: str, tech_name: str, output_path: str, dc_ac_ratio: float = 1.25
-):
+def prepare_solar_csp(
+    gem_gspt_path: str, tech_name: str, dc_ac_ratio: float = 1
+) -> gpd.GeoDataFrame:
     """Obtain CSP power locations using GEM-GSPT data."""
     raw_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
     raw_df = raw_df[raw_df["technology_type"] == "Solar Thermal"]
@@ -39,8 +38,15 @@ def main(
         }
     ).reset_index(drop=True)
     schema = _schemas.build_schema({"csp": tech_name}, "prepare")
-    schema.validate(csp_df).to_parquet(output_path)
+    return schema.validate(csp_df)
+
+
+def main() -> None:
+    """Main snakemake process."""
+    csp_gdf = prepare_solar_csp(snakemake.input.gem_gspt, snakemake.params.csp_name)
+    csp_gdf.to_parquet(snakemake.output.path)
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     main()

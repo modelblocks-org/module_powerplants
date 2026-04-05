@@ -81,10 +81,8 @@ rule prepare_solar_csp:
     message:
         "Preparing concentrating solar powerplants using the Global Solar Power Tracker (GEM-GSPT) dataset."
     params:
-        dc_ac_ratio=1,  # CSP is already an AC technology
-        tech_name=config["category"]["solar"]["technology_mapping"]["csp"],
+        csp_name=config["category"]["solar"]["technology_mapping"]["csp"],
     input:
-        script=workflow.source_path("../scripts/prepare_solar_csp.py"),
         gem_gspt="<resources>/automatic/downloads/GEM_GSPT.xlsx",
     output:
         path="<resources>/automatic/prepared/solar_csp.parquet",
@@ -92,11 +90,8 @@ rule prepare_solar_csp:
         "<logs>/prepare_solar_csp.log",
     conda:
         "../envs/powerplants.yaml"
-    shell:
-        """
-        python {input.script:q} {input.gem_gspt:q} -o {output.path:q} \
-            -t "{params.tech_name}" -r {params.dc_ac_ratio} 2> {log:q}
-        """
+    script:
+        "../scripts/prepare_solar_csp.py"
 
 
 if config["category"]["wind"]["source"] == "gem":
