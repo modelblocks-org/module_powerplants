@@ -1,17 +1,5 @@
 """Rules related to internal and user-provided imputations."""
 
-IMPUTED_CAT = {
-    "bioenergy",
-    "fossil",
-    "geothermal",
-    "hydropower",
-    "nuclear",
-    "large_solar",
-    "wind",
-}
-# Intermediate categories for cases that require proxies for aggregation.
-IMPUTED_CAT_WITHOUT_ADJUSTMENT = {"large_solar"}
-
 
 rule impute_years:
     message:

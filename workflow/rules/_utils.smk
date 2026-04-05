@@ -1,5 +1,32 @@
 """Collection of auxiliary functions for this module."""
 
+# Names after original database processing
+PREPARED_FUEL_CAT = ("bioenergy", "fossil_coal", "fossil_oil_gas")
+PREPARED_PLANT_CAT = (
+    "bioenergy",
+    "fossil_coal",
+    "fossil_oil_gas",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "large_solar",
+    "wind",
+)
+# Fossil categories are harmonised during fuel processing
+COMBINED_FUEL_CAT = ("bioenergy", "fossil")
+# Final categories seen by the user
+IMPUTED_CAT = {
+    "bioenergy",
+    "fossil",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "large_solar",
+    "wind",
+}
+# Intermediate categories that require proxies for aggregation.
+IMPUTED_CAT_WITHOUT_ADJUSTMENT = {"large_solar"}
+
 
 def additional_config_validation():
     """Ensures technology mapping and lifetime-related names match."""
@@ -57,15 +84,23 @@ def get_files_to_combine(shapes, category):
     Will also append imputed data files if present.
     """
     to_combine = []
-    if category == "fossil":
-        to_combine += [
-            f"<resources>/automatic/shapes/{shapes}/imputed/fossil_coal.parquet",
-            f"<resources>/automatic/shapes/{shapes}/imputed/fossil_oil_gas.parquet",
-        ]
-    else:
-        to_combine.append(f"<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet")
+    to_combine.append(f"<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet")
 
     user_path = f"<resources>/user/{shapes}/impute/{category}.parquet"
     if exists(user_path):
         to_combine.append(user_path)
+    return to_combine
+
+
+def get_files_to_remap(category: str, prefix: str):
+    """Produce a list of fuel category files to combine."""
+    to_combine = []
+    if category == "fossil":
+        to_combine += [
+            f"<resources>/automatic/temp/{prefix}_coal.parquet",
+            f"<resources>/automatic/temp/{prefix}_oil.parquet",
+        ]
+    else:
+        to_combine.append(f"<resources>/automatic/temp/{prefix}_{category}.parquet")
+
     return to_combine
