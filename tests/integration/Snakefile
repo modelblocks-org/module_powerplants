@@ -31,11 +31,11 @@ CATEGORIES = [
 
 # Request something from the module
 rule all:
-    message:
-        "A generic test case for your module."
     default_target: True
     input:
         expand(
             "results/integration_test/results/MNE/aggregated/adjusted/{category}.parquet",
             category=CATEGORIES,
         ),
+    message:
+        "A generic test case for your module."

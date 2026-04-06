@@ -14,11 +14,6 @@ To fill solar capacity, we follow these steps:
 
 
 rule proxy_rooftop_pv:
-    message:
-        "Generating proxy for rooftop capacity {wildcards.shapes}."
-    params:
-        category="solar",
-        year=config["imputation"]["adjustment_year"],
     input:
         shapes="resources/user/{shapes}/shapes.parquet",
         proxy="resources/user/{shapes}/proxies/rooftop_pv.tif",
@@ -36,15 +31,16 @@ rule proxy_rooftop_pv:
         "logs/proxy_rooftop_pv_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
+    params:
+        category="solar",
+        year=config["imputation"]["adjustment_year"],
+    message:
+        "Generating proxy for rooftop capacity {wildcards.shapes}."
     script:
         "../scripts/proxy.py"
 
 
 rule aggregate_solar_capacity:
-    message:
-        "Aggregating capacity for {wildcards.shapes}-unadjusted-{wildcards.category}."
-    params:
-        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     input:
         large_solar="results/{shapes}/aggregated/unadjusted/large_solar.parquet",
         proxy="results/{shapes}/proxies/rooftop_pv.tif",
@@ -57,21 +53,21 @@ rule aggregate_solar_capacity:
             category="Powerplants module",
             subcategory="{category}",
         ),
-    wildcard_constraints:
-        category="solar",
     log:
         "logs/aggregate_capacity_{shapes}_unadjusted_{category}.log",
+    wildcard_constraints:
+        category="solar",
     conda:
         "../envs/shapes.yaml"
+    params:
+        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
+    message:
+        "Aggregating capacity for {wildcards.shapes}-unadjusted-{wildcards.category}."
     script:
         "../scripts/aggregate_capacity.py"
 
 
 rule impute_capacity_adjustment_solar:
-    message:
-        "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
-    params:
-        year=config["imputation"]["adjustment_year"],
     input:
         unadjusted="results/{shapes}/aggregated/unadjusted/solar.parquet",
         shapes="resources/user/{shapes}/shapes.parquet",
@@ -94,5 +90,9 @@ rule impute_capacity_adjustment_solar:
         "logs/impute_capacity_adjusted_solar_{shapes}.log",
     conda:
         "../envs/shapes.yaml"
+    params:
+        year=config["imputation"]["adjustment_year"],
+    message:
+        "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
     script:
         "../scripts/impute_capacity_adjustment_solar.py"
