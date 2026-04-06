@@ -197,7 +197,7 @@ def main() -> None:
         projected_crs=snakemake.params.projected_crs,
     )
     imputed_gdf.to_parquet(snakemake.output.imputed)
-    _plots.plot_disaggregated_capacity_buildup(
+    _plots.plot_powerplant_capacity_buildup(
         imputed_gdf, snakemake.output.plot, "seaborn:tab20"
     )
 

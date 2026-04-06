@@ -96,9 +96,9 @@ def prepare(
     category_statistics = category_statistics.reset_index(drop=True)
 
     total_cap_sum = total_statistics["capacity_mw"].sum()
-    disaggregated_cap_sum = category_statistics["capacity_mw"].sum()
-    assert math.isclose(total_cap_sum, disaggregated_cap_sum), (
-        f"Aggregated capacity checksum failed: {total_cap_sum} vs {disaggregated_cap_sum}."
+    category_cap_sum = category_statistics["capacity_mw"].sum()
+    assert math.isclose(total_cap_sum, category_cap_sum), (
+        f"Aggregated capacity checksum failed: {total_cap_sum} vs {category_cap_sum}."
     )
 
     total_statistics.attrs["missing_countries"] = missing

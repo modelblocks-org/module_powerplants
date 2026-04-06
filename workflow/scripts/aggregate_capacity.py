@@ -88,7 +88,7 @@ def capacity_solar(
 
 
 if __name__ == "__main__":
-    if snakemake.wildcards.category == "solar":
+    if snakemake.params.category == "solar":
         capacity_solar(
             large_pv_agg_file=snakemake.input.large_solar,
             proxy_file=snakemake.input.proxy,
@@ -107,5 +107,5 @@ if __name__ == "__main__":
         aggregated_file=snakemake.output.aggregated,
         shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.plot,
-        category=snakemake.wildcards.category,
+        category=snakemake.params.category,
     )

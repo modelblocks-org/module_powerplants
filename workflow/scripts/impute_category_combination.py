@@ -46,7 +46,7 @@ def impute(
 def plot(imputed_path: str, output_path: str, colormap="tab20"):
     """Plot stacked bar charts of active powerplant capacity over time per country."""
     df = pd.read_parquet(imputed_path)
-    _plots.plot_disaggregated_capacity_buildup(df, output_path, colormap)
+    _plots.plot_powerplant_capacity_buildup(df, output_path, colormap)
 
 
 def explore(imputed_path: str, output_path: str, colormap="tab20"):

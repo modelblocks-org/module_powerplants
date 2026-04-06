@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 
 import _schemas
 import geopandas as gpd
+from cmap import Colormap
 from matplotlib import pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -35,12 +36,14 @@ def plot(
     fig, axes = plt.subplots(1, 2, layout="constrained")
     original.to_crs(crs).plot("shape_class", ax=axes[0])
     axes[0].set_title("User")
-    if new[col].is_unique:
+    new_proj = new.to_crs(crs)
+    if len(new[col].unique()) == 1:
         # FIXME: odd issue when plotting a single category
         # Upgrading geopandas might fix it.
-        new.to_crs(crs).plot(ax=axes[1], color="lightcoral")
+        new_proj.plot(ax=axes[1], color="lightcoral")
     else:
-        new.to_crs(crs).plot(col, ax=axes[1], cmap=cmap, categorical=True)
+        new_proj.plot(col, ax=axes[1], cmap=Colormap(cmap).to_mpl())
+    new_proj.boundary.plot(ax=axes[1], color="black", lw=0.2)
     axes[1].set_title(name)
     for ax in axes:
         ax.set(xticks=[], yticks=[], xlabel="", ylabel="")

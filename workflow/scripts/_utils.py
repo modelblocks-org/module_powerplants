@@ -6,7 +6,7 @@ import geopandas as gpd
 import pandas as pd
 from pandas.api.types import is_list_like
 
-# Average year where disaggregated datasets were last updated.
+# Average year where powerplant datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
 DATASET_YEAR = 2024
 
@@ -119,10 +119,10 @@ def get_adjusted_capacity(
     return adjusted_cap_mw
 
 
-def adjust_disaggregated_capacity(plants, stats, year):
-    """Adjust capacity to national statistics in the given year.
+def adjust_powerplant_capacity(plants, stats, year):
+    """Adjust powerplant capacity to national statistics in the given year.
 
-    Will keep future projects in the disaggregated case.
+    Keeps "future" projects beyond the given year.
     """
     category = check_single_category(plants)
     stats = get_eia_stats_in_cat_yr(stats, year, category)

@@ -27,12 +27,12 @@ def plot_empty(title: str, output_path: str) -> None:
     fig.savefig(output_path)
 
 
-def plot_disaggregated_capacity_buildup(
+def plot_powerplant_capacity_buildup(
     df: pd.DataFrame, output_path: str, colormap: str
 ):
     """Plot stacked bar charts of active powerplant capacity over time per country.
 
-    Input should be a disaggregated capacity file of a single category.
+    Input should be a powerplant capacity file of a single category.
     """
     suptitle = "Active powerplant capacity by technology per country"
 

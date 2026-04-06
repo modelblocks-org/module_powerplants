@@ -14,10 +14,10 @@ if TYPE_CHECKING:
 sys.stderr = open(snakemake.log[0], "w")
 
 
-def adjust_disaggregated(
+def adjust_powerplant_capacity(
     stats_file: str, unadjusted_file: str, year: int, output_file: str
 ):
-    """Adjust disaggregated powerplant capacity in the given year.
+    """Adjust powerplant capacity in the given year.
 
     Also appends future projects without altering their values.
     """
@@ -27,13 +27,13 @@ def adjust_disaggregated(
     if plants.empty:
         adjusted_plants = plants
     else:
-        adjusted_plants = _utils.adjust_disaggregated_capacity(plants, stats, year)
+        adjusted_plants = _utils.adjust_powerplant_capacity(plants, stats, year)
 
     _schemas.PlantSchema.validate(adjusted_plants).to_parquet(output_file)
 
 
 if __name__ == "__main__":
-    adjust_disaggregated(
+    adjust_powerplant_capacity(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
         year=snakemake.params.year,

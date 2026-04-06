@@ -10,13 +10,13 @@ min_version("9.19")
 # This allows users to re-wire how the module is used in their workflow with ease.
 pathvars:
     # User resources
-    shapes="<resources>/user/{shapes}/shapes.parquet",
-    proxy_rooftop_pv="<resources>/user/{shapes}/proxies/rooftop_pv.tif",
     imputed_powerplants="<resources>/user/{shapes}/impute/{category}.parquet",
+    proxy_rooftop_pv="<resources>/user/{shapes}/proxies/rooftop_pv.tif",
+    shapes="<resources>/user/{shapes}/shapes.parquet",
+    wemi="<resources>/user/WEMI.xls",
     # Module results
-    aggregated_capacity="<results>/{shape}/aggregated/{adjustment}/{category}.parquet",
-    disaggregated_capacity="<results>/{shape}/disaggregated/{adjustment}/{category}.parquet",
-    statistics="<results>/{shape}/statistics/category_capacity.parquet",
+    aggregated_capacity="<results>/{shapes}/aggregated/{adjustment}/{category}.parquet",
+    powerplants="<results>/{shapes}/powerplants/{adjustment}/{category}.parquet",
 
 
 # Load the example configuration. This will be overridden by users.
