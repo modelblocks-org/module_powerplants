@@ -4,10 +4,6 @@ ADJUSTMENTS = ("adjusted", "unadjusted")
 
 
 rule aggregate_capacity:
-    message:
-        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
-    params:
-        year=config["imputation"]["adjustment_year"],
     input:
         powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
         shapes="resources/user/{shapes}/shapes.parquet",
@@ -19,12 +15,16 @@ rule aggregate_capacity:
             category="Powerplants module",
             subcategory="{category}",
         ),
+    log:
+        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     wildcard_constraints:
         adjustment="|".join(ADJUSTMENTS),
         category="|".join(IMPUTED_CAT),
-    log:
-        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
     conda:
         "../envs/shapes.yaml"
+    params:
+        year=config["imputation"]["adjustment_year"],
+    message:
+        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     script:
         "../scripts/aggregate_capacity.py"
