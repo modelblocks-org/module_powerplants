@@ -39,7 +39,7 @@ pathvars:
       default: "<results>/{shapes}/powerplants/{adjustment}/{category}.parquet"
       description: Disaggregated powerplants within polygons in the given shapefile.
 wildcards:
-  shape: name of the provided shapefile.
+  shapes: name of the provided shapefile.
   adjustment: >
     Whether or not total capacity per country has been re-scaled to fit national statistics.
     Options: "adjusted" or "unadjusted".
