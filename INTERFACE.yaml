@@ -29,7 +29,7 @@ pathvars:
       default: "<resources>/user/WEMI.xls"
       description: |
         Wind Energy Market Intelligence dataset.
-        Will replace the GEM GWPT dataset if selected in the configuration.
+        This optional dataset will replace the GEM GWPT dataset if selected in the configuration.
   results:
     aggregated_capacity:
       default: "<results>/{shapes}/aggregated/{adjustment}/{category}.parquet"

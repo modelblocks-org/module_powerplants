@@ -91,6 +91,7 @@ def filter_years(
             (powerplants_df["start_year"] <= year) & (year < powerplants_df["end_year"])
         ].copy()
     elif how == "future":
+        # FIXME: this does not filter 'future' years at all!
         filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
     return filtered
 
@@ -125,9 +126,8 @@ def adjust_powerplant_capacity(plants, stats, year):
     Keeps "future" projects beyond the given year.
     """
     category = check_single_category(plants)
-    stats = get_eia_stats_in_cat_yr(stats, year, category)
-    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
-
+    cat_stats = get_eia_stats_in_cat_yr(stats, year, category)
+    expected_capacity = cat_stats.groupby(["country_id"])["capacity_mw"].sum()
     adjusted = _clean_positive_capacity(filter_years(plants, year, how="future"))
     operating = filter_years(adjusted, year, how="operating")
     operating = operating[operating["country_id"].isin(expected_capacity.index)]

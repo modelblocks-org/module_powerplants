@@ -32,15 +32,10 @@ rule impute_category_combination:
         excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
     input:
         internal=rules.impute_years.output.imputed,
-        user=lambda wc: (
-            ["<imputed_powerplants>"]
-            if exists(
-                workflow.pathvars.apply("<imputed_powerplants>").format(
-                    shapes=wc.shapes,
-                    category=wc.category,
-                )
-            )
-            else []
+        user=branch(
+            exists("<imputed_powerplants>"),
+            then=["<imputed_powerplants>"],
+            otherwise=[]
         )
     output:
         combined=workflow.pathvars.apply("<powerplants>").format(

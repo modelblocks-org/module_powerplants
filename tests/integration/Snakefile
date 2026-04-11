@@ -1,5 +1,9 @@
+import yaml
+
 # Emulate a user configuring the module.
-configfile: workflow.source_path("test_config.yaml")
+module_config = dict()
+with open(workflow.source_path("../../config/config.yaml"), "r") as f:
+    module_config["module_powerplants"] = yaml.safe_load(f.read())
 
 
 # Import the module and configure it.
@@ -9,9 +13,18 @@ module module_powerplants:
     snakefile:
         "../../workflow/Snakefile"
     config:
-        config["module_powerplants"]
-    prefix:
-        "results/integration_test/"
+        module_config["module_powerplants"]
+    pathvars:
+        # Redirect specific user resources (inputs)
+        shapes="resources/inputs/{shapes}/shapes.parquet",
+        proxy_rooftop_pv="resources/inputs/{shapes}/proxies/rooftop_pv.tif",
+        # Redirect specific module results (outputs)
+        aggregated_capacity="results/outputs/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        powerplants="results/outputs/{shapes}/powerplants/{adjustment}/{category}.parquet",
+        # Redirect module intermediate files
+        logs="resources/powerplants/logs",
+        resources="resources/powerplants/resources",
+        results="resources/powerplants/results",
 
 
 # rename all module rules with a prefix, to avoid naming conflicts.
@@ -36,6 +49,6 @@ rule all:
     default_target: True
     input:
         expand(
-            "results/integration_test/results/MNE/aggregated/adjusted/{category}.parquet",
+            "results/outputs/MNE/aggregated/adjusted/{category}.parquet",
             category=CATEGORIES,
         ),

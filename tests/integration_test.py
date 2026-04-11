@@ -23,10 +23,10 @@ def integration_path(user_path: Path, module_path: Path):
     """Ensures the minimal integration test is ready."""
     integration_dir = Path(module_path / "tests/integration")
     if integration_dir.exists():
-        shutil.rmtree(
-            integration_dir / "results/", ignore_errors=True
-        )  # clean everything
-    user_integ_dir = integration_dir / "results/integration_test/resources/user/"
+        # clean everything
+        shutil.rmtree(integration_dir / "resources", ignore_errors=True)
+        shutil.rmtree(integration_dir / "results/", ignore_errors=True)
+    user_integ_dir = integration_dir / "resources/inputs/"
     files_to_copy = ["MNE/proxies/rooftop_pv.tif", "MNE/shapes.parquet"]
     for file in files_to_copy:
         destination_file = Path(user_integ_dir / file)
