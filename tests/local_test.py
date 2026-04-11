@@ -32,7 +32,7 @@ TEST_CATEGORIES = {
     "wind",
 }
 
-type Aggregation = Literal["aggregated", "disaggregated"]
+type Aggregation = Literal["aggregated", "powerplants"]
 type Adjustment = Literal["adjusted", "unadjusted"]
 
 
@@ -46,7 +46,7 @@ def build_request_all(
 
 
 @pytest.mark.parametrize("adjustment", ["unadjusted", "adjusted"])
-@pytest.mark.parametrize("aggregation", ["aggregated"])
+@pytest.mark.parametrize("aggregation", ["aggregated", "powerplants"])
 @pytest.mark.parametrize("case", ["MEX", "MNE", "europe"])
 def test_full_run(
     user_path: Path, case: str, aggregation: Aggregation, adjustment: Adjustment
@@ -56,14 +56,15 @@ def test_full_run(
     NNN-aggregated-adjusted is often the most holistic case.
     """
     cats = TEST_CATEGORIES
-    if aggregation == "disaggregated":
-        # solar has no disaggregated case due to the lack of point-source rooftop PV.
+    if aggregation == "powerplants":
+        # solar has no powerplant case due to the lack of point-source rooftop PV.
         cats = cats - {"solar"}
+        cats = cats | {"large_solar"}
 
     request = build_request_all(case, TEST_CATEGORIES, "aggregated", adjustment)
 
     assert subprocess.run(
-        f"snakemake --use-conda --cores 4 --forceall {request}",
+        f"snakemake --use-conda --cores 4 --forceall --rerun-incomplete {request}",
         shell=True,
         check=True,
         cwd=user_path.parent.parent,

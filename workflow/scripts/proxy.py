@@ -16,7 +16,6 @@ from xarray import DataArray
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w", buffering=1)
 
 
 def _check_crs(raster: DataArray):
@@ -85,7 +84,7 @@ def proxy_rooftop_pv_capacity(
     borders_df["output_capacity_mw"] = missing_cap_mw
 
     proxy = gregor.disaggregate.disaggregate_polygon_to_raster(
-        borders_df, column="output_capacity_mw", proxy=area_potential_da
+        borders_df, column="output_capacity_mw", proxy=area_potential_da, use_dask=True
     )
     proxy.attrs |= {
         "name": "output_capacity_mw",
@@ -136,6 +135,7 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w", buffering=1)
     proxy_rooftop_pv_capacity(
         shapes_file=snakemake.input.shapes,
         proxy_file=snakemake.input.proxy,

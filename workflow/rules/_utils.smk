@@ -1,5 +1,34 @@
 """Collection of auxiliary functions for this module."""
 
+# Options for both powerplants and aggregated capacities
+ADJUSTMENTS = ("adjusted", "unadjusted")
+# Names after original database processing
+PREPARED_FUEL_CAT = ("bioenergy", "fossil_coal", "fossil_oil_gas")
+PREPARED_PLANT_CAT = (
+    "bioenergy",
+    "fossil_coal",
+    "fossil_oil_gas",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "large_solar",
+    "wind",
+)
+# Fossil categories are harmonised during fuel processing
+COMBINED_FUEL_CAT = ("bioenergy", "fossil")
+# Final categories seen by the user
+IMPUTED_CAT = {
+    "bioenergy",
+    "fossil",
+    "geothermal",
+    "hydropower",
+    "nuclear",
+    "large_solar",
+    "wind",
+}
+# Intermediate categories that require proxies for aggregation.
+IMPUTED_CAT_WITHOUT_ADJUSTMENT = {"large_solar"}
+
 
 def additional_config_validation():
     """Ensures technology mapping and lifetime-related names match."""
@@ -25,12 +54,7 @@ def additional_config_validation():
 
 
 def get_excluded_powerplant_ids(category):
-    """Handle cases where the naming in /results/.../disaggregated and configuration files mismatch.
-
-    These are categories that include technologies poorly tracked at individual level.
-    Proxying processes are necessary, and /disaggregated/ uses a different name to deter
-    improper handling.
-    """
+    """Handle cases where the naming between files and configuration mismatch."""
     if category == "large_solar":
         config_cat = "solar"
     else:
@@ -51,26 +75,15 @@ def get_technology_mapping(filename: str):
     return mapping
 
 
-def get_files_to_combine(shapes, category):
-    """Produce a list of subcategory files to combine.
-
-    Will also append imputed data files if present.
-    """
+def get_files_to_remap(category: str, prefix: str):
+    """Produce a list of fuel category files to combine."""
     to_combine = []
-    if category == "large_solar":
+    if category == "fossil":
         to_combine += [
-            f"resources/automatic/{shapes}/imputed/solar_utility_pv.parquet",
-            f"resources/automatic/{shapes}/imputed/solar_csp.parquet",
-        ]
-    elif category == "fossil":
-        to_combine += [
-            f"resources/automatic/{shapes}/imputed/fossil_coal.parquet",
-            f"resources/automatic/{shapes}/imputed/fossil_oil_gas.parquet",
+            f"<resources>/automatic/temp/{prefix}_fossil_coal.parquet",
+            f"<resources>/automatic/temp/{prefix}_fossil_oil_gas.parquet",
         ]
     else:
-        to_combine.append(f"resources/automatic/{shapes}/imputed/{category}.parquet")
+        to_combine.append(f"<resources>/automatic/temp/{prefix}_{category}.parquet")
 
-    user_path = f"resources/user/{shapes}/impute/{category}.parquet"
-    if exists(user_path):
-        to_combine.append(user_path)
     return to_combine

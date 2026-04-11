@@ -1,10 +1,10 @@
-name: shapes
+name: powerplants
 channels:
   - conda-forge
   - nodefaults
 dependencies:
   - click=8.2.1
-  - cmap = 0.6.2
+  - cmap = 0.7.2
   - dask = 2025.7.0
   - geopandas = 1.0.1
   - ipdb = 0.13.13

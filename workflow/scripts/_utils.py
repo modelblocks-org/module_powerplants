@@ -6,7 +6,7 @@ import geopandas as gpd
 import pandas as pd
 from pandas.api.types import is_list_like
 
-# Average year where disaggregated datasets were last updated.
+# Average year where powerplant datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
 DATASET_YEAR = 2024
 
@@ -91,6 +91,7 @@ def filter_years(
             (powerplants_df["start_year"] <= year) & (year < powerplants_df["end_year"])
         ].copy()
     elif how == "future":
+        # FIXME: this does not filter 'future' years at all!
         filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
     return filtered
 
@@ -119,15 +120,14 @@ def get_adjusted_capacity(
     return adjusted_cap_mw
 
 
-def adjust_disaggregated_capacity(plants, stats, year):
-    """Adjust capacity to national statistics in the given year.
+def adjust_powerplant_capacity(plants, stats, year):
+    """Adjust powerplant capacity to national statistics in the given year.
 
-    Will keep future projects in the disaggregated case.
+    Keeps "future" projects beyond the given year.
     """
     category = check_single_category(plants)
-    stats = get_eia_stats_in_cat_yr(stats, year, category)
-    expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
-
+    cat_stats = get_eia_stats_in_cat_yr(stats, year, category)
+    expected_capacity = cat_stats.groupby(["country_id"])["capacity_mw"].sum()
     adjusted = _clean_positive_capacity(filter_years(plants, year, how="future"))
     operating = filter_years(adjusted, year, how="operating")
     operating = operating[operating["country_id"].isin(expected_capacity.index)]

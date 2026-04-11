@@ -1,32 +1,45 @@
 # Module Input-Output structure for automated doc. generation
-resources:
-  user:
-    "{shape}/impute/{category}.parquet": |
-      Optional. Files with point-specific powerplant data to impute on top of the files produced by this module.
-      Useful when important powerplant facilities are missing in the source datasets.
-
-      Can also be used to replace data when combined with `excluded_ids` in the configuration.
-
-    "{shape}/proxies/rooftop_pv.tif": Proxy raster to use to estimate rooftop PV capacity.
-
-    "{shape}/shapes.parquet": |
-      GeoParquet shapefile with the desired regional disaggregation.
-
-      IMPORTANT: shapes must add up to whole countries to ensure proxied national statistics are correct.
-
-results:
-  "{shape}/aggregated/{adjustment}/{category}.parquet": >
-    Aggregated powerplant capacity per polygon in the given shapefile.
-    All categories are available.
-
-  "{shape}/aggregated/proxies/rooftop_pv.tif": >
-    Generated proxy raster used to estimate rooftop PV capacity per country.
-
-  "{shape}/statistics/category_capacity.parquet": >
-    National-level capacity statistics per category, for all the countries in the shape file.
-
+pathvars:
+  snakemake_defaults:
+    logs:
+      default: "<logs>"
+      description: location of rule log files.
+    resources:
+      default: "<resources>"
+      description: "location of module resource files."
+    results:
+      default: "<results>"
+      description: "location of module results."
+  user_resources:
+    shapes:
+      default: "<resources>/user/{shapes}/shapes.parquet"
+      description: |
+        GeoParquet shapefile with the desired regional disaggregation.
+        IMPORTANT: shapes must add up to whole countries to ensure proxied national statistics are correct.
+    proxy_rooftop_pv:
+      default: "<resources>/user/{shapes}/proxies/rooftop_pv.tif"
+      description: Proxy raster to use to estimate rooftop PV capacity.
+    imputed_powerplants:
+      default: "<resources>/user/{shapes}/impute/{category}.parquet"
+      description: |
+        Optional. Files with point-specific powerplant data to impute on top of the files produced by this module.
+        Useful when important powerplant facilities are missing in the source datasets.
+        Can also be used to replace data when combined with `excluded_ids` in the configuration.
+    wemi:
+      default: "<resources>/user/WEMI.xls"
+      description: |
+        Wind Energy Market Intelligence dataset.
+        This optional dataset will replace the GEM GWPT dataset if selected in the configuration.
+  results:
+    aggregated_capacity:
+      default: "<results>/{shapes}/aggregated/{adjustment}/{category}.parquet"
+      description: >
+        Aggregated powerplant capacity per polygon in the given shapefile.
+    powerplants:
+      default: "<results>/{shapes}/powerplants/{adjustment}/{category}.parquet"
+      description: Disaggregated powerplants within polygons in the given shapefile.
 wildcards:
-  shape: name of the provided shapefile.
+  shapes: name of the provided shapefile.
   adjustment: >
     Whether or not total capacity per country has been re-scaled to fit national statistics.
     Options: "adjusted" or "unadjusted".

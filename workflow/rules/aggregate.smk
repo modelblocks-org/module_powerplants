@@ -1,29 +1,28 @@
 """Aggregation to user requested shapes."""
 
-ADJUSTMENTS = ("adjusted", "unadjusted")
-
 
 rule aggregate_capacity:
     input:
-        powerplants="results/{shapes}/disaggregated/{adjustment}/{category}.parquet",
-        shapes="resources/user/{shapes}/shapes.parquet",
+        powerplants="<powerplants>",
+        shapes="<shapes>",
     output:
-        aggregated="results/{shapes}/aggregated/{adjustment}/{category}.parquet",
+        aggregated="<aggregated_capacity>",
         plot=report(
-            "results/{shapes}/aggregated/{adjustment}/{category}.pdf",
+            "<results>/{shapes}/aggregated/{adjustment}/{category}.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     log:
-        "logs/aggregate_capacity_{shapes}_{adjustment}_{category}.log",
+        "<logs>/{shapes}/{adjustment}/{category}/aggregate_capacity.log",
     wildcard_constraints:
         adjustment="|".join(ADJUSTMENTS),
         category="|".join(IMPUTED_CAT),
     conda:
-        "../envs/shapes.yaml"
+        "../envs/powerplants.yaml"
     params:
         year=config["imputation"]["adjustment_year"],
+        category=lambda wc: wc.category,
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     script:

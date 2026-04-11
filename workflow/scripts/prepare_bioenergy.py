@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 
 def _start_year(gem_df: pd.DataFrame):
@@ -67,6 +66,7 @@ def main(
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     main(
         gem_gbpt_path=snakemake.input.gem_gbpt,
         technology_mapping=snakemake.params.technology_mapping,

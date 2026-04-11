@@ -1,12 +1,21 @@
-"""Processing of the Tranzition Zero Solar Asset Mapper (TZ-SAM) dataset."""
+"""Processing of large-scale solar powerplant datasets.
+
+- Tranzition Zero Solar Asset Mapper (TZ-SAM) dataset.
+- GEM Global Solar Power Tracker (GEM-GSPT) dataset.
+"""
+
+import sys
+from typing import TYPE_CHECKING, Any
 
 import _gem as gem
 import _schemas
 import _utils
-import click
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+
+if TYPE_CHECKING:
+    snakemake: Any
 
 
 def _start_year_tz_sam(tz_dam_df: pd.DataFrame):
@@ -47,7 +56,7 @@ def fill_tz_with_gem(
     return filled_tz_sam
 
 
-def get_gem_mismatch(
+def get_gem_v_tz_mismatch(
     gem_df: gpd.GeoDataFrame,
     tz_sam_df: gpd.GeoDataFrame,
     valid_status: list[str] | None = None,
@@ -85,13 +94,9 @@ def get_gem_mismatch(
     return future_gem_df.loc[~future_gem_df.index.isin(intersecting.index)]
 
 
-@click.command()
-@click.argument("tz_sam_path", type=click.Path(dir_okay=False))
-@click.argument("gem_gspt_path", type=click.Path(dir_okay=False))
-@click.option("-o", "output_path", type=click.Path(dir_okay=False), required=True)
-@click.option("-t", "tech_name", type=str, default="utility_pv")
-@click.option("-r", "dc_ac_ratio", type=float, default=1.25)
-def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_ratio):
+def prepare_solar_utility_pv(
+    tz_sam_path: str, gem_gspt_path: str, tech_name: str, dc_ac_ratio: float = 1.25
+):
     """Obtain utility-scale PV locations by combinging GEM-GSPT and TZ-SAM data.
 
     - TZ-SAM is the primary source for current facilities
@@ -138,7 +143,7 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_rat
     )
 
     filled_tz_df = fill_tz_with_gem(gem_df, tz_df)
-    gem_mismatch_df = get_gem_mismatch(
+    gem_mismatch_df = get_gem_v_tz_mismatch(
         gem_df,
         tz_df,
         valid_status=["announced", "pre-construction", "construction", "retired"],
@@ -148,7 +153,55 @@ def main(tz_sam_path: str, gem_gspt_path: str, output_path, tech_name, dc_ac_rat
     utility_pv = utility_pv.reset_index(drop=True)
 
     schema = _schemas.build_schema({"utility_pv": tech_name}, "prepare")
-    schema.validate(utility_pv).to_parquet(output_path)
+    return schema.validate(utility_pv)
+
+
+def prepare_solar_csp(
+    gem_gspt_path: str, tech_name: str, dc_ac_ratio: float = 1
+) -> gpd.GeoDataFrame:
+    """Obtain CSP power locations using GEM-GSPT data."""
+    raw_df = gem.read_gem_dataset(gem_gspt_path, gem.GEM_GSPT_SHEETS)
+    raw_df = raw_df[raw_df["technology_type"] == "Solar Thermal"]
+
+    csp_df = gpd.GeoDataFrame(
+        {
+            "powerplant_id": _utils.get_combined_text_col(
+                raw_df, ["gem_location_id", "gem_phase_id"], prefix="GEM_"
+            ),
+            "name": _utils.get_combined_text_col(
+                raw_df, ["project_name", "phase_name"]
+            ),
+            "category": "solar",
+            "technology": tech_name,
+            "output_capacity_mw": gem.output_capacity_mw_gspt(
+                raw_df, dc_ac_ratio, "AC"
+            ),
+            "start_year": gem.year_col(raw_df, "start"),
+            "end_year": gem.year_col(raw_df, "end"),
+            "status": gem.status_col(raw_df),
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
+        }
+    ).reset_index(drop=True)
+    schema = _schemas.build_schema({"csp": tech_name}, "prepare")
+    return schema.validate(csp_df)
+
+
+def main() -> None:
+    """Main snakemake process."""
+    sys.stderr = open(snakemake.log[0], "w")
+    utility_pv_gdf = prepare_solar_utility_pv(
+        snakemake.input.tz_sam,
+        snakemake.input.gem_gspt,
+        snakemake.params.utility_pv_name,
+        snakemake.params.dc_ac_ratio,
+    )
+    csp_gdf = prepare_solar_csp(snakemake.input.gem_gspt, snakemake.params.csp_name)
+
+    # Combine into one large category
+    large_solar_gdf = pd.concat(
+        [utility_pv_gdf, csp_gdf], ignore_index=True, sort=False, axis="index"
+    )
+    large_solar_gdf.to_parquet(snakemake.output.large_solar)
 
 
 if __name__ == "__main__":

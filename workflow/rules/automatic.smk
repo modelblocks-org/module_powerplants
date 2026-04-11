@@ -3,9 +3,9 @@
 
 rule download_eia:
     output:
-        path="resources/automatic/downloads/EIA-INTL.txt",
+        path="<resources>/automatic/downloads/EIA-INTL.txt",
     log:
-        "logs/download_eia.log",
+        "<logs>/download_eia.log",
     conda:
         "../envs/shell.yaml"
     params:
@@ -20,9 +20,9 @@ rule download_eia:
 
 rule download_tz_sam:
     output:
-        path="resources/automatic/downloads/TZ-SAM.gpkg",
+        path="<resources>/automatic/downloads/TZ-SAM.gpkg",
     log:
-        "logs/download_tz_sam.log",
+        "<logs>/download_tz_sam.log",
     conda:
         "../envs/shell.yaml"
     params:
@@ -37,9 +37,9 @@ rule download_tz_sam:
 
 rule download_glohydrores:
     output:
-        path="resources/automatic/downloads/GloHydroRes.csv",
+        path="<resources>/automatic/downloads/GloHydroRes.csv",
     log:
-        "logs/download_glohydrores.log",
+        "<logs>/download_glohydrores.log",
     conda:
         "../envs/shell.yaml"
     params:
@@ -54,9 +54,9 @@ rule download_glohydrores:
 
 rule download_gem:
     output:
-        path="resources/automatic/downloads/GEM_{dataset}.xlsx",
+        path="<resources>/automatic/downloads/GEM_{dataset}.xlsx",
     log:
-        "logs/download_gem_{dataset}.log",
+        "<logs>/download_gem_{dataset}.log",
     conda:
         "../envs/shell.yaml"
     params:

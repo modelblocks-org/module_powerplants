@@ -1,7 +1,7 @@
-"""Set of standard clio tests.
+"""Set of standard Modelblocks tests.
 
-DO NOT MANUALLY MODIFY THIS FILE!
-It should be updated through our templating functions.
+PLEASE ENSURE THIS SET OF MINIMAL TESTS WORKS BEFORE PUBLISHING YOUR MODULE.
+Contents may be updated in future template updates.
 """
 
 import shutil
@@ -23,10 +23,10 @@ def integration_path(user_path: Path, module_path: Path):
     """Ensures the minimal integration test is ready."""
     integration_dir = Path(module_path / "tests/integration")
     if integration_dir.exists():
-        shutil.rmtree(
-            integration_dir / "results/", ignore_errors=True
-        )  # clean everything
-    user_integ_dir = integration_dir / "results/integration_test/resources/user/"
+        # clean everything
+        shutil.rmtree(integration_dir / "resources", ignore_errors=True)
+        shutil.rmtree(integration_dir / "results/", ignore_errors=True)
+    user_integ_dir = integration_dir / "resources/inputs/"
     files_to_copy = ["MNE/proxies/rooftop_pv.tif", "MNE/shapes.parquet"]
     for file in files_to_copy:
         destination_file = Path(user_integ_dir / file)
@@ -43,15 +43,18 @@ def test_interface_file(module_path):
 @pytest.mark.parametrize(
     "file",
     [
-        "CITATION.cff",
         "AUTHORS",
+        "CITATION.cff",
         "INTERFACE.yaml",
         "LICENSE",
+        "README.md",
+        "config/config.yaml",
+        "workflow/internal/config.schema.yaml",
         "tests/integration/Snakefile",
     ],
 )
 def test_standard_file_existance(module_path, file):
-    """Check that a minimal set of files used for clio automatic docs are present."""
+    """Check that a minimal set of files used for documentation are present."""
     assert Path(module_path / file).exists()
 
 
