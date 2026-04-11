@@ -1,4 +1,5 @@
 """Collection of auxiliary functions for this module."""
+
 # Options for both powerplants and aggregated capacities
 ADJUSTMENTS = ("adjusted", "unadjusted")
 # Names after original database processing
@@ -72,7 +73,6 @@ def get_technology_mapping(filename: str):
     else:
         mapping = config["category"][filename]["technology_mapping"]
     return mapping
-
 
 
 def get_files_to_remap(category: str, prefix: str):

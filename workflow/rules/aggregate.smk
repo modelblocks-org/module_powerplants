@@ -2,11 +2,6 @@
 
 
 rule aggregate_capacity:
-    message:
-        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
-    params:
-        year=config["imputation"]["adjustment_year"],
-        category=lambda wc: wc.category
     input:
         powerplants="<powerplants>",
         shapes="<shapes>",
@@ -18,12 +13,17 @@ rule aggregate_capacity:
             category="Powerplants module",
             subcategory="{category}",
         ),
+    log:
+        "<logs>/{shapes}/{adjustment}/{category}/aggregate_capacity.log",
     wildcard_constraints:
         adjustment="|".join(ADJUSTMENTS),
         category="|".join(IMPUTED_CAT),
-    log:
-        "<logs>/{shapes}/{adjustment}/{category}/aggregate_capacity.log",
     conda:
         "../envs/powerplants.yaml"
+    params:
+        year=config["imputation"]["adjustment_year"],
+        category=lambda wc: wc.category,
+    message:
+        "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     script:
         "../scripts/aggregate_capacity.py"

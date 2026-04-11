@@ -27,9 +27,7 @@ def plot_empty(title: str, output_path: str) -> None:
     fig.savefig(output_path)
 
 
-def plot_powerplant_capacity_buildup(
-    df: pd.DataFrame, output_path: str, colormap: str
-):
+def plot_powerplant_capacity_buildup(df: pd.DataFrame, output_path: str, colormap: str):
     """Plot stacked bar charts of active powerplant capacity over time per country.
 
     Input should be a powerplant capacity file of a single category.

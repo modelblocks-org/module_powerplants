@@ -14,11 +14,6 @@ To fill solar capacity, we follow these steps:
 
 
 rule proxy_rooftop_pv:
-    message:
-        "Generating proxy for rooftop capacity {wildcards.shapes}."
-    params:
-        category="solar",
-        year=config["imputation"]["adjustment_year"],
     input:
         shapes="<shapes>",
         proxy="<proxy_rooftop_pv>",
@@ -40,16 +35,16 @@ rule proxy_rooftop_pv:
         "<logs>/{shapes}/proxy_rooftop_pv.log",
     conda:
         "../envs/powerplants.yaml"
+    params:
+        category="solar",
+        year=config["imputation"]["adjustment_year"],
+    message:
+        "Generating proxy for rooftop capacity {wildcards.shapes}."
     script:
         "../scripts/proxy.py"
 
 
 rule aggregate_solar_capacity:
-    message:
-        "Aggregating capacity for {wildcards.shapes}-unadjusted-solar."
-    params:
-        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
-        category="solar"
     input:
         large_solar=workflow.pathvars.apply("<aggregated_capacity>").format(
             shapes="{shapes}",
@@ -74,15 +69,16 @@ rule aggregate_solar_capacity:
         "<logs>/{shapes}/unadjusted/solar/aggregate_solar_capacity.log",
     conda:
         "../envs/powerplants.yaml"
+    params:
+        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
+        category="solar",
+    message:
+        "Aggregating capacity for {wildcards.shapes}-unadjusted-solar."
     script:
         "../scripts/aggregate_capacity.py"
 
 
 rule impute_capacity_adjustment_solar:
-    message:
-        "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
-    params:
-        year=config["imputation"]["adjustment_year"],
     input:
         unadjusted=workflow.pathvars.apply("<aggregated_capacity>").format(
             shapes="{shapes}",
@@ -113,5 +109,9 @@ rule impute_capacity_adjustment_solar:
         "<logs>/{shapes}/adjusted/solar/impute_capacity_adjustment_solar.log",
     conda:
         "../envs/powerplants.yaml"
+    params:
+        year=config["imputation"]["adjustment_year"],
+    message:
+        "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
     script:
         "../scripts/impute_capacity_adjustment_solar.py"

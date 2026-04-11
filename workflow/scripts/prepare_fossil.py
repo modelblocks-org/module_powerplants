@@ -41,6 +41,7 @@ def _get_coal_ccs(gem_df: pd.DataFrame) -> pd.Series:
         )
     )
 
+
 def _get_coal_fuel(gem_df: pd.DataFrame) -> pd.Series:
     """Harmonise fuel nomenclature with other GEM datasets."""
     # bituminous -> coal: bituminous
@@ -55,10 +56,7 @@ def _get_coal_fuel(gem_df: pd.DataFrame) -> pd.Series:
 
 
 def _get_end_year(
-    gem_df: pd.DataFrame,
-    *,
-    planned_ret_col: str,
-    ret_col: str = "retired_year",
+    gem_df: pd.DataFrame, *, planned_ret_col: str, ret_col: str = "retired_year"
 ) -> pd.Series:
     """Return retirement year.
 
@@ -107,7 +105,6 @@ def prepare_gem_gcpt(
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     return schema.validate(coal_df), _schemas.FuelSchema.validate(fuels_df)
-
 
 
 def prepare_gem_gogpt(

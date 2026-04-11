@@ -10,10 +10,6 @@ with open(workflow.source_path("../../config/config.yaml"), "r") as f:
 # `snakefile:` specifies the module. It can use file paths and special github(...) / gitlab(...) markers
 # `prefix:` re-routes all input/output paths of the module, helping to avoid file conflicts.
 module module_powerplants:
-    snakefile:
-        "../../workflow/Snakefile"
-    config:
-        module_config["module_powerplants"]
     pathvars:
         # Redirect specific user resources (inputs)
         shapes="resources/inputs/{shapes}/shapes.parquet",
@@ -25,6 +21,10 @@ module module_powerplants:
         logs="resources/powerplants/logs",
         resources="resources/powerplants/resources",
         results="resources/powerplants/results",
+    snakefile:
+        "../../workflow/Snakefile"
+    config:
+        module_config["module_powerplants"]
 
 
 # rename all module rules with a prefix, to avoid naming conflicts.
