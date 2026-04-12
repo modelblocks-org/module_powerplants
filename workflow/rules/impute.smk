@@ -16,7 +16,7 @@ rule impute_years:
         "../envs/powerplants.yaml"
     params:
         imputation=config["imputation"],
-        projected_crs=config["projected_crs"],
+        projected_crs=config["crs"]["projected"],
         tech_map=lambda wc: get_technology_mapping(wc.category),
     message:
         "National-level imputation of missing years for all powerplants in {wildcards.shapes}-{wildcards.category} dataset."
@@ -87,9 +87,7 @@ rule impute_capacity_adjustment:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_WITHOUT_ADJUSTMENT),
     conda:
         "../envs/powerplants.yaml"
-    params:
-        year=config["imputation"]["adjustment_year"],
     message:
-        "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
+        "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to EIA statistics."
     script:
         "../scripts/impute_capacity_adjustment.py"

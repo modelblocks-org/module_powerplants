@@ -1,7 +1,7 @@
 $schema: "https://json-schema.org/draft/2020-12/schema"
 type: object
 required:
-  - projected_crs
+  - crs
   - category
   - imputation
 additionalProperties: false
@@ -37,15 +37,17 @@ $defs:
       These names will be reflected in the resulting files, and will also be used during validation.
 
 properties:
-  projected_crs:
-    title: Projected CRS
-    description: CRS to use during projected operations (e.g., polygon centroid calculations).
-    oneOf:
-      - type: string
-        pattern: '^(epsg|EPSG):\d{4}$'
-      - type: integer
-        minimum: 1000
-        maximum: 9999
+  crs:
+    description: Coordinate reference system settings in the form 'epsg:xxxx'.
+    type: object
+    properties:
+      projected:
+        description: CRS to use during operations related to distance / area.
+        type: string
+        pattern: '^(epsg|EPSG):\d{4,5}$'
+    required:
+      - projected
+    additionalProperties: false  # Ensures no extra properties in "crs"
 
   category:
     title: Category
@@ -351,19 +353,11 @@ properties:
     type: object
     additionalProperties: false
     required:
-      - adjustment_year
       - shape_overlap_correction
       - scenario
       - lifetime_years
       - retirement_delay_years
     properties:
-      adjustment_year:
-        title: Adjustment year.
-        description: >
-          Year to use as reference when adjusting capacities to fit historical country statistics.
-        type: integer
-        minimum: 0
-        maximum: 2023
       shape_overlap_correction:
         title: Shape overlap correction method
         description: |

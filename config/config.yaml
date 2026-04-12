@@ -1,4 +1,5 @@
-projected_crs: "epsg:8857"
+crs:
+  projected: "EPSG:8857"
 
 category:
   bioenergy:
@@ -90,7 +91,6 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
-  adjustment_year: 2023
   shape_overlap_correction: "split_capacity" # strict or split_capacity
   scenario: "near-future" # near-future, far-future, far-off-future
   lifetime_years:

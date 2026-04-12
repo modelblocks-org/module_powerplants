@@ -36,7 +36,7 @@ if __name__ == "__main__":
     adjust_powerplant_capacity(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
-        year=snakemake.params.year,
+        year=_utils.DATASET_YEAR,
         output_file=snakemake.output.adjusted,
     )
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.unadjusted,
         adjusted_file=snakemake.output.adjusted,
-        year=snakemake.params.year,
+        year=_utils.DATASET_YEAR,
         output_file=snakemake.output.plot,
         is_disagg=True,
     )

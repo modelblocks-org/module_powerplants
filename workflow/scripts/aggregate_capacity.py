@@ -8,12 +8,10 @@ import _schemas
 import _utils
 import geopandas as gpd
 import pandas as pd
-from gregor.aggregate import aggregate_point_to_polygon, aggregate_raster_to_polygon
+from gregor.aggregate import aggregate_point_to_polygon
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w", buffering=1)
-
 
 CAPACITY_COLUMNS = {"category", "technology", "chp", "ccs", "fuel_class"}
 
@@ -59,50 +57,18 @@ def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str
         agg_plants_df = pd.concat(agg_plants_arr, axis="index", ignore_index=True)
 
     agg_plants_df.attrs["year"] = year
+    agg_plants_df = _utils._clean_positive_capacity(agg_plants_df)
     _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
 
 
-def capacity_solar(
-    large_pv_agg_file: str,
-    proxy_file: str,
-    shapes_file: str,
-    output_file: str,
-    technology: str,
-):
-    """Aggregate rooftop PV using a proxy raster."""
-    large_pv = pd.read_parquet(large_pv_agg_file)
-    shapes = gpd.read_parquet(shapes_file)
-    agg_roof_pv_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
-
-    agg_roof_pv_cap["category"] = "solar"
-    agg_roof_pv_cap["technology"] = technology
-    agg_roof_pv_cap = agg_roof_pv_cap.rename(columns={"sum": "output_capacity_mw"})
-    agg_roof_pv_cap = agg_roof_pv_cap.dropna(subset=["output_capacity_mw"])
-
-    valid_cols = set(_schemas.AggregatedPlantSchema.to_schema().columns)
-    agg_roof_pv_cap = agg_roof_pv_cap[list(valid_cols & set(agg_roof_pv_cap.columns))]
-
-    solar_mw = pd.concat([agg_roof_pv_cap, large_pv], ignore_index=True)
-    solar_mw.attrs = large_pv.attrs | agg_roof_pv_cap.attrs
-    _schemas.AggregatedPlantSchema.validate(solar_mw).to_parquet(output_file)
-
-
 if __name__ == "__main__":
-    if snakemake.params.category == "solar":
-        capacity_solar(
-            large_pv_agg_file=snakemake.input.large_solar,
-            proxy_file=snakemake.input.proxy,
-            shapes_file=snakemake.input.shapes,
-            output_file=snakemake.output.aggregated,
-            technology=snakemake.params.technology,
-        )
-    else:
-        capacity(
-            powerplant_file=snakemake.input.powerplants,
-            shapes_file=snakemake.input.shapes,
-            year=snakemake.params.year,
-            output_file=snakemake.output.aggregated,
-        )
+    sys.stderr = open(snakemake.log[0], "w", buffering=1)
+    capacity(
+        powerplant_file=snakemake.input.powerplants,
+        shapes_file=snakemake.input.shapes,
+        year=_utils.DATASET_YEAR,
+        output_file=snakemake.output.aggregated,
+    )
     _plots.plot_capacity_aggregation(
         aggregated_file=snakemake.output.aggregated,
         shapes_file=snakemake.input.shapes,

@@ -17,7 +17,7 @@ rule prepare_shapes:
     conda:
         "../envs/powerplants.yaml"
     params:
-        crs=config["projected_crs"],
+        crs=config["crs"]["projected"],
     message:
         "Preparing intermediate shapefile versions to speed up processing."
     script:
