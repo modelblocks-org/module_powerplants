@@ -36,7 +36,6 @@ rule proxy_rooftop_pv:
         "../envs/powerplants.yaml"
     params:
         category="solar",
-        year=config["imputation"]["adjustment_year"],
     message:
         "Generating proxy for rooftop capacity {wildcards.shapes}."
     script:
@@ -78,7 +77,6 @@ rule impute_adjustment_solar:
     params:
         category="solar",
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
-        year=config["imputation"]["adjustment_year"],
     message:
         "Aggregating capacity for {wildcards.shapes}-adjusted-solar."
     script:

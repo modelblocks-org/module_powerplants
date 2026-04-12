@@ -21,7 +21,6 @@ rule aggregate_capacity:
     conda:
         "../envs/powerplants.yaml"
     params:
-        year=config["imputation"]["adjustment_year"],
         category=lambda wc: wc.category,
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."

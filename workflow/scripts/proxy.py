@@ -143,7 +143,7 @@ if __name__ == "__main__":
         stats_file=snakemake.input.stats,
         output_file=snakemake.output.proxy,
         category=snakemake.params.category,
-        year=snakemake.params.year,
+        year=_utils.DATASET_YEAR,
     )
     plot(
         proxy_file=snakemake.output.proxy,

@@ -87,9 +87,7 @@ rule impute_capacity_adjustment:
         category="|".join(IMPUTED_CAT - IMPUTED_CAT_WITHOUT_ADJUSTMENT),
     conda:
         "../envs/powerplants.yaml"
-    params:
-        year=config["imputation"]["adjustment_year"],
     message:
-        "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to {params.year} statistics."
+        "National-level adjustment of powerplant capacity in {wildcards.shapes}-{wildcards.category} to EIA statistics."
     script:
         "../scripts/impute_capacity_adjustment.py"

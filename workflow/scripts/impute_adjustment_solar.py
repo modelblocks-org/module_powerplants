@@ -60,7 +60,7 @@ def main():
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.large_solar,
         adjusted_file=snakemake.output.aggregated,
-        year=snakemake.params.year,
+        year=_utils.DATASET_YEAR,
         output_file=snakemake.output.plot_stats,
         is_disagg=False,
     )

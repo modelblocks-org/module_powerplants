@@ -8,7 +8,7 @@ from pandas.api.types import is_list_like
 
 # Average year where powerplant datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
-DATASET_YEAR = 2024
+DATASET_YEAR = 2023
 
 
 def listify(item) -> list:

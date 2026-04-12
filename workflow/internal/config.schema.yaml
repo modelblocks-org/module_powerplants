@@ -351,19 +351,11 @@ properties:
     type: object
     additionalProperties: false
     required:
-      - adjustment_year
       - shape_overlap_correction
       - scenario
       - lifetime_years
       - retirement_delay_years
     properties:
-      adjustment_year:
-        title: Adjustment year.
-        description: >
-          Year to use as reference when adjusting capacities to fit historical country statistics.
-        type: integer
-        minimum: 0
-        maximum: 2023
       shape_overlap_correction:
         title: Shape overlap correction method
         description: |

@@ -43,7 +43,7 @@ def plot(
         new_proj.plot(ax=axes[1], color="lightcoral")
     else:
         new_proj.plot(col, ax=axes[1], cmap=Colormap(cmap).to_mpl())
-    new_proj.boundary.plot(ax=axes[1], color="black", lw=0.2)
+    new_proj.boundary.plot(ax=axes[1], color="black", lw=0.05)
     axes[1].set_title(name)
     for ax in axes:
         ax.set(xticks=[], yticks=[], xlabel="", ylabel="")
