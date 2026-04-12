@@ -69,42 +69,50 @@ def check_single_category(df: pd.DataFrame) -> str:
 
 
 def filter_years(
-    powerplants_df: pd.DataFrame,
-    year: int,
-    how: Literal["operating", "future"] = "operating",
+    powerplants_df: pd.DataFrame, year: int, how: Literal["operating", "future", "past"]
 ) -> pd.DataFrame:
-    """Standardised filtering of powerplants based on start / end years.
+    """Filter powerplants based on start/end year.
+
+    Assumptions:
+    - A powerplant comes online on January 1 of `start_year`.
+    - A powerplant goes offline on January 1 of `end_year`.
+    - `end_year` > `start_year`.
 
     Args:
-        powerplants_df (pd.DataFrame): powerplant dataset to filter.
-        year (int): year to filter.
-        how (Literal["operating", "future"], optional): filtering approach.
-            Defaults to "operating".
-            - operating: only active powerplants in the given year.
-            - future: active and planned powerplant projects in the given year.
+        powerplants_df: Powerplant dataset to filter.
+        year: Reference year.
+        how:
+            - "operating": plants active during `year`
+            - "future": plants not yet online in `year`
+            - "past": plants already offline by `year`
 
     Returns:
-        pd.DataFrame: copy of the given dataframe after filtering applied.
+        A copy of the filtered dataframe.
     """
-    if how == "operating":
-        filtered = powerplants_df[
-            (powerplants_df["start_year"] <= year) & (year < powerplants_df["end_year"])
-        ].copy()
-    elif how == "future":
-        # FIXME: this does not filter 'future' years at all!
-        filtered = powerplants_df[(powerplants_df["start_year"] <= year)].copy()
-    return filtered
+    match how:
+        case "operating":
+            mask = (powerplants_df["start_year"] <= year) & (
+                year < powerplants_df["end_year"]
+            )
+        case "future":
+            mask = powerplants_df["start_year"] > year
+        case "past":
+            mask = year >= powerplants_df["end_year"]
+        case _:
+            raise ValueError(f"Invalid request {how!r}.")
+
+    return powerplants_df.loc[mask].copy()
 
 
-def _clean_positive_capacity(plants: pd.DataFrame) -> pd.DataFrame:
+def _clean_positive_capacity(df: pd.DataFrame) -> pd.DataFrame:
     """Remove rows with non-positive capacity."""
-    return plants[plants["output_capacity_mw"] > 0].copy()
+    return df[df["output_capacity_mw"] > 0].copy()
 
 
 def get_adjusted_capacity(
     operating_plants: pd.DataFrame, expected_capacity: pd.Series
 ) -> pd.Series:
-    """Adjust powerplant capacity the total expected capacity per country.
+    """Adjust powerplant capacity to the total expected capacity per country.
 
     Args:
         operating_plants (pd.DataFrame): dataframe with all operating plants to adjust.
@@ -118,33 +126,6 @@ def get_adjusted_capacity(
         / operating_plants.groupby("country_id")["output_capacity_mw"].transform("sum")
     ) * operating_plants["country_id"].map(expected_capacity)
     return adjusted_cap_mw
-
-
-def adjust_powerplant_capacity(plants, stats, year):
-    """Adjust powerplant capacity to national statistics in the given year.
-
-    Keeps "future" projects beyond the given year.
-    """
-    category = check_single_category(plants)
-    cat_stats = get_eia_stats_in_cat_yr(stats, year, category)
-    expected_capacity = cat_stats.groupby(["country_id"])["capacity_mw"].sum()
-    adjusted = _clean_positive_capacity(filter_years(plants, year, how="future"))
-    operating = filter_years(adjusted, year, how="operating")
-    operating = operating[operating["country_id"].isin(expected_capacity.index)]
-
-    # Remove operating rows that cannot be matched to the requested year's stats.
-    adjusted = adjusted.drop(
-        index=filter_years(adjusted, year, how="operating").index.difference(
-            operating.index
-        )
-    )
-
-    if operating.empty:
-        return adjusted.reset_index(drop=True)
-
-    adjusted_cap = get_adjusted_capacity(operating, expected_capacity)
-    adjusted.loc[adjusted_cap.index, "output_capacity_mw"] = adjusted_cap
-    return adjusted.reset_index(drop=True)
 
 
 def adjust_aggregated_capacity(plants, stats, year):
