@@ -160,9 +160,8 @@ def plot_capacity_adjustment(
     agg_eia = (
         df_eia.groupby([country_col, eia_cat_col])[[eia_cap_col]].sum().reset_index()
     )
-
-    countries = sorted(agg_dis[country_col].unique())
-    techs = sorted(agg_dis[dis_tech_col].unique())
+    countries = sorted(set(agg_dis[country_col]).union(agg_adj[country_col]))
+    techs = sorted(set(agg_dis[dis_tech_col]).union(agg_adj[dis_tech_col]))
     cats = sorted(agg_eia[eia_cat_col].unique())
 
     # Avoid overlaps when techs / cats have the same name

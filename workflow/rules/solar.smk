@@ -9,7 +9,6 @@ To fill solar capacity, we follow these steps:
 2. Assume rooftop PV = national solar statistics - large projects.
 3. Use a proxy to disaggregate then aggregate assumed rooftop PV capacity per shape.
 4. Combine aggregated large pv projects and rooftop PV capacity.
-5. Adjust to national statistics.
 """
 
 
@@ -44,7 +43,7 @@ rule proxy_rooftop_pv:
         "../scripts/proxy.py"
 
 
-rule aggregate_solar_capacity:
+rule impute_adjustment_solar:
     input:
         large_solar=workflow.pathvars.apply("<aggregated_capacity>").format(
             shapes="{shapes}",
@@ -53,65 +52,35 @@ rule aggregate_solar_capacity:
         ),
         proxy=rules.proxy_rooftop_pv.output.proxy,
         shapes="<shapes>",
-    output:
-        aggregated=workflow.pathvars.apply("<aggregated_capacity>").format(
-            shapes="{shapes}",
-            adjustment="unadjusted",
-            category="solar",
-        ),
-        plot=report(
-            "<results>/{shapes}/aggregated/unadjusted/solar.pdf",
-            caption="../report/aggregate_capacity.rst",
-            category="Powerplants module",
-            subcategory="solar",
-        ),
-    log:
-        "<logs>/{shapes}/unadjusted/solar/aggregate_solar_capacity.log",
-    conda:
-        "../envs/powerplants.yaml"
-    params:
-        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
-        category="solar",
-    message:
-        "Aggregating capacity for {wildcards.shapes}-unadjusted-solar."
-    script:
-        "../scripts/aggregate_capacity.py"
-
-
-rule impute_capacity_adjustment_solar:
-    input:
-        unadjusted=workflow.pathvars.apply("<aggregated_capacity>").format(
-            shapes="{shapes}",
-            adjustment="unadjusted",
-            category="solar",
-        ),
-        shapes="<shapes>",
         stats=rules.prepare_statistics.output.categories,
     output:
-        adjusted=workflow.pathvars.apply("<aggregated_capacity>").format(
+        aggregated=workflow.pathvars.apply("<aggregated_capacity>").format(
             shapes="{shapes}",
             adjustment="adjusted",
             category="solar",
         ),
-        adj_plot=report(
-            "<results>/{shapes}/aggregated/adjusted/solar_adjustment.pdf",
-            caption="../report/impute_capacity_adjustment.rst",
-            category="Powerplants module",
-            subcategory="solar",
-        ),
-        map_plot=report(
+        plot_map=report(
             "<results>/{shapes}/aggregated/adjusted/solar_map.pdf",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="solar",
         ),
+        plot_stats=report(
+            "<results>/{shapes}/aggregated/adjusted/solar_stats.pdf",
+            caption="../report/impute_capacity_adjustment.rst",
+            category="Powerplants module",
+            subcategory="solar",
+        ),
     log:
-        "<logs>/{shapes}/adjusted/solar/impute_capacity_adjustment_solar.log",
+        "<logs>/{shapes}/adjusted/solar/aggregate_solar_capacity.log",
     conda:
         "../envs/powerplants.yaml"
     params:
+        category="solar",
+        technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
         year=config["imputation"]["adjustment_year"],
     message:
-        "Adjusting aggregated capacity of {wildcards.shapes}-solar to {params.year} statistics."
+        "Aggregating capacity for {wildcards.shapes}-adjusted-solar."
     script:
-        "../scripts/impute_capacity_adjustment_solar.py"
+        "../scripts/impute_adjustment_solar.py"
+
