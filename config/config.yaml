@@ -1,4 +1,5 @@
-projected_crs: "epsg:8857"
+crs:
+  projected: "EPSG:8857"
 
 category:
   bioenergy:
