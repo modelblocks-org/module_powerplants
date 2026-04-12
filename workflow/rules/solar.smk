@@ -81,4 +81,3 @@ rule impute_adjustment_solar:
         "Aggregating capacity for {wildcards.shapes}-adjusted-solar."
     script:
         "../scripts/impute_adjustment_solar.py"
-

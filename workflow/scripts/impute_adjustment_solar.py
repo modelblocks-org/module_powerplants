@@ -15,10 +15,7 @@ if TYPE_CHECKING:
 
 
 def capacity_solar(
-    large_pv_agg_file: str,
-    proxy_file: str,
-    shapes_file: str,
-    technology: str,
+    large_pv_agg_file: str, proxy_file: str, shapes_file: str, technology: str
 ) -> gpd.GeoDataFrame:
     """Aggregate rooftop PV using a proxy raster."""
     large_pv = pd.read_parquet(large_pv_agg_file)
@@ -69,4 +66,3 @@ def main():
 if __name__ == "__main__":
     sys.stderr = open(snakemake.log[0], "w", buffering=1)
     main()
-
