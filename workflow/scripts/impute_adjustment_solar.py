@@ -33,7 +33,7 @@ def capacity_solar(
 
     # Combine and clean the data
     solar_mw = pd.concat([agg_roof_pv_cap, large_pv], ignore_index=True)
-    solar_mw = _utils._clean_positive_capacity(solar_mw)
+    solar_mw = _utils.ensure_positive_capacity(solar_mw)
     solar_mw.attrs = large_pv.attrs | agg_roof_pv_cap.attrs
     return _schemas.AggregatedPlantSchema.validate(solar_mw)
 

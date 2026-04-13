@@ -104,7 +104,7 @@ def filter_years(
     return powerplants_df.loc[mask].copy()
 
 
-def _clean_positive_capacity(df: pd.DataFrame) -> pd.DataFrame:
+def ensure_positive_capacity(df: pd.DataFrame) -> pd.DataFrame:
     """Remove rows with non-positive capacity."""
     return df[df["output_capacity_mw"] > 0].copy()
 
@@ -134,7 +134,7 @@ def adjust_aggregated_capacity(plants, stats, year):
     stats = get_eia_stats_in_cat_yr(stats, year, category)
     expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
 
-    adjusted = _clean_positive_capacity(plants)
+    adjusted = ensure_positive_capacity(plants)
     adjusted = adjusted[adjusted["country_id"].isin(expected_capacity.index)]
 
     if adjusted.empty:

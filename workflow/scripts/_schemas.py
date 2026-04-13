@@ -55,7 +55,7 @@ class AggregatedPlantSchema(DataFrameModel):
     country_id: Series[str]
     category: Series[str]
     technology: Series[str]
-    output_capacity_mw: Series[float]
+    output_capacity_mw: Series[float] = Field(gt=0)
     chp: Series[bool] | None
     ccs: Series[bool] | None
     fuel_class: Series[str] | None
@@ -78,7 +78,7 @@ class PlantSchema(DataFrameModel):
     "General category of the powerplant."
     technology: Series[str]
     "Subcategory of the powerplant, if necessary."
-    output_capacity_mw: Series[float] = Field(ge=0)
+    output_capacity_mw: Series[float] = Field(gt=0)
     "Powerplant gross output capacity in Megawatts."
     # Temporal aspects
     start_year: Series[float]

@@ -103,6 +103,7 @@ def prepare_gem_gcpt(
             "fuel_class": fuel_class,
         }
     ).reset_index(drop=True)
+    coal_df = _utils.ensure_positive_capacity(coal_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     return schema.validate(coal_df), _schemas.FuelSchema.validate(fuels_df)
 
@@ -141,6 +142,7 @@ def prepare_gem_gogpt(
             "fuel_class": fuel_class,
         }
     ).reset_index(drop=True)
+    oil_gas_df = _utils.ensure_positive_capacity(oil_gas_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     return schema.validate(oil_gas_df), _schemas.FuelSchema.validate(fuels_df)
 
