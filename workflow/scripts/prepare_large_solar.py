@@ -59,9 +59,9 @@ def fill_tz_with_gem(
 def get_gem_v_tz_mismatch(
     gem_df: gpd.GeoDataFrame,
     tz_sam_df: gpd.GeoDataFrame,
-    valid_status: list[str] | None = None,
+    valid_status: list[str],
     buffer=1000,
-    proj_crs="epsg:3857",
+    proj_crs="epsg:8857",
 ) -> gpd.GeoDataFrame:
     """Estimation of future projects missed by TZ-SAM's satellite-based approach.
 
@@ -69,6 +69,7 @@ def get_gem_v_tz_mismatch(
     - Only projects with known pre-operation states are accepted.
     - Only projects outside a buffer are accepted (default 1 km).
     """
+    _utils.check_crs(proj_crs, "projected")
     if gem_df.crs != tz_sam_df.crs:
         raise ValueError("GEM and TZ-SAM CRS mismatch.")
 
@@ -76,7 +77,7 @@ def get_gem_v_tz_mismatch(
     if valid_status:
         future_gem_df = gem_df[gem_df["status"].isin(valid_status)]
     else:
-        future_gem_df = gem_df
+        raise ValueError(f"Must specify valid status to get. Got {valid_status!r}.")
 
     # Buffer around the points using a projected CRS
     future_gem_buffered = future_gem_df.copy()
@@ -196,11 +197,13 @@ def main() -> None:
     )
     csp_gdf = prepare_solar_csp(snakemake.input.gem_gspt, snakemake.params.csp_name)
 
+    crs = _utils.check_crs(snakemake.params.geo_crs, "geographic")
+
     # Combine into one large category
     large_solar_gdf = pd.concat(
         [utility_pv_gdf, csp_gdf], ignore_index=True, sort=False, axis="index"
     )
-    large_solar_gdf.to_parquet(snakemake.output.large_solar)
+    large_solar_gdf.to_crs(crs).to_parquet(snakemake.output.large_solar)
 
 
 if __name__ == "__main__":

@@ -101,7 +101,6 @@ def impute(
         output_path (str): resulting dataset.
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
-        projected_crs (str): crs used to calculate centroids.
     """
     _utils.check_single_category(prepared_cat_gdf)
 

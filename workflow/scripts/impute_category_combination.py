@@ -14,18 +14,19 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 
 def impute(
     input_paths: list[str],
     output_path: str,
     tech_mapping: dict[str, str],
+    geo_crs: str,
     excluded: list[str] | None = None,
 ):
     """Combine a given number of category files into a final dataset."""
+    crs = _utils.check_crs(geo_crs, "geographic")
     combined_capacity = pd.concat(
-        (gpd.read_parquet(f) for f in input_paths),
+        (gpd.read_parquet(f).to_crs(crs) for f in input_paths),
         ignore_index=True,
         sort=False,
         axis="index",
@@ -63,10 +64,12 @@ def explore(imputed_path: str, output_path: str, colormap="tab20"):
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     impute(
         input_paths=[snakemake.input.internal, *snakemake.input.user],
         output_path=snakemake.output.combined,
         tech_mapping=snakemake.params.tech_map,
+        geo_crs=snakemake.params.geo_crs,
         excluded=snakemake.params.excluded,
     )
     plot(imputed_path=snakemake.output.combined, output_path=snakemake.output.plot)

@@ -56,8 +56,9 @@ rule impute_category_combination:
     conda:
         "../envs/powerplants.yaml"
     params:
-        tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
+        geo_crs=internal["crs"]["geographic"],
         excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
+        tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
     message:
         "National-level imputation of user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
     script:

@@ -61,7 +61,7 @@ def get_point_col(
     raw: pd.DataFrame, lon_col: str, lat_col: str, crs: str = "EPSG:4326"
 ) -> gpd.GeoSeries:
     """Converts latitude / longitude columns to a point geometry."""
-    return gpd.points_from_xy(raw[lon_col], raw[lat_col], crs=crs)
+    return gpd.points_from_xy(raw[lon_col], raw[lat_col], crs=check_crs(crs, "geographic"))
 
 
 def get_combined_text_col(

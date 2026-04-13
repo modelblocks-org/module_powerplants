@@ -32,6 +32,7 @@ def main(
     gem_gbpt_path: str,
     technology_mapping: dict[str, str],
     fuel_mapping: dict[str, str],
+    crs: str,
     output_plants_path: str,
     output_fuels_path: str,
 ):
@@ -55,11 +56,12 @@ def main(
             "start_year": _start_year(raw_df),
             "end_year": gem.year_col(raw_df, "end"),
             "status": gem.status_col(raw_df),
-            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
             "ccs": False,
             "chp": False,
             "fuel_class": fuel_class,
-        }
+        },
+        crs=crs
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(bioenergy_df).to_parquet(output_plants_path)
@@ -71,6 +73,7 @@ if __name__ == "__main__":
         gem_gbpt_path=snakemake.input.gem_gbpt,
         technology_mapping=snakemake.params.technology_mapping,
         fuel_mapping=snakemake.params.fuel_mapping,
+        crs=snakemake.params.geo_crs,
         output_plants_path=snakemake.output.plants,
         output_fuels_path=snakemake.output.fuels,
     )
