@@ -5,10 +5,30 @@ from typing import Literal
 import geopandas as gpd
 import pandas as pd
 from pandas.api.types import is_list_like
+from pyproj import CRS
 
 # Average year where powerplant datasets were last updated.
 # MUST BE ADJUSTED WHENEVER DATASOURCES ARE UPDATED!
 DATASET_YEAR = 2023
+
+
+def check_crs(crs: int | str, how: Literal["projected", "geographic", "geocentric"]) -> CRS:
+    """Helper to verify user-provided CRS codes."""
+    parsed = CRS.from_user_input(crs)
+    correct = False
+    match how:
+        case "projected":
+            if parsed.is_projected:
+                correct = True
+        case "geographic":
+            if parsed.is_geographic:
+                correct = True
+        case "geocentric":
+            if parsed.is_geocentric:
+                correct = True
+    if not correct:
+        raise ValueError(f"{crs!r} is not {how!r}.")
+    return parsed
 
 
 def listify(item) -> list:

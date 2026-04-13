@@ -149,9 +149,9 @@ def prepare_solar_utility_pv(
         valid_status=["announced", "pre-construction", "construction", "retired"],
     )
 
-    utility_pv = pd.concat([filled_tz_df, gem_mismatch_df], axis="index")
-    utility_pv = utility_pv.reset_index(drop=True)
-
+    utility_pv = pd.concat([filled_tz_df, gem_mismatch_df], ignore_index=True)
+    # Convert to points to make further processing easier.
+    utility_pv["geometry"] = utility_pv["geometry"].representative_point()
     schema = _schemas.build_schema({"utility_pv": tech_name}, "prepare")
     return schema.validate(utility_pv)
 
@@ -188,7 +188,6 @@ def prepare_solar_csp(
 
 def main() -> None:
     """Main snakemake process."""
-    sys.stderr = open(snakemake.log[0], "w")
     utility_pv_gdf = prepare_solar_utility_pv(
         snakemake.input.tz_sam,
         snakemake.input.gem_gspt,
@@ -205,4 +204,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     main()

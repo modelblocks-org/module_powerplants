@@ -92,7 +92,6 @@ def impute(
     countries_gdf: gpd.GeoDataFrame,
     imputation: dict,
     technology_mapping: dict,
-    projected_crs: str,
 ) -> gpd.GeoDataFrame:
     """Add automatic and user imputations to fill missing data.
 
@@ -112,17 +111,9 @@ def impute(
         prepared_cat_gdf.geometry.geom_type != "Point"
     ].index
     if polygon_mask.any():
-        if projected_crs:
-            prev_crs = prepared_cat_gdf.crs
-            prepared_cat_gdf.loc[polygon_mask, "geometry"] = (
-                prepared_cat_gdf.loc[polygon_mask, "geometry"]
-                .to_crs(projected_crs)
-                .centroid.to_crs(prev_crs)
-            )
-        else:
-            raise ValueError(
-                "Polygon powerplant geometries detected. Specify a projected CRS."
-            )
+        raise ValueError(
+            "Polygon powerplant geometries detected. Only Points are supported."
+        )
 
     lifetimes = imputation["lifetime_years"]
     retirement_delay_years = imputation["retirement_delay_years"]
@@ -194,7 +185,6 @@ def main() -> None:
         countries_gdf=gpd.read_parquet(snakemake.input.dissolved_shapes),
         imputation=snakemake.params.imputation,
         technology_mapping=snakemake.params.tech_map,
-        projected_crs=snakemake.params.projected_crs,
     )
     imputed_gdf.to_parquet(snakemake.output.imputed)
     _plots.plot_powerplant_capacity_buildup(

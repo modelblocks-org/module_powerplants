@@ -16,7 +16,6 @@ rule impute_years:
         "../envs/powerplants.yaml"
     params:
         imputation=config["imputation"],
-        projected_crs=config["crs"]["projected"],
         tech_map=lambda wc: get_technology_mapping(wc.category),
     message:
         "National-level imputation of missing years for all powerplants in {wildcards.shapes}-{wildcards.category} dataset."
