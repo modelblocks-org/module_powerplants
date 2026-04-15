@@ -1082,7 +1082,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/msgpack-python-1.1.2-py312hd9148b4_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/muparser-2.3.5-h5888daf_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.0-py312h4c3975b_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.1-py312h4c3975b_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-2.18.1-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
@@ -1352,7 +1352,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/msgpack-python-1.1.2-py312h84eede6_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/muparser-2.3.5-h11e0b38_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.0-py312hefc2c51_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.1-py312hefc2c51_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-2.18.1-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h5e97a16_3.conda
@@ -1599,7 +1599,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/msgpack-python-1.1.2-py312hf90b1b7_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/munkres-1.1.4-pyhd8ed1ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/muparser-2.3.5-he0c23c2_0.conda
-      - conda: https://conda.anaconda.org/conda-forge/win-64/mypy-1.20.0-py312he06e257_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/win-64/mypy-1.20.1-py312he06e257_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/narwhals-2.18.1-pyhcf101f3_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/networkx-3.6.1-pyhcf101f3_0.conda
@@ -11973,9 +11973,9 @@ packages:
   - pkg:pypi/mypy?source=hash-mapping
   size: 18931157
   timestamp: 1752534887158
-- conda: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.0-py312h4c3975b_0.conda
-  sha256: bb9ab670f94099843167170b81b597921890ffb0f56cb2222c1e611213b09f7e
-  md5: a1f58c8babb356d64f70c380dde5df2b
+- conda: https://conda.anaconda.org/conda-forge/linux-64/mypy-1.20.1-py312h4c3975b_0.conda
+  sha256: b9dc656d1f78e75ae07d57aefae6613ac94d55a4b33aabb35daa9451e624ef2f
+  md5: 672833a9f4e00c5e4ddbfa53b2aad6ee
   depends:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=14
@@ -11989,9 +11989,9 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/mypy?source=hash-mapping
-  size: 22053001
-  timestamp: 1775234215387
+  - pkg:pypi/mypy?source=compressed-mapping
+  size: 21984603
+  timestamp: 1776069494897
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.17.0-py312h163523d_0.conda
   sha256: 0fb78906dbcb3daa1c9b9aa9047985ef1cacf2d2e64d271c1b9e7570ae4ed1fc
   md5: 77b10261bad8e87c9ebb6cebd493c394
@@ -12010,9 +12010,9 @@ packages:
   - pkg:pypi/mypy?source=hash-mapping
   size: 10410020
   timestamp: 1752534951317
-- conda: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.0-py312hefc2c51_0.conda
-  sha256: 002e080ca7731b473e41eed2ab79357b070419ff8613b6ad531ef756aabbb649
-  md5: 16e653b99c021b140cfe6f2cc23ee02a
+- conda: https://conda.anaconda.org/conda-forge/osx-arm64/mypy-1.20.1-py312hefc2c51_0.conda
+  sha256: 66a5cae2d9107025d42f8fe013450c8fdd110afe1c8723420d1ca296445eb337
+  md5: a84404f9fb0eeb402eec5ef06bc2522c
   depends:
   - __osx >=11.0
   - mypy_extensions >=1.0.0
@@ -12026,9 +12026,9 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/mypy?source=hash-mapping
-  size: 11840059
-  timestamp: 1775234973068
+  - pkg:pypi/mypy?source=compressed-mapping
+  size: 11876678
+  timestamp: 1776070219837
 - conda: https://conda.anaconda.org/conda-forge/win-64/mypy-1.17.0-py312he06e257_0.conda
   sha256: 93fc4abec9042deff9f882135601f90159fec0e88b9f2ac939a99a491b8c9be7
   md5: 7a66ebebe26ae807bc24c1bc7661ad33
@@ -12048,9 +12048,9 @@ packages:
   - pkg:pypi/mypy?source=hash-mapping
   size: 10032459
   timestamp: 1752534651646
-- conda: https://conda.anaconda.org/conda-forge/win-64/mypy-1.20.0-py312he06e257_0.conda
-  sha256: ebadc3b1c357ac2a8f2c68666f675e7004923f7f83faf22fbf239f404894b927
-  md5: d461b246f4afe6f77f8ce37b8f66c23d
+- conda: https://conda.anaconda.org/conda-forge/win-64/mypy-1.20.1-py312he06e257_0.conda
+  sha256: 142c45e7cd0ede5ffadf693f40c868f638b89b94a9983b4c8844c93342274255
+  md5: 0e38dda3b76708bbc4bbfaff5bacf820
   depends:
   - mypy_extensions >=1.0.0
   - pathspec >=1.0.0
@@ -12065,9 +12065,9 @@ packages:
   license: MIT
   license_family: MIT
   purls:
-  - pkg:pypi/mypy?source=hash-mapping
-  size: 11766260
-  timestamp: 1775234467870
+  - pkg:pypi/mypy?source=compressed-mapping
+  size: 11666119
+  timestamp: 1776069830794
 - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.1.0-pyha770c72_0.conda
   sha256: 6ed158e4e5dd8f6a10ad9e525631e35cee8557718f83de7a4e3966b1f772c4b1
   md5: e9c622e0d00fa24a6292279af3ab6d06

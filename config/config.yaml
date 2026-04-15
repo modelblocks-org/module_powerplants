@@ -91,7 +91,28 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
-  shape_overlap_correction: "split_capacity" # strict or split_capacity
+  location:
+    inner_distance: 100  # matches projected CRS unit.
+    on_overlap: "split_capacity"
+    on_forced_class_error: "drop"  # either 'drop', 'ignore', or 'raise'
+    forced_class:
+      bioenergy turbine: "land"
+      ccgt: "land"
+      coal turbine: "land"
+      concentrating solar power: "land"
+      high enthalpy geothermal: "land"
+      igcc: "land"
+      low enthalpy geothermal: "land"
+      nuclear reactor: "land"
+      ocgt: "land"
+      offshore: "maritime"
+      onshore: "land"
+      pumped storage: "land"
+      reciprocating engine: "land"
+      reservoir: "land"
+      run of river: "land"
+      steam turbine: "land"
+      utility pv: "land"
   scenario: "near-future" # near-future, far-future, far-off-future
   lifetime_years:
     # General lifetime assumptions. Adjust as needed!

@@ -1,5 +1,33 @@
 """Rules related to internal and user-provided imputations."""
 
+rule impute_location:
+    input:
+        internal="<resources>/automatic/prepared/{category}.parquet",
+        shapes="<shapes>",
+        user=branch(
+            exists("<imputed_powerplants>"),
+            then=["<imputed_powerplants>"],
+            otherwise=[],
+        ),
+    output:
+        adjusted="<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet",
+        plot="<resources>/automatic/shapes/{shapes}/impute_location/{category}_location_adjustment.png",
+    log:
+        "<logs>/{shapes}/{category}/impute_location.log",
+    wildcard_constraints:
+        category="|".join(IMPUTED_CAT),
+    conda:
+        "../envs/powerplants.yaml"
+    params:
+        crs=internal["crs"]|config["crs"],
+        location_cnf=config["imputation"]["location"],
+        excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
+        tech_mapping=lambda wc: get_technology_mapping(f"{wc.category}"),
+    message:
+        "Imputation of user-configured location adjustment for {wildcards.shapes}-{wildcards.category}."
+    script:
+        "../scripts/impute_location.py"
+
 
 rule impute_years:
     input:

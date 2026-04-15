@@ -46,7 +46,7 @@ python = "3.12.9.*"
 pyyaml = "6.0.2.*"
 xlrd = "2.0.1.*"
 pip = "25.1.1.*"
-mypy = "==1.20.0"
+mypy = "1.20.1.*"
 
 [feature.powerplants.pypi-dependencies]
 gregor = { git = "https://github.com/jnnr/gregor.git", rev = "fix-memory-explosion" }

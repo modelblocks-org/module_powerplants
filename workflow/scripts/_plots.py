@@ -10,13 +10,15 @@ import pandas as pd
 from cmap import Colormap
 from matplotlib import pyplot as plt
 from matplotlib import ticker as mticker
+from matplotlib.axes import Axes
 from matplotlib.patches import Patch
 
 
-def draw_empty(ax, title, message="No data available"):
+def draw_empty(ax: Axes, title: str="", message="No data available"):
     """Helper to render an empty-data placeholder."""
     ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=12, alpha=0.7)
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
     ax.set_axis_off()
 
 
