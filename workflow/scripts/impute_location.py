@@ -427,7 +427,7 @@ def plot(
     projected_crs: _utils.CRS,
 ):
     """Plot final powerplants, highlighting split and forced-moved plants."""
-    fig, ax = plt.subplots(figsize=(8,8), layout="constrained")
+    fig, ax = plt.subplots(layout="constrained")
 
     adjusted = adjustment.powerplants.to_crs(projected_crs).set_index(
         "powerplant_id", drop=False

@@ -10,7 +10,7 @@ rule impute_location:
             otherwise=[],
         ),
     output:
-        relocated="<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet",
+        relocated=temp("<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet"),
         plot=report(
             "<resources>/automatic/shapes/{shapes}/impute_location/{category}_relocation.png",
             caption="../report/impute_location.rst",
@@ -38,7 +38,11 @@ rule impute_ages:
     input:
         relocated=rules.impute_location.output.relocated,
     output:
-        aged="<results>/{shapes}/powerplants/unadjusted/{category}.parquet",
+        aged=workflow.pathvars.apply("<powerplants>").format(
+            shapes="{shapes}",
+            adjustment="unadjusted",
+            category="{category}",
+        ),
         histogram=report(
             "<results>/{shapes}/powerplants/unadjusted/{category}_histogram.pdf",
             caption="../report/impute_ages_histogram.rst",

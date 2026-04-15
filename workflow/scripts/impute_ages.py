@@ -97,30 +97,32 @@ def impute(
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
     """
-    _utils.check_single_category(relocated_gdf)
+    if relocated_gdf.empty:
+        imputed = relocated_gdf
+    else:
+        _utils.check_single_category(relocated_gdf)
+        if (relocated_gdf.geometry.geom_type != "Point").any():
+            raise ValueError(
+                "Polygon powerplant geometries detected. Only Points are supported."
+            )
 
-    if (relocated_gdf.geometry.geom_type != "Point").any():
-        raise ValueError(
-            "Polygon powerplant geometries detected. Only Points are supported."
-        )
+        lifetimes = imputation["lifetime_years"]
+        retirement_delay_years = imputation["retirement_delay_years"]
+        scenario = SCENARIO_MAP[imputation["scenario"]]
 
-    lifetimes = imputation["lifetime_years"]
-    retirement_delay_years = imputation["retirement_delay_years"]
-    scenario = SCENARIO_MAP[imputation["scenario"]]
+        # Get facilities within the requested scenario
+        imputed = relocated_gdf[relocated_gdf["status"].isin(scenario)].copy()
 
-    # Get facilities within the requested scenario
-    imputed = relocated_gdf[relocated_gdf["status"].isin(scenario)].copy()
-
-    if not imputed.empty:
-        # Adjust project dates
-        imputed["start_year"] = _impute_start_year(imputed, lifetimes)
-        imputed["end_year"] = _impute_end_year(
-            imputed, lifetimes, retirement_delay_years
-        )
-        # Drop projects with insufficient date data
-        imputed = imputed.dropna(subset=["start_year", "end_year"])
-        # Update the powerplant status
-        imputed["status"] = _impute_status(imputed)
+        if not imputed.empty:
+            # Adjust project dates
+            imputed["start_year"] = _impute_start_year(imputed, lifetimes)
+            imputed["end_year"] = _impute_end_year(
+                imputed, lifetimes, retirement_delay_years
+            )
+            # Drop projects with insufficient date data
+            imputed = imputed.dropna(subset=["start_year", "end_year"])
+            # Update the powerplant status
+            imputed["status"] = _impute_status(imputed)
 
     schema = _schemas.build_schema(technology_mapping, "impute")
     return schema.validate(imputed)

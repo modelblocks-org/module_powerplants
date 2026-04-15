@@ -303,7 +303,7 @@ def plot_capacity_aggregation(
         shapes = shapes.set_index("shape_id")
         shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
 
-        fig, ax = plt.subplots(dpi=300)
+        fig, ax = plt.subplots(dpi=200)
 
         ax = shapes.plot(
             ax=ax,
@@ -316,6 +316,4 @@ def plot_capacity_aggregation(
             missing_kwds={"color": "lightgrey", "alpha": 0.2},
         )
         ax.set_title(title + f" in year {agg.attrs['year']}")
-        ax.set_xlabel("Longitude ($deg$)")
-        ax.set_ylabel("Latitude ($deg$)")
         fig.savefig(output_file, bbox_inches="tight")
