@@ -34,7 +34,7 @@ rule impute_location:
         "../scripts/impute_location.py"
 
 
-rule impute_ages:
+rule impute_time:
     input:
         relocated=rules.impute_location.output.relocated,
     output:
@@ -45,24 +45,24 @@ rule impute_ages:
         ),
         histogram=report(
             "<results>/{shapes}/powerplants/unadjusted/{category}_histogram.pdf",
-            caption="../report/impute_ages_histogram.rst",
+            caption="../report/impute_time_histogram.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
         explorer=report(
             "<results>/{shapes}/powerplants/unadjusted/{category}_explorer.html",
-            caption="../report/impute_ages_explorer.rst",
+            caption="../report/impute_time_explorer.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     log:
-        "<logs>/{shapes}/{category}/impute_ages.log",
+        "<logs>/{shapes}/{category}/impute_time.log",
     wildcard_constraints:
         dataset="|".join(IMPUTED_CAT),
     conda:
         "../envs/powerplants.yaml"
     params:
-        imputation=config["imputation"],
+        imputation=config["imputation"]["time"],
         tech_map=lambda wc: get_technology_mapping(wc.category),
     message:
         "National-level imputation of missing powerplant ages in {wildcards.shapes}-{wildcards.category} dataset."
@@ -72,7 +72,7 @@ rule impute_ages:
 
 rule impute_capacity_adjustment:
     input:
-        unadjusted=rules.impute_ages.output.aged,
+        unadjusted=rules.impute_time.output.aged,
         stats=rules.prepare_statistics.output.categories,
     output:
         adjusted=workflow.pathvars.apply("<powerplants>").format(

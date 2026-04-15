@@ -353,9 +353,7 @@ properties:
     additionalProperties: false
     required:
       - location
-      - scenario
-      - lifetime_years
-      - retirement_delay_years
+      - time
     properties:
       location:
         title: Location imputation
@@ -409,21 +407,30 @@ properties:
               enum:
                 - land
                 - maritime
-      scenario:
-        title: Scenario
-        description: |
-          Determines which 'future' facilities to keep beyond the adjustment year. In order of lower to higher uncertainty:
-            - historical: only keep existing capacities.
-            - construction: keeps the above plus projects already in construction (RECOMMENDED).
-            - pre_construction: keeps the above plus projects in pre-construction stages (e.g., those processing permits).
-            - announced: keeps the above plus announced projects that have not reached permitting stages. Highly speculative.
-        type: string
-        enum:
-          - historical
-          - construction
-          - pre_construction
-          - announced
-      lifetime_years:
-        $ref: '#/$defs/year_map'
-      retirement_delay_years:
-        $ref: '#/$defs/year_map'
+      time:
+        title: Time imputation
+        description: Settings in this section relate to temporal aspects of powerplants
+        additionalProperties: false
+        required:
+          - scenario
+          - lifetime_years
+          - retirement_delay_years
+        properties:
+          scenario:
+            title: Scenario
+            description: |
+              Determines which 'future' facilities to keep beyond the adjustment year. In order of lower to higher uncertainty:
+                - historical: only keep existing capacities.
+                - construction: keeps the above plus projects already in construction (RECOMMENDED).
+                - pre_construction: keeps the above plus projects in pre-construction stages (e.g., those processing permits).
+                - announced: keeps the above plus announced projects that have not reached permitting stages. Highly speculative.
+            type: string
+            enum:
+              - historical
+              - construction
+              - pre_construction
+              - announced
+          lifetime_years:
+            $ref: '#/$defs/year_map'
+          retirement_delay_years:
+            $ref: '#/$defs/year_map'
