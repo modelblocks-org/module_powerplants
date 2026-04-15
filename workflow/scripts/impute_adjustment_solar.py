@@ -52,7 +52,7 @@ def main():
         shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.plot_aggregation,
         category=snakemake.params.category,
-        crs=snakemake.params.proj_crs
+        crs=snakemake.params.proj_crs,
     )
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,

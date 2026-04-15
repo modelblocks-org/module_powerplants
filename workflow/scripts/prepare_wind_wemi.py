@@ -46,7 +46,7 @@ def _start_year(raw_df: pd.DataFrame) -> pd.Series:
     return pd.to_numeric(year, errors="coerce")
 
 
-def prepare_wemi(wemi_path: str, tech_map: dict, crs: str)-> gpd.GeoDataFrame:
+def prepare_wemi(wemi_path: str, tech_map: dict, crs: str) -> gpd.GeoDataFrame:
     """Standardised and validated version of the WEMI dataset."""
     raw_df = pd.read_excel(
         wemi_path,
@@ -78,7 +78,9 @@ def prepare_wemi(wemi_path: str, tech_map: dict, crs: str)-> gpd.GeoDataFrame:
 
 def main():
     """Saves a standardised and validated version of the WEMI dataset."""
-    wemi_gdf = prepare_wemi(snakemake.input.wemi, snakemake.params.tech_map, snakemake.params.geo_crs)
+    wemi_gdf = prepare_wemi(
+        snakemake.input.wemi, snakemake.params.tech_map, snakemake.params.geo_crs
+    )
     wemi_gdf.to_parquet(snakemake.output.path)
 
 

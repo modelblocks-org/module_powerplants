@@ -14,7 +14,10 @@ if TYPE_CHECKING:
 
 
 def main(
-    gem_gnpt_path: str, technology_mapping: dict[str, str], crs:str, output_plants_path: str
+    gem_gnpt_path: str,
+    technology_mapping: dict[str, str],
+    crs: str,
+    output_plants_path: str,
 ):
     """Obtain nuclear power plants using GEM-GNPT data."""
     raw_df = gem.read_gem_dataset(gem_gnpt_path, ["Data"])
@@ -39,7 +42,7 @@ def main(
             "status": gem.status_col(raw_df),
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
         },
-        crs=crs
+        crs=crs,
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(nuclear_df).to_parquet(output_plants_path)

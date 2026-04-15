@@ -13,7 +13,10 @@ if TYPE_CHECKING:
 
 
 def main(
-    gem_ggpt_path: str, technology_mapping: dict[str, str], crs: str, output_plants_path: str
+    gem_ggpt_path: str,
+    technology_mapping: dict[str, str],
+    crs: str,
+    output_plants_path: str,
 ):
     """Obtain geothermal power plants using GEM-GGPT data."""
     raw_df = gem.read_gem_dataset(
@@ -36,7 +39,7 @@ def main(
             "status": gem.status_col(raw_df),
             "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
         },
-        crs=crs
+        crs=crs,
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(geo_df).to_parquet(output_plants_path)

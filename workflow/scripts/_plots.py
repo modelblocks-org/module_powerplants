@@ -14,7 +14,7 @@ from matplotlib.axes import Axes
 from matplotlib.patches import Patch
 
 
-def draw_empty(ax: Axes, title: str="", message="No data available"):
+def draw_empty(ax: Axes, title: str = "", message="No data available"):
     """Helper to render an empty-data placeholder."""
     ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=12, alpha=0.7)
     if title:
@@ -286,7 +286,11 @@ def plot_capacity_adjustment(
 
 
 def plot_capacity_aggregation(
-    aggregated_file: str, shapes_file: str, output_file: str, category: str, crs: int | str
+    aggregated_file: str,
+    shapes_file: str,
+    output_file: str,
+    category: str,
+    crs: int | str,
 ):
     """Plot aggregated capacity per region."""
     shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))

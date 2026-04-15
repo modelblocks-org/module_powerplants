@@ -73,7 +73,10 @@ def _get_end_year(
 
 
 def prepare_gem_gcpt(
-    gem_gcpt_path: str, technology_mapping: dict[str, str], fuel_mapping: dict[str, str], crs:str
+    gem_gcpt_path: str,
+    technology_mapping: dict[str, str],
+    fuel_mapping: dict[str, str],
+    crs: str,
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain coal power locations using GEM-GCPT data."""
     raw_df = gem.read_gem_dataset(gem_gcpt_path, ["Units"])
@@ -102,7 +105,7 @@ def prepare_gem_gcpt(
             "chp": False,  # Not specified in GCPT
             "fuel_class": fuel_class,
         },
-        crs=crs
+        crs=crs,
     ).reset_index(drop=True)
     coal_df = _utils.ensure_positive_capacity(coal_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
@@ -113,7 +116,7 @@ def prepare_gem_gogpt(
     gem_gogpt_path: str,
     technology_mapping: dict[str, str],
     fuel_mapping: dict[str, str],
-    crs: str
+    crs: str,
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain oil and gas power plants using GEM-GOGPT data."""
     raw_df = gem.read_gem_dataset(
@@ -143,7 +146,7 @@ def prepare_gem_gogpt(
             "chp": raw_df["chp"] == "yes",
             "fuel_class": fuel_class,
         },
-        crs=crs
+        crs=crs,
     ).reset_index(drop=True)
     oil_gas_df = _utils.ensure_positive_capacity(oil_gas_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
@@ -157,7 +160,7 @@ def main() -> None:
         gem_gogpt_path=snakemake.input.gem_gogpt,
         technology_mapping=snakemake.params.technology_mapping["oil_gas"],
         fuel_mapping=snakemake.params.fuel_mapping,
-        crs=snakemake.params.geo_crs
+        crs=snakemake.params.geo_crs,
     )
     og_plants.to_parquet(snakemake.output.og_plants)
     og_fuels.to_parquet(snakemake.output.og_fuels)
@@ -167,7 +170,7 @@ def main() -> None:
         gem_gcpt_path=snakemake.input.gem_gcpt,
         technology_mapping=snakemake.params.technology_mapping["coal"],
         fuel_mapping=snakemake.params.fuel_mapping,
-        crs=snakemake.params.geo_crs
+        crs=snakemake.params.geo_crs,
     )
     coal_plants.to_parquet(snakemake.output.coal_plants)
     coal_fuels.to_parquet(snakemake.output.coal_fuels)

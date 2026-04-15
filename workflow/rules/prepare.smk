@@ -12,7 +12,7 @@ rule prepare_hydropower:
         "../envs/powerplants.yaml"
     params:
         technology_mapping=config["category"]["hydropower"]["technology_mapping"],
-        geo_crs=internal["crs"]["geographic"]
+        geo_crs=internal["crs"]["geographic"],
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
     script:
@@ -33,7 +33,7 @@ rule prepare_large_solar:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["utility_pv"],
         utility_pv_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
         csp_name=config["category"]["solar"]["technology_mapping"]["csp"],
-        geo_crs=internal["crs"]["geographic"]
+        geo_crs=internal["crs"]["geographic"],
     message:
         "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     script:
@@ -53,7 +53,7 @@ if config["category"]["wind"]["source"] == "gem":
             "../envs/powerplants.yaml"
         params:
             tech_map=config["category"]["wind"]["technology_mapping"],
-            geo_crs=internal["crs"]["geographic"]
+            geo_crs=internal["crs"]["geographic"],
         message:
             "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
         script:

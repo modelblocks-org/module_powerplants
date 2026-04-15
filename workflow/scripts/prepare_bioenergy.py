@@ -61,7 +61,7 @@ def main(
             "chp": False,
             "fuel_class": fuel_class,
         },
-        crs=crs
+        crs=crs,
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(bioenergy_df).to_parquet(output_plants_path)

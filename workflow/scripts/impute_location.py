@@ -442,10 +442,7 @@ def plot(
 
     if not shapes.empty:
         shapes.boundary.plot(
-            ax=ax,
-            linewidth=0.5,
-            color="black",
-            label=f"Shapes (n={len(shapes)})",
+            ax=ax, linewidth=0.5, color="black", label=f"Shapes (n={len(shapes)})"
         )
 
     layers = [

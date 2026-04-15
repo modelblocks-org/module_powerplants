@@ -1,5 +1,6 @@
 """Rules related to internal and user-provided imputations."""
 
+
 rule impute_location:
     input:
         internal="<resources>/automatic/prepared/{category}.parquet",
@@ -10,13 +11,15 @@ rule impute_location:
             otherwise=[],
         ),
     output:
-        relocated=temp("<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet"),
+        relocated=temp(
+            "<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet"
+        ),
         plot=report(
             "<resources>/automatic/shapes/{shapes}/impute_location/{category}_relocation.png",
             caption="../report/impute_location.rst",
             category="Powerplants module",
             subcategory="{category}",
-        )
+        ),
     log:
         "<logs>/{shapes}/{category}/impute_location.log",
     wildcard_constraints:
@@ -24,7 +27,7 @@ rule impute_location:
     conda:
         "../envs/powerplants.yaml"
     params:
-        crs=internal["crs"]|config["crs"],
+        crs=internal["crs"] | config["crs"],
         location_cnf=config["imputation"]["location"],
         excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
         tech_mapping=lambda wc: get_technology_mapping(f"{wc.category}"),

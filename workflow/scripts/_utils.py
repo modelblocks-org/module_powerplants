@@ -12,7 +12,9 @@ from pyproj import CRS
 DATASET_YEAR = 2023
 
 
-def check_crs(crs: int | str, how: Literal["projected", "geographic", "geocentric"]) -> CRS:
+def check_crs(
+    crs: int | str, how: Literal["projected", "geographic", "geocentric"]
+) -> CRS:
     """Helper to verify user-provided CRS codes."""
     parsed = CRS.from_user_input(crs)
     correct = False
@@ -61,7 +63,9 @@ def get_point_col(
     raw: pd.DataFrame, lon_col: str, lat_col: str, crs: str = "EPSG:4326"
 ) -> gpd.GeoSeries:
     """Converts latitude / longitude columns to a point geometry."""
-    return gpd.points_from_xy(raw[lon_col], raw[lat_col], crs=check_crs(crs, "geographic"))
+    return gpd.points_from_xy(
+        raw[lon_col], raw[lat_col], crs=check_crs(crs, "geographic")
+    )
 
 
 def get_combined_text_col(
