@@ -11,7 +11,12 @@ rule impute_location:
         ),
     output:
         adjusted="<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet",
-        plot="<resources>/automatic/shapes/{shapes}/impute_location/{category}_location_adjustment.png",
+        plot=report(
+            "<resources>/automatic/shapes/{shapes}/impute_location/{category}_location_adjustment.png",
+            caption="../report/impute_location.rst",
+            category="Powerplants module",
+            subcategory="{category}",
+        )
     log:
         "<logs>/{shapes}/{category}/impute_location.log",
     wildcard_constraints:
