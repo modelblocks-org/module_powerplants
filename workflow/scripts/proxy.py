@@ -108,7 +108,7 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
 
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=300, rasterized=True)
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=300)
     coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),

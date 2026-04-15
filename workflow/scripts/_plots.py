@@ -286,10 +286,11 @@ def plot_capacity_adjustment(
 
 
 def plot_capacity_aggregation(
-    aggregated_file: str, shapes_file: str, output_file: str, category: str
+    aggregated_file: str, shapes_file: str, output_file: str, category: str, crs: int | str
 ):
     """Plot aggregated capacity per region."""
     shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))
+    shapes = shapes.to_crs(_utils.check_crs(crs, "projected"))
     agg = _schemas.AggregatedPlantSchema.validate(pd.read_parquet(aggregated_file))
 
     title = f"Aggregated {category} capacity"
@@ -302,12 +303,12 @@ def plot_capacity_aggregation(
         shapes = shapes.set_index("shape_id")
         shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
 
-        fig, ax = plt.subplots(figsize=(6, 6), dpi=300, rasterized=True)
+        fig, ax = plt.subplots(dpi=300)
 
         ax = shapes.plot(
             ax=ax,
             column="output_capacity_mw",
-            cmap="magma",
+            cmap="plasma",
             edgecolor="grey",
             linewidth=0.5,
             legend=True,

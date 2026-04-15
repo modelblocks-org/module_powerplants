@@ -1,29 +1,6 @@
 """Rules in this file focus on parsing and cleaning data into shared schemas."""
 
 
-rule prepare_shapes:
-    input:
-        shapes="<shapes>",
-    output:
-        dissolved="<resources>/automatic/shapes/{shapes}/dissolved.parquet",
-        dissolved_plt=report(
-            "<resources>/automatic/shapes/{shapes}/dissolved.png",
-            caption="../report/prepare_shapes.rst",
-            category="Powerplants module",
-            subcategory="preparation",
-        ),
-    log:
-        "<logs>/{shapes}/prepare_shapes.log",
-    conda:
-        "../envs/powerplants.yaml"
-    params:
-        crs=config["crs"]["projected"],
-    message:
-        "Preparing intermediate shapefile versions to speed up processing."
-    script:
-        "../scripts/prepare_shapes.py"
-
-
 rule prepare_hydropower:
     input:
         glohydrores_path=rules.download_glohydrores.output.path,

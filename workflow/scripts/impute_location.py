@@ -446,7 +446,6 @@ def plot(
             linewidth=0.5,
             color="black",
             label=f"Shapes (n={len(shapes)})",
-            rasterized=True,
         )
 
     layers = [
@@ -461,9 +460,8 @@ def plot(
                 ax=ax,
                 markersize=8 if label == "Valid plants" else 28,
                 marker=".",
-                alpha=0.25 if label == "Valid plants" else 0.9,
+                alpha=0.5 if label == "Valid plants" else 0.9,
                 label=f"{label} (n={len(data)})",
-                rasterized=True,
             )
 
     ax.set_aspect("equal")

@@ -25,7 +25,7 @@ rule proxy_rooftop_pv:
     output:
         proxy="<resources>/automatic/shapes/{shapes}/proxies/rooftop_pv.tif",
         plot=report(
-            "<resources>/automatic/shapes/{shapes}/proxies/rooftop_pv.pdf",
+            "<resources>/automatic/shapes/{shapes}/proxies/rooftop_pv.png",
             caption="../report/proxy_rooftop_pv.rst",
             category="Powerplants module",
             subcategory="solar",
@@ -58,14 +58,14 @@ rule impute_adjustment_solar:
             adjustment="adjusted",
             category="solar",
         ),
-        plot_map=report(
-            "<results>/{shapes}/aggregated/adjusted/solar_map.pdf",
+        plot_aggregation=report(
+            "<results>/{shapes}/aggregated/adjusted/solar_aggregation.png",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="solar",
         ),
-        plot_stats=report(
-            "<results>/{shapes}/aggregated/adjusted/solar_stats.pdf",
+        plot_adjustment=report(
+            "<results>/{shapes}/aggregated/adjusted/solar_adjustment.pdf",
             caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="solar",
@@ -76,6 +76,7 @@ rule impute_adjustment_solar:
         "../envs/powerplants.yaml"
     params:
         category="solar",
+        proj_crs=config["crs"]["projected"],
         technology=config["category"]["solar"]["technology_mapping"]["rooftop_pv"],
     message:
         "Aggregating capacity for {wildcards.shapes}-adjusted-solar."

@@ -145,10 +145,10 @@ def main() -> None:
         imputation=snakemake.params.imputation,
         technology_mapping=snakemake.params.tech_map,
     )
-    imputed_gdf.to_parquet(snakemake.output.imputed)
+    imputed_gdf.to_parquet(snakemake.output.aged)
 
     _plots.plot_powerplant_capacity_buildup(
-        imputed_gdf, snakemake.output.plot, "seaborn:tab20"
+        imputed_gdf, snakemake.output.histogram, "seaborn:tab20"
     )
     explore(imputed_gdf, snakemake.output.explorer)
 

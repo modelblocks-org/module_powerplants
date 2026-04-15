@@ -34,25 +34,25 @@ rule impute_location:
         "../scripts/impute_location.py"
 
 
-rule impute_years:
+rule impute_ages:
     input:
         relocated=rules.impute_location.output.relocated,
     output:
-        imputed="<results>/{shapes}/powerplants/unadjusted/{category}.parquet",
-        plot=report(
+        aged="<results>/{shapes}/powerplants/unadjusted/{category}.parquet",
+        histogram=report(
             "<results>/{shapes}/powerplants/unadjusted/{category}_histogram.pdf",
-            caption="../report/impute_years_histogram.rst",
+            caption="../report/impute_ages_histogram.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
         explorer=report(
             "<results>/{shapes}/powerplants/unadjusted/{category}_explorer.html",
-            caption="../report/impute_years_explorer.rst",
+            caption="../report/impute_ages_explorer.rst",
             category="Powerplants module",
             subcategory="{category}",
         ),
     log:
-        "<logs>/{shapes}/{category}/impute_years.log",
+        "<logs>/{shapes}/{category}/impute_ages.log",
     wildcard_constraints:
         dataset="|".join(IMPUTED_CAT),
     conda:
@@ -61,56 +61,14 @@ rule impute_years:
         imputation=config["imputation"],
         tech_map=lambda wc: get_technology_mapping(wc.category),
     message:
-        "National-level imputation of missing years for all powerplants in {wildcards.shapes}-{wildcards.category} dataset."
+        "National-level imputation of missing powerplant ages in {wildcards.shapes}-{wildcards.category} dataset."
     script:
-        "../scripts/impute_years.py"
-
-
-rule impute_category_combination:
-    input:
-        internal=rules.impute_years.output.imputed,
-        user=branch(
-            exists("<imputed_powerplants>"),
-            then=["<imputed_powerplants>"],
-            otherwise=[],
-        ),
-    output:
-        combined=workflow.pathvars.apply("<powerplants>").format(
-            shapes="{shapes}",
-            adjustment="unadjusted",
-            category="{category}",
-        ),
-        plot=report(
-            "<results>/{shapes}/powerplants/unadjusted/{category}.pdf",
-            caption="../report/impute_category_combination_histogram.rst",
-            category="Powerplants module",
-            subcategory="{category}",
-        ),
-        explore=report(
-            "<results>/{shapes}/powerplants/unadjusted/{category}.html",
-            caption="../report/impute_category_combination_map.rst",
-            category="Powerplants module",
-            subcategory="{category}",
-        ),
-    log:
-        "<logs>/{shapes}/{category}/impute_category_combination.log",
-    wildcard_constraints:
-        category="|".join(IMPUTED_CAT),
-    conda:
-        "../envs/powerplants.yaml"
-    params:
-        geo_crs=internal["crs"]["geographic"],
-        excluded=lambda wc: get_excluded_powerplant_ids(f"{wc.category}"),
-        tech_map=lambda wc: get_technology_mapping(f"{wc.category}"),
-    message:
-        "National-level imputation of user-configured inclusions and exclusions for {wildcards.shapes}-{wildcards.category}."
-    script:
-        "../scripts/impute_category_combination.py"
+        "../scripts/impute_ages.py"
 
 
 rule impute_capacity_adjustment:
     input:
-        unadjusted=rules.impute_category_combination.output.combined,
+        unadjusted=rules.impute_ages.output.aged,
         stats=rules.prepare_statistics.output.categories,
     output:
         adjusted=workflow.pathvars.apply("<powerplants>").format(
@@ -119,7 +77,7 @@ rule impute_capacity_adjustment:
             category="{category}",
         ),
         plot=report(
-            "<results>/{shapes}/powerplants/adjusted/{category}.pdf",
+            "<results>/{shapes}/powerplants/adjusted/{category}_adjustment.pdf",
             caption="../report/impute_capacity_adjustment.rst",
             category="Powerplants module",
             subcategory="{category}",

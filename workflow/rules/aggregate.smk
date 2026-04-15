@@ -8,7 +8,7 @@ rule aggregate_capacity:
     output:
         aggregated="<aggregated_capacity>",
         plot=report(
-            "<results>/{shapes}/aggregated/{adjustment}/{category}.pdf",
+            "<results>/{shapes}/aggregated/{adjustment}/{category}_aggregation.png",
             caption="../report/aggregate_capacity.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -22,6 +22,7 @@ rule aggregate_capacity:
         "../envs/powerplants.yaml"
     params:
         category=lambda wc: wc.category,
+        proj_crs=config["crs"]["projected"],
     message:
         "Aggregating capacity for {wildcards.shapes}-{wildcards.adjustment}-{wildcards.category}."
     script:
