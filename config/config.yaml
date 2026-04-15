@@ -91,46 +91,68 @@ fuel_mapping:
   "fossil gas: unknown": "natural gas"
 
 imputation:
-  shape_overlap_correction: "split_capacity" # strict or split_capacity
-  scenario: "near-future" # near-future, far-future, far-off-future
-  lifetime_years:
-    # General lifetime assumptions. Adjust as needed!
-    bioenergy turbine: 25
-    ccgt: 20
-    coal turbine: 50
-    concentrating solar power: 25
-    high enthalpy geothermal: 30
-    igcc: 25
-    low enthalpy geothermal: 30
-    nuclear reactor: 50
-    ocgt: 20
-    offshore: 25
-    onshore: 25
-    pumped storage: 80
-    reciprocating engine: 20
-    reservoir: 80
-    rooftop pv: 25
-    run of river: 80
-    steam turbine: 30
-    utility pv: 25
-  retirement_delay_years:
-    # Assumed extension past reference year.
-    # Only applies if a powerplant is still operating past the lifetime_years assumption
-    bioenergy turbine: 5
-    ccgt: 5
-    coal turbine: 5
-    concentrating solar power: 2
-    high enthalpy geothermal: 5
-    igcc: 5
-    low enthalpy geothermal: 5
-    nuclear reactor: 5
-    ocgt: 5
-    offshore: 2
-    onshore: 2
-    pumped storage: 10
-    reciprocating engine: 5
-    reservoir: 10
-    rooftop pv: 5
-    run of river: 10
-    steam turbine: 5
-    utility pv: 2
+  location:
+    inner_distance: 100  # matches projected CRS unit.
+    on_overlap: "split_capacity"
+    on_forced_class_error: "drop"  # either 'drop', 'ignore', or 'raise'
+    forced_class:
+      bioenergy turbine: "land"
+      ccgt: "land"
+      coal turbine: "land"
+      concentrating solar power: "land"
+      high enthalpy geothermal: "land"
+      igcc: "land"
+      low enthalpy geothermal: "land"
+      nuclear reactor: "land"
+      ocgt: "land"
+      offshore: "maritime"
+      onshore: "land"
+      pumped storage: "land"
+      reciprocating engine: "land"
+      reservoir: "land"
+      run of river: "land"
+      steam turbine: "land"
+      utility pv: "land"
+  time:
+    scenario: "construction" # Options: historical->construction->pre_construction->announced
+    lifetime_years:
+      # General lifetime assumptions. Adjust as needed!
+      bioenergy turbine: 25
+      ccgt: 20
+      coal turbine: 50
+      concentrating solar power: 25
+      high enthalpy geothermal: 30
+      igcc: 25
+      low enthalpy geothermal: 30
+      nuclear reactor: 50
+      ocgt: 20
+      offshore: 25
+      onshore: 25
+      pumped storage: 80
+      reciprocating engine: 20
+      reservoir: 80
+      rooftop pv: 25
+      run of river: 80
+      steam turbine: 30
+      utility pv: 25
+    retirement_delay_years:
+      # Assumed extension past reference year.
+      # Only applies if a powerplant is still operating past the lifetime_years assumption
+      bioenergy turbine: 5
+      ccgt: 5
+      coal turbine: 5
+      concentrating solar power: 2
+      high enthalpy geothermal: 5
+      igcc: 5
+      low enthalpy geothermal: 5
+      nuclear reactor: 5
+      ocgt: 5
+      offshore: 2
+      onshore: 2
+      pumped storage: 10
+      reciprocating engine: 5
+      reservoir: 10
+      rooftop pv: 5
+      run of river: 10
+      steam turbine: 5
+      utility pv: 2

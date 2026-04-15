@@ -1,29 +1,6 @@
 """Rules in this file focus on parsing and cleaning data into shared schemas."""
 
 
-rule prepare_shapes:
-    input:
-        shapes="<shapes>",
-    output:
-        dissolved="<resources>/automatic/shapes/{shapes}/dissolved.parquet",
-        dissolved_plt=report(
-            "<resources>/automatic/shapes/{shapes}/dissolved.png",
-            caption="../report/prepare_shapes.rst",
-            category="Powerplants module",
-            subcategory="preparation",
-        ),
-    log:
-        "<logs>/{shapes}/prepare_shapes.log",
-    conda:
-        "../envs/powerplants.yaml"
-    params:
-        crs=config["crs"]["projected"],
-    message:
-        "Preparing intermediate shapefile versions to speed up processing."
-    script:
-        "../scripts/prepare_shapes.py"
-
-
 rule prepare_hydropower:
     input:
         glohydrores_path=rules.download_glohydrores.output.path,
@@ -35,6 +12,7 @@ rule prepare_hydropower:
         "../envs/powerplants.yaml"
     params:
         technology_mapping=config["category"]["hydropower"]["technology_mapping"],
+        geo_crs=internal["crs"]["geographic"],
     message:
         "Preparing hydropower powerplants using the GloHydroRes dataset."
     script:
@@ -55,6 +33,7 @@ rule prepare_large_solar:
         dc_ac_ratio=config["category"]["solar"]["dc_ac_ratio"]["utility_pv"],
         utility_pv_name=config["category"]["solar"]["technology_mapping"]["utility_pv"],
         csp_name=config["category"]["solar"]["technology_mapping"]["csp"],
+        geo_crs=internal["crs"]["geographic"],
     message:
         "Preparing utility PV powerplants using the TZ-SAM and GEM-GSPT datasets."
     script:
@@ -65,7 +44,6 @@ if config["category"]["wind"]["source"] == "gem":
 
     rule prepare_wind_gem:
         input:
-            script=workflow.source_path("../scripts/prepare_wind_gwpt.py"),
             gem_gwpt=rules.download_gem.output.path.format(dataset="GWPT"),
         output:
             path="<resources>/automatic/prepared/wind.parquet",
@@ -75,19 +53,16 @@ if config["category"]["wind"]["source"] == "gem":
             "../envs/powerplants.yaml"
         params:
             tech_map=config["category"]["wind"]["technology_mapping"],
+            geo_crs=internal["crs"]["geographic"],
         message:
             "Preparing wind powerplants using the Global Wind Power Tracker (GEM-GWPT) dataset."
-        shell:
-            """
-            python {input.script:q} {input.gem_gwpt:q} \
-                -t "{params.tech_map}" -o {output:q} 2> {log:q}
-            """
+        script:
+            "../scripts/prepare_wind_gwpt.py"
 
 elif config["category"]["wind"]["source"] == "wemi":
 
     rule prepare_wind_wemi:
         input:
-            script=workflow.source_path("../scripts/prepare_wind_wemi.py"),
             wemi="<wemi>",
         output:
             path="<resources>/automatic/prepared/wind.parquet",
@@ -96,14 +71,12 @@ elif config["category"]["wind"]["source"] == "wemi":
         conda:
             "../envs/powerplants.yaml"
         params:
+            geo_crs=internal["crs"]["geographic"],
             tech_map=config["category"]["wind"]["technology_mapping"],
         message:
             "Preparing wind powerplants using the Wind Energy Market Intelligence dataset."
-        shell:
-            """
-            python {input.script:q} {input.wemi:q} \
-                -t "{params.tech_map}" -o {output.path:q} 2> {log:q}
-            """
+        script:
+            "../scripts/prepare_wind_wemi.py"
 
 else:
     raise ValueError(
@@ -122,8 +95,9 @@ rule prepare_bioenergy:
     conda:
         "../envs/powerplants.yaml"
     params:
-        technology_mapping=config["category"]["bioenergy"]["technology_mapping"],
+        geo_crs=internal["crs"]["geographic"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
+        technology_mapping=config["category"]["bioenergy"]["technology_mapping"],
     message:
         "Preparing bioenergy powerplants using the Global Bioenergy Power Tracker (GBPT) dataset."
     script:
@@ -144,8 +118,9 @@ rule prepare_fossil:
     conda:
         "../envs/powerplants.yaml"
     params:
-        technology_mapping=config["category"]["fossil"]["technology_mapping"],
+        geo_crs=internal["crs"]["geographic"],
         fuel_mapping=internal["fuel_mapping"] | config["fuel_mapping"],
+        technology_mapping=config["category"]["fossil"]["technology_mapping"],
     message:
         "Preparing fossil powerplants using the GOGPT and GCPT datasets."
     script:
@@ -162,6 +137,7 @@ rule prepare_nuclear:
     conda:
         "../envs/powerplants.yaml"
     params:
+        geo_crs=internal["crs"]["geographic"],
         technology_mapping=config["category"]["nuclear"]["technology_mapping"],
     message:
         "Preparing nuclear powerplants using the Global Nuclear Power Tracker (GNPT) dataset."
@@ -179,6 +155,7 @@ rule prepare_geothermal:
     conda:
         "../envs/powerplants.yaml"
     params:
+        geo_crs=internal["crs"]["geographic"],
         technology_mapping=config["category"]["geothermal"]["technology_mapping"],
     message:
         "Preparing geothermal powerplants using the Global Geothermal Power Tracker (GGPT) dataset."

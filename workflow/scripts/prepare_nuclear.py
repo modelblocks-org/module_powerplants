@@ -11,11 +11,13 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 
 def main(
-    gem_gnpt_path: str, technology_mapping: dict[str, str], output_plants_path: str
+    gem_gnpt_path: str,
+    technology_mapping: dict[str, str],
+    crs: str,
+    output_plants_path: str,
 ):
     """Obtain nuclear power plants using GEM-GNPT data."""
     raw_df = gem.read_gem_dataset(gem_gnpt_path, ["Data"])
@@ -38,16 +40,19 @@ def main(
                 raw_df["retirement_date"], format="mixed"
             ).dt.year,
             "status": gem.status_col(raw_df),
-            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
-        }
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
+        },
+        crs=crs,
     ).reset_index(drop=True)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     schema.validate(nuclear_df).to_parquet(output_plants_path)
 
 
 if __name__ == "__main__":
+    sys.stderr = open(snakemake.log[0], "w")
     main(
         gem_gnpt_path=snakemake.input.gem_gnpt,
         technology_mapping=snakemake.params.technology_mapping,
+        crs=snakemake.params.geo_crs,
         output_plants_path=snakemake.output.plants,
     )

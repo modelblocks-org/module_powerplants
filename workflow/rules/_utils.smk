@@ -32,8 +32,10 @@ IMPUTED_CAT_WITHOUT_ADJUSTMENT = {"large_solar"}
 
 def additional_config_validation():
     """Ensures technology mapping and lifetime-related names match."""
-    lifetime_set = set(config["imputation"]["lifetime_years"].keys())
-    mismatch = lifetime_set ^ set(config["imputation"]["retirement_delay_years"])
+    lifetime_set = set(config["imputation"]["time"]["lifetime_years"].keys())
+    mismatch = lifetime_set ^ set(
+        config["imputation"]["time"]["retirement_delay_years"]
+    )
     if mismatch:
         raise ValueError(
             f"Technologies in lifetimes and retirement delays mismatch: {mismatch}."

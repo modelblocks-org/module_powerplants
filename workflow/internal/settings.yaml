@@ -1,4 +1,6 @@
 # Module settings that users cannot modify.
+crs:
+  geographic: "EPSG:4326"
 resources:
   automatic:
     # Links for automatically downloaded files

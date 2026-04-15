@@ -57,7 +57,7 @@ def capacity(powerplant_file: str, shapes_file: str, year: int, output_file: str
         agg_plants_df = pd.concat(agg_plants_arr, axis="index", ignore_index=True)
 
     agg_plants_df.attrs["year"] = year
-    agg_plants_df = _utils._clean_positive_capacity(agg_plants_df)
+    agg_plants_df = _utils.ensure_positive_capacity(agg_plants_df)
     _schemas.AggregatedPlantSchema.validate(agg_plants_df).to_parquet(output_file)
 
 
@@ -74,4 +74,5 @@ if __name__ == "__main__":
         shapes_file=snakemake.input.shapes,
         output_file=snakemake.output.plot,
         category=snakemake.params.category,
+        crs=snakemake.params.proj_crs,
     )

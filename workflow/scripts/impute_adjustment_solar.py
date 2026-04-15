@@ -33,7 +33,7 @@ def capacity_solar(
 
     # Combine and clean the data
     solar_mw = pd.concat([agg_roof_pv_cap, large_pv], ignore_index=True)
-    solar_mw = _utils._clean_positive_capacity(solar_mw)
+    solar_mw = _utils.ensure_positive_capacity(solar_mw)
     solar_mw.attrs = large_pv.attrs | agg_roof_pv_cap.attrs
     return _schemas.AggregatedPlantSchema.validate(solar_mw)
 
@@ -50,15 +50,16 @@ def main():
     _plots.plot_capacity_aggregation(
         aggregated_file=snakemake.output.aggregated,
         shapes_file=snakemake.input.shapes,
-        output_file=snakemake.output.plot_map,
+        output_file=snakemake.output.plot_aggregation,
         category=snakemake.params.category,
+        crs=snakemake.params.proj_crs,
     )
     _plots.plot_capacity_adjustment(
         stats_file=snakemake.input.stats,
         unadjusted_file=snakemake.input.large_solar,
         adjusted_file=snakemake.output.aggregated,
         year=_utils.DATASET_YEAR,
-        output_file=snakemake.output.plot_stats,
+        output_file=snakemake.output.plot_adjustment,
         is_disagg=False,
     )
 

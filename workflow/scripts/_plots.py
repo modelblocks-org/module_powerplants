@@ -10,13 +10,15 @@ import pandas as pd
 from cmap import Colormap
 from matplotlib import pyplot as plt
 from matplotlib import ticker as mticker
+from matplotlib.axes import Axes
 from matplotlib.patches import Patch
 
 
-def draw_empty(ax, title, message="No data available"):
+def draw_empty(ax: Axes, title: str = "", message="No data available"):
     """Helper to render an empty-data placeholder."""
     ax.text(0.5, 0.5, message, ha="center", va="center", fontsize=12, alpha=0.7)
-    ax.set_title(title)
+    if title:
+        ax.set_title(title)
     ax.set_axis_off()
 
 
@@ -284,10 +286,15 @@ def plot_capacity_adjustment(
 
 
 def plot_capacity_aggregation(
-    aggregated_file: str, shapes_file: str, output_file: str, category: str
+    aggregated_file: str,
+    shapes_file: str,
+    output_file: str,
+    category: str,
+    crs: int | str,
 ):
     """Plot aggregated capacity per region."""
     shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(shapes_file))
+    shapes = shapes.to_crs(_utils.check_crs(crs, "projected"))
     agg = _schemas.AggregatedPlantSchema.validate(pd.read_parquet(aggregated_file))
 
     title = f"Aggregated {category} capacity"
@@ -300,12 +307,12 @@ def plot_capacity_aggregation(
         shapes = shapes.set_index("shape_id")
         shapes["output_capacity_mw"] = cap_by_shape.replace(0, np.nan)
 
-        fig, ax = plt.subplots(figsize=(6, 6), dpi=300, rasterized=True)
+        fig, ax = plt.subplots(dpi=200)
 
         ax = shapes.plot(
             ax=ax,
             column="output_capacity_mw",
-            cmap="magma",
+            cmap="plasma",
             edgecolor="grey",
             linewidth=0.5,
             legend=True,
@@ -313,6 +320,4 @@ def plot_capacity_aggregation(
             missing_kwds={"color": "lightgrey", "alpha": 0.2},
         )
         ax.set_title(title + f" in year {agg.attrs['year']}")
-        ax.set_xlabel("Longitude ($deg$)")
-        ax.set_ylabel("Latitude ($deg$)")
         fig.savefig(output_file, bbox_inches="tight")

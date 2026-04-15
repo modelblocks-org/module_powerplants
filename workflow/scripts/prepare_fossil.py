@@ -73,7 +73,10 @@ def _get_end_year(
 
 
 def prepare_gem_gcpt(
-    gem_gcpt_path: str, technology_mapping: dict[str, str], fuel_mapping: dict[str, str]
+    gem_gcpt_path: str,
+    technology_mapping: dict[str, str],
+    fuel_mapping: dict[str, str],
+    crs: str,
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain coal power locations using GEM-GCPT data."""
     raw_df = gem.read_gem_dataset(gem_gcpt_path, ["Units"])
@@ -97,12 +100,14 @@ def prepare_gem_gcpt(
             "start_year": gem.year_col(raw_df, "start"),
             "end_year": _get_end_year(raw_df, planned_ret_col="planned_retirement"),
             "status": gem.status_col(raw_df, mapping=STATUS_MAPPING_COAL),
-            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
             "ccs": _get_coal_ccs(raw_df),
             "chp": False,  # Not specified in GCPT
             "fuel_class": fuel_class,
-        }
+        },
+        crs=crs,
     ).reset_index(drop=True)
+    coal_df = _utils.ensure_positive_capacity(coal_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     return schema.validate(coal_df), _schemas.FuelSchema.validate(fuels_df)
 
@@ -111,6 +116,7 @@ def prepare_gem_gogpt(
     gem_gogpt_path: str,
     technology_mapping: dict[str, str],
     fuel_mapping: dict[str, str],
+    crs: str,
 ) -> tuple[gpd.GeoDataFrame, pd.DataFrame]:
     """Obtain oil and gas power plants using GEM-GOGPT data."""
     raw_df = gem.read_gem_dataset(
@@ -135,12 +141,14 @@ def prepare_gem_gogpt(
             "start_year": gem.year_col(raw_df, "start"),
             "end_year": _get_end_year(raw_df, planned_ret_col="planned_retire"),
             "status": gem.status_col(raw_df),
-            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude"),
+            "geometry": _utils.get_point_col(raw_df, "longitude", "latitude", crs),
             "ccs": raw_df["ccs_attachment?"] == "yes",
             "chp": raw_df["chp"] == "yes",
             "fuel_class": fuel_class,
-        }
+        },
+        crs=crs,
     ).reset_index(drop=True)
+    oil_gas_df = _utils.ensure_positive_capacity(oil_gas_df)
     schema = _schemas.build_schema(technology_mapping, "prepare")
     return schema.validate(oil_gas_df), _schemas.FuelSchema.validate(fuels_df)
 
@@ -152,6 +160,7 @@ def main() -> None:
         gem_gogpt_path=snakemake.input.gem_gogpt,
         technology_mapping=snakemake.params.technology_mapping["oil_gas"],
         fuel_mapping=snakemake.params.fuel_mapping,
+        crs=snakemake.params.geo_crs,
     )
     og_plants.to_parquet(snakemake.output.og_plants)
     og_fuels.to_parquet(snakemake.output.og_fuels)
@@ -161,6 +170,7 @@ def main() -> None:
         gem_gcpt_path=snakemake.input.gem_gcpt,
         technology_mapping=snakemake.params.technology_mapping["coal"],
         fuel_mapping=snakemake.params.fuel_mapping,
+        crs=snakemake.params.geo_crs,
     )
     coal_plants.to_parquet(snakemake.output.coal_plants)
     coal_fuels.to_parquet(snakemake.output.coal_fuels)

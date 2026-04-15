@@ -12,16 +12,9 @@ import pandas as pd
 import rioxarray as rxr
 from cmap import Colormap
 from matplotlib import pyplot as plt
-from xarray import DataArray
 
 if TYPE_CHECKING:
     snakemake: Any
-
-
-def _check_crs(raster: DataArray):
-    crs = raster.rio.crs
-    if crs is None or not crs.is_valid:
-        raise ValueError(f"The provided raster has an invalid CRS: {crs}.")
 
 
 def _get_borders_gdf(shapes_file: str) -> gpd.GeoDataFrame:
@@ -69,7 +62,6 @@ def proxy_rooftop_pv_capacity(
     borders_df = _get_borders_gdf(shapes_file).set_index("country_id")
     stats_df = pd.read_parquet(stats_file)
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
-    _check_crs(area_potential_da)
 
     agg_unadjusted_df = pd.read_parquet(aggregated_unadjusted_file)
     unadj_cap_mw = agg_unadjusted_df.groupby("country_id")["output_capacity_mw"].sum()
@@ -107,7 +99,6 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
     shapes_gdf = gpd.read_parquet(shapes_file)
 
     area_potential_da = rxr.open_rasterio(proxy_file).squeeze()  # type: ignore[union-attr]
-    _check_crs(area_potential_da)
 
     # Compute a coarsening factor to avoid memory limits
     nx, ny = area_potential_da.sizes["x"], area_potential_da.sizes["y"]
@@ -117,7 +108,7 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
 
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=300, rasterized=True)
+    fig, ax = plt.subplots(figsize=(6, 6), dpi=300)
     coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),
@@ -125,11 +116,10 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
         cbar_kwargs={"location": "right", "label": "Proxied potential"},
         alpha=1,
     )
+    # project to the raster's CRS for speed
     shapes_gdf.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
         ax=ax, color="lightgrey", linewidth=0.3, alpha=0.5
     )
-    ax.set_xlabel("Longitude")
-    ax.set_ylabel("Latitude")
     ax.set_title(f"Aggregation proxy (coarsened ~{pixel_count:.1e} pixels)")
     fig.savefig(output_file, bbox_inches="tight")
 

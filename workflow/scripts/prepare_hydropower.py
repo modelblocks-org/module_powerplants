@@ -11,7 +11,6 @@ import pandas as pd
 
 if TYPE_CHECKING:
     snakemake: Any
-sys.stderr = open(snakemake.log[0], "w")
 
 
 def _technology(gem_df: pd.DataFrame, tech_mapping: dict[str, str]) -> pd.Series:
@@ -37,9 +36,12 @@ def _reservoir_km3(gem_df: pd.DataFrame) -> pd.Series:
     return gem_df["res_vol_km3"].where(gem_df["res_vol_km3"] >= 0, np.nan)
 
 
-def main(input_path: str, output_path: str, technology_mapping: dict[str, str]):
+def main():
     """Prepare a cleaned hydropower dataset."""
-    raw_df = pd.read_csv(input_path)
+    raw_df = pd.read_csv(snakemake.input.glohydrores_path)
+    technology_mapping = snakemake.params.technology_mapping
+    crs = snakemake.params.geo_crs
+
     raw_df = raw_df.dropna(subset=["capacity_mw", "plant_lon", "plant_lat"])
     hydro_df = gpd.GeoDataFrame(
         {
@@ -51,17 +53,15 @@ def main(input_path: str, output_path: str, technology_mapping: dict[str, str]):
             "start_year": raw_df["year"],
             "end_year": np.nan,
             "status": "operating",
-            "geometry": _utils.get_point_col(raw_df, "plant_lon", "plant_lat"),
+            "geometry": _utils.get_point_col(raw_df, "plant_lon", "plant_lat", crs),
             "reservoir_km3": _reservoir_km3(raw_df),
-        }
+        },
+        crs=crs,
     )
     schema = _schemas.build_schema(technology_mapping, "prepare")
-    schema.validate(hydro_df).to_parquet(output_path)
+    schema.validate(hydro_df).to_parquet(snakemake.output.output_path)
 
 
 if __name__ == "__main__":
-    main(
-        input_path=snakemake.input.glohydrores_path,
-        output_path=snakemake.output.output_path,
-        technology_mapping=snakemake.params.technology_mapping,
-    )
+    sys.stderr = open(snakemake.log[0], "w")
+    main()

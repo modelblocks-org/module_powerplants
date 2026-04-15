@@ -17,10 +17,9 @@ $defs:
     type: string
     minLength: 1
 
-  nonzero_number:
+  positive_number:
     type: number
-    not:
-      const: 0
+    exclusiveMinimum: 0
 
   year_map:
     type: object
@@ -246,7 +245,7 @@ properties:
             additionalProperties: false
             properties:
               utility_pv:
-                $ref: '#/$defs/nonzero_number'
+                $ref: '#/$defs/positive_number'
             required:
               - utility_pv
         required:
@@ -353,36 +352,85 @@ properties:
     type: object
     additionalProperties: false
     required:
-      - shape_overlap_correction
-      - scenario
-      - lifetime_years
-      - retirement_delay_years
+      - location
+      - time
     properties:
-      shape_overlap_correction:
-        title: Shape overlap correction method
-        description: |
-          Approach to handling powerplants that land on shape overlaps.
-          Either 'strict' (raise errors) or 'split_capacity' (divide powerplant capacity equally across overlapping shapes).
-        type: string
-        enum:
-          - strict
-          - split_capacity
-      scenario:
-        title: Scenario
-        description: >
-          Determines which 'future' facilities to keep beyond the adjustment year. From less to more:
-
-            - historical: only keep existing capacities.
-            - near-future: keeps the above plus projects in construction (RECOMMENDED).
-            - far-future: keeps the above plus projects in pre-construction stages (e.g., those processing permits).
-            - far-off-future: keeps the above plus announced projects that have not reached permitting stages. Highly speculative.
-        type: string
-        enum:
-          - historical
-          - near-future
-          - far-future
-          - far-off-future
-      lifetime_years:
-        $ref: '#/$defs/year_map'
-      retirement_delay_years:
-        $ref: '#/$defs/year_map'
+      location:
+        title: Location imputation
+        description: Settings in this section affect how the module modifies the location of powerplants.
+        type: object
+        additionalProperties: false
+        required:
+          - inner_distance
+          - on_overlap
+          - on_forced_class_error
+        properties:
+          inner_distance:
+            title: Inner distance
+            description: |
+              Distance, in projected CRS units, used when relocating powerplant points into valid placement areas.
+              Applies both to overlap-split plants and to plants forced into a target shape class.
+              The point is placed approximately this far inside the selected polygon from the nearest boundary/contact point.
+              If the available interior segment is shorter, the midpoint of that segment is used.
+            $ref: '#/$defs/positive_number'
+          on_overlap:
+            title: Overlap adjustment method
+            description: |
+              Controls how to handle powerplants that overlap on more than one shape.
+               - "raise" stops the workflow with an error listing the overlapping powerplants.
+               - "split_capacity" creates smaller duplicate powerplants in each intersecting shape, moved using `inner_distance`.
+            type: string
+            enum:
+              - raise
+              - split_capacity
+          on_forced_class_error:
+            title: Forced shape class adjustment error handling
+            description: |
+              Controls how to handle powerplants whose technology is configured for a forced `shape_class`, but no matching shape exists in that plant's country.
+              - "raise": Stop the workflow with an error listing the failing country/shape_class/technology combinations.
+              - "ignore": Leave those powerplants unchanged.
+              - "drop": Remove those powerplants.
+            type: string
+            enum:
+              - raise
+              - ignore
+              - drop
+          forced_class:
+            title: Forced `shape_class` adjustment.
+            description: |
+              Optional. Maps powerplant technologies to a `shape_class`.
+              Powerplants with a listed technology are moved to the nearest matching shape class within their assigned country.
+              Allowed values are "land" and "maritime".
+            type: object
+            additionalProperties:
+              type: string
+              enum:
+                - land
+                - maritime
+      time:
+        title: Time imputation
+        description: Settings in this section relate to temporal aspects of powerplants
+        additionalProperties: false
+        required:
+          - scenario
+          - lifetime_years
+          - retirement_delay_years
+        properties:
+          scenario:
+            title: Scenario
+            description: |
+              Determines which 'future' facilities to keep beyond the adjustment year. In order of lower to higher uncertainty:
+                - historical: only keep existing capacities.
+                - construction: keeps the above plus projects already in construction (RECOMMENDED).
+                - pre_construction: keeps the above plus projects in pre-construction stages (e.g., those processing permits).
+                - announced: keeps the above plus announced projects that have not reached permitting stages. Highly speculative.
+            type: string
+            enum:
+              - historical
+              - construction
+              - pre_construction
+              - announced
+          lifetime_years:
+            $ref: '#/$defs/year_map'
+          retirement_delay_years:
+            $ref: '#/$defs/year_map'
