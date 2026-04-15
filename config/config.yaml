@@ -113,7 +113,7 @@ imputation:
       run of river: "land"
       steam turbine: "land"
       utility pv: "land"
-  scenario: "near-future" # near-future, far-future, far-off-future
+  scenario: "construction" # Options: historical->construction->pre_construction->announced
   lifetime_years:
     # General lifetime assumptions. Adjust as needed!
     bioenergy turbine: 25

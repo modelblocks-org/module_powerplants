@@ -10,9 +10,9 @@ rule impute_location:
             otherwise=[],
         ),
     output:
-        adjusted="<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet",
+        relocated="<resources>/automatic/shapes/{shapes}/impute_location/{category}.parquet",
         plot=report(
-            "<resources>/automatic/shapes/{shapes}/impute_location/{category}_location_adjustment.png",
+            "<resources>/automatic/shapes/{shapes}/impute_location/{category}_relocation.png",
             caption="../report/impute_location.rst",
             category="Powerplants module",
             subcategory="{category}",
@@ -36,11 +36,21 @@ rule impute_location:
 
 rule impute_years:
     input:
-        prepared="<resources>/automatic/prepared/{category}.parquet",
-        dissolved_shapes=rules.prepare_shapes.output.dissolved,
+        relocated=rules.impute_location.output.relocated,
     output:
-        imputed="<resources>/automatic/shapes/{shapes}/imputed/{category}.parquet",
-        plot="<resources>/automatic/shapes/{shapes}/imputed/{category}.pdf",
+        imputed="<results>/{shapes}/powerplants/unadjusted/{category}.parquet",
+        plot=report(
+            "<results>/{shapes}/powerplants/unadjusted/{category}_histogram.pdf",
+            caption="../report/impute_years_histogram.rst",
+            category="Powerplants module",
+            subcategory="{category}",
+        ),
+        explorer=report(
+            "<results>/{shapes}/powerplants/unadjusted/{category}_explorer.html",
+            caption="../report/impute_years_explorer.rst",
+            category="Powerplants module",
+            subcategory="{category}",
+        ),
     log:
         "<logs>/{shapes}/{category}/impute_years.log",
     wildcard_constraints:

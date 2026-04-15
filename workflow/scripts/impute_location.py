@@ -427,7 +427,7 @@ def plot(
     projected_crs: _utils.CRS,
 ):
     """Plot final powerplants, highlighting split and forced-moved plants."""
-    fig, ax = plt.subplots(layout="constrained")
+    fig, ax = plt.subplots(figsize=(8,8), layout="constrained")
 
     adjusted = adjustment.powerplants.to_crs(projected_crs).set_index(
         "powerplant_id", drop=False
@@ -514,7 +514,7 @@ def main() -> None:
         on_error=location_cnf["on_forced_class_error"],
     )
     adjusted = schema.validate(adjustment.powerplants)
-    adjusted.to_parquet(snakemake.output.adjusted)
+    adjusted.to_parquet(snakemake.output.relocated)
 
     fig, _ = plot(
         adjustment=adjustment,

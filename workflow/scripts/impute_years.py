@@ -15,9 +15,9 @@ if TYPE_CHECKING:
 HISTORICAL = {"operating", "retired"}
 SCENARIO_MAP = {
     "historical": HISTORICAL,
-    "near-future": HISTORICAL | {"construction"},
-    "far-future": HISTORICAL | {"construction", "pre-construction"},
-    "far-off-future": HISTORICAL | {"construction", "pre-construction", "announced"},
+    "construction": HISTORICAL | {"construction"},
+    "pre_construction": HISTORICAL | {"construction", "pre-construction"},
+    "announced": HISTORICAL | {"construction", "pre-construction", "announced"},
 }
 
 
@@ -88,28 +88,18 @@ def _impute_status(df: pd.DataFrame) -> pd.Series:
 
 
 def impute(
-    prepared_cat_gdf: gpd.GeoDataFrame,
-    countries_gdf: gpd.GeoDataFrame,
-    imputation: dict,
-    technology_mapping: dict,
+    relocated_gdf: gpd.GeoDataFrame, imputation: dict, technology_mapping: dict
 ) -> gpd.GeoDataFrame:
     """Add automatic and user imputations to fill missing data.
 
     Args:
-        prepared_cat_gdf (gpd.GeoDataFrame): cleaned category dataset following our schema.
-        countries_gdf (str): country-level shapes to use.
-        output_path (str): resulting dataset.
+        relocated_gdf (gpd.GeoDataFrame): relocated powerplants (must have country_id).
         imputation (str): imputation configuration.
         technology_mapping (str): technology mapping configuration.
     """
-    _utils.check_single_category(prepared_cat_gdf)
+    _utils.check_single_category(relocated_gdf)
 
-    # Re-map polygons to their centroid to simplify further processing.
-    # TODO: consider splitting them between shapes instead?
-    polygon_mask = prepared_cat_gdf[
-        prepared_cat_gdf.geometry.geom_type != "Point"
-    ].index
-    if polygon_mask.any():
+    if (relocated_gdf.geometry.geom_type != "Point").any():
         raise ValueError(
             "Polygon powerplant geometries detected. Only Points are supported."
         )
@@ -118,13 +108,8 @@ def impute(
     retirement_delay_years = imputation["retirement_delay_years"]
     scenario = SCENARIO_MAP[imputation["scenario"]]
 
-    # Get facilities within the provided regions and for the given scenario
-    imputed = gpd.sjoin(
-        prepared_cat_gdf[prepared_cat_gdf["status"].isin(scenario)],
-        countries_gdf,
-        predicate="intersects",
-        how="inner",
-    ).drop("index_right", axis="columns")
+    # Get facilities within the requested scenario
+    imputed = relocated_gdf[relocated_gdf["status"].isin(scenario)].copy()
 
     if not imputed.empty:
         # Adjust project dates
@@ -132,63 +117,40 @@ def impute(
         imputed["end_year"] = _impute_end_year(
             imputed, lifetimes, retirement_delay_years
         )
-
-        # Drop projects with insufficient date data and then adjust status.
+        # Drop projects with insufficient date data
         imputed = imputed.dropna(subset=["start_year", "end_year"])
+        # Update the powerplant status
         imputed["status"] = _impute_status(imputed)
-
-        imputed = handle_polygon_overlaps(
-            imputed, imputation["shape_overlap_correction"]
-        )
 
     schema = _schemas.build_schema(technology_mapping, "impute")
     return schema.validate(imputed)
 
 
-def handle_polygon_overlaps(df: gpd.GeoDataFrame, method: str) -> gpd.GeoDataFrame:
-    """Handle duplicate powerplant assignments caused by overlapping shapes."""
-    if method not in {"strict", "split_capacity"}:
-        raise ValueError(
-            f"Unsupported polygon overlap method {method!r}. "
-            "Expected 'strict' or 'split_capacity'."
+def explore(imputed: gpd.GeoDataFrame, output_path: str, colormap="tab20"):
+    """Create a HTML map for users to explore."""
+    if imputed.empty:
+        with open(output_path, "w") as f:
+            f.write("No data")
+    else:
+        explorer = imputed.explore(
+            column="technology", legend=True, popup=True, cmap=colormap
         )
-
-    dup_mask = df["powerplant_id"].duplicated(keep=False)
-
-    if dup_mask.any():
-        duplicate_ids = df.loc[dup_mask, "powerplant_id"]
-
-        if method == "strict":
-            raise ValueError(
-                "Found duplicate IDs, likely due to overlapping polygons: "
-                f"{', '.join(map(str, duplicate_ids.unique()))}. "
-                "Please adjust your shapes, or enable the 'split_capacity' correction."
-            )
-
-        counts = duplicate_ids.map(df["powerplant_id"].value_counts())
-
-        df.loc[dup_mask, "output_capacity_mw"] = (
-            df.loc[dup_mask, "output_capacity_mw"] / counts
-        )
-
-        suffixes = df.loc[dup_mask].groupby("powerplant_id").cumcount().astype(str)
-        df.loc[dup_mask, "powerplant_id"] = duplicate_ids + "_duplicate_" + suffixes
-
-    return df.reset_index(drop=True)
+        explorer.save(output_path)
 
 
 def main() -> None:
     """Main snakemake process."""
     imputed_gdf = impute(
-        prepared_cat_gdf=gpd.read_parquet(snakemake.input.prepared),
-        countries_gdf=gpd.read_parquet(snakemake.input.dissolved_shapes),
+        relocated_gdf=gpd.read_parquet(snakemake.input.relocated),
         imputation=snakemake.params.imputation,
         technology_mapping=snakemake.params.tech_map,
     )
     imputed_gdf.to_parquet(snakemake.output.imputed)
+
     _plots.plot_powerplant_capacity_buildup(
         imputed_gdf, snakemake.output.plot, "seaborn:tab20"
     )
+    explore(imputed_gdf, snakemake.output.explorer)
 
 
 if __name__ == "__main__":
