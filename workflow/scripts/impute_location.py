@@ -24,7 +24,7 @@ import _utils
 import geopandas as gpd
 import pandas as pd
 from matplotlib import pyplot as plt
-from shapely import union_all
+from pyproj import CRS
 from shapely.geometry import LineString, MultiPolygon, Point, Polygon
 from shapely.geometry.base import BaseGeometry
 from shapely.ops import nearest_points
@@ -144,28 +144,6 @@ def _place_slightly_inside(
     return placed if placed.within(polygon) else fallback
 
 
-def _polygonal_geometry(geometry: BaseGeometry) -> PolygonLike | None:
-    """Return polygonal geometry, or None if no polygonal area remains."""
-    if geometry.is_empty:
-        return None
-
-    if isinstance(geometry, Polygon | MultiPolygon):
-        return geometry
-
-    polygons = []
-    for part in getattr(geometry, "geoms", []):
-        if isinstance(part, Polygon):
-            polygons.append(part)
-        elif isinstance(part, MultiPolygon):
-            polygons.extend(part.geoms)
-
-    if not polygons:
-        return None
-
-    merged = union_all(polygons)
-    return merged if isinstance(merged, Polygon | MultiPolygon) else None
-
-
 def _raise_country_overlaps(overlaps: gpd.GeoDataFrame) -> None:
     """Raise an error for powerplants assigned to multiple countries."""
     duplicate_ids = overlaps["powerplant_id"].drop_duplicates()
@@ -177,35 +155,22 @@ def _raise_country_overlaps(overlaps: gpd.GeoDataFrame) -> None:
 
 
 def _split_shape_overlaps(
-    overlaps: gpd.GeoDataFrame, shapes: gpd.GeoDataFrame, inner_distance: float
+    overlaps: gpd.GeoDataFrame,
+    placement_shapes: gpd.GeoDataFrame,
+    inner_distance: float,
 ) -> gpd.GeoDataFrame:
-    """Split overlapping rows and move them into shape-exclusive areas."""
+    """Split overlapping rows and move them into precomputed exclusive shapes."""
     overlaps = overlaps.copy()
 
     counts = overlaps["powerplant_id"].map(overlaps["powerplant_id"].value_counts())
     overlaps["output_capacity_mw"] /= counts
 
-    shape_geometry = shapes.set_index("shape_id")["geometry"]
-    exclusive_geometry = {
-        shape_id: _polygonal_geometry(
-            shape_geometry.loc[shape_id].difference(
-                union_all(shape_geometry.drop(index=shape_id).to_list())
-            )
-        )
-        for shape_id in overlaps["shape_id"].unique()
-    }
-
-    missing = [
-        shape_id for shape_id, geom in exclusive_geometry.items() if geom is None
-    ]
-    if missing:
-        raise ValueError(f"Shapes with no exclusive placement area: {missing}.")
-
+    placement_geometry = placement_shapes.set_index("shape_id")["geometry"]
     overlaps["geometry"] = overlaps.apply(
         lambda row: _place_slightly_inside(
-            row.geometry, exclusive_geometry[row["shape_id"]], inner_distance
+            row.geometry, placement_geometry.loc[row["shape_id"]], inner_distance
         ),
-        axis=1,
+        axis="columns",
     )
 
     suffixes = overlaps.groupby("powerplant_id").cumcount().astype(str)
@@ -217,13 +182,15 @@ def _split_shape_overlaps(
 def assign_country_id(
     prepared_powerplants: gpd.GeoDataFrame,
     shapes: gpd.GeoDataFrame,
-    projected_crs: _utils.CRS,
+    exclusive_shapes: gpd.GeoDataFrame,
+    projected_crs: CRS,
     inner_distance: float,
     overlap_method: CountryOverlapMethod,
 ) -> CountryAssignmentResult:
     """Assign country_id, dropping out-of-scope plants and handling shape overlaps."""
     output_columns = [*prepared_powerplants.columns, "country_id"]
     shapes = shapes.to_crs(projected_crs)[["shape_id", "country_id", "geometry"]]
+    exclusive_shapes = exclusive_shapes[["shape_id", "geometry"]]
     split_powerplant_ids = pd.Index([], dtype="object", name="powerplant_id")
 
     assigned = (
@@ -243,7 +210,9 @@ def assign_country_id(
             _raise_country_overlaps(overlaps)
         elif overlap_method == "split_capacity":
             split_rows = _split_shape_overlaps(
-                overlaps=overlaps, shapes=shapes, inner_distance=inner_distance
+                overlaps=overlaps,
+                placement_shapes=exclusive_shapes,
+                inner_distance=inner_distance,
             )
             assigned.loc[overlaps.index] = split_rows
             split_powerplant_ids = pd.Index(
@@ -364,20 +333,19 @@ def _adjust_candidates(
 
 def adjust_powerplant_location(
     powerplants: gpd.GeoDataFrame,
-    shapes: gpd.GeoDataFrame,
+    exclusive_shapes: gpd.GeoDataFrame,
     forced_shape_class: Mapping[str, str],
-    projected_crs: _utils.CRS,
+    projected_crs: CRS,
     inner_distance: float,
     on_error: OnError = "raise",
 ) -> LocationAdjustmentResult:
-    """Adjust configured technologies to nearest valid shape in the same country."""
+    """Adjust configured technologies to nearest valid exclusive shape in-country."""
     plants = powerplants.to_crs(projected_crs).copy()
     plants["target_shape_class"] = plants["technology"].map(forced_shape_class)
 
-    shapes = shapes.to_crs(projected_crs).copy()
     candidates = plants[plants["target_shape_class"].notna()].copy()
 
-    has_target = _has_target_shape(candidates, shapes)
+    has_target = _has_target_shape(candidates, exclusive_shapes)
     missing = candidates[~has_target]
 
     if not missing.empty and on_error == "raise":
@@ -386,11 +354,11 @@ def adjust_powerplant_location(
     drop_index = missing.index if on_error == "drop" else pd.Index([])
     valid = candidates[has_target & ~candidates.index.isin(drop_index)]
 
-    already_correct = _already_correct_index(valid, shapes)
+    already_correct = _already_correct_index(valid, exclusive_shapes)
     to_adjust = valid[~valid.index.isin(already_correct)]
     moved_powerplant_ids = pd.Index(to_adjust["powerplant_id"], name="powerplant_id")
 
-    adjusted = _adjust_candidates(to_adjust, shapes, inner_distance)
+    adjusted = _adjust_candidates(to_adjust, exclusive_shapes, inner_distance)
 
     result = plants.drop(index=drop_index)
     if not adjusted.empty:
@@ -406,7 +374,7 @@ def adjust_powerplant_location(
 
 
 def combine_powerplants(
-    file_paths: list[str], geo_crs: _utils.CRS, excluded: list[str]
+    file_paths: list[str], geo_crs: CRS, excluded: list[str]
 ) -> gpd.GeoDataFrame:
     """Combine internal category files and user files into a final dataset."""
     combined = pd.concat(
@@ -424,7 +392,7 @@ def plot(
     adjustment: LocationAdjustmentResult,
     assignment: CountryAssignmentResult,
     shapes: gpd.GeoDataFrame,
-    projected_crs: _utils.CRS,
+    projected_crs: CRS,
 ):
     """Plot final powerplants, highlighting split and forced-moved plants."""
     fig, ax = plt.subplots(layout="constrained")
@@ -475,10 +443,21 @@ def plot(
 
 def main() -> None:
     """Main snakemake process."""
+    # Open both shape files and ensure they match
     shapes = _schemas.ShapeSchema.validate(gpd.read_parquet(snakemake.input.shapes))
+    exclusive = _schemas.ShapeSchema.validate(
+        gpd.read_parquet(snakemake.input.exclusive_shapes)
+    )
+    mismatch = set(shapes["shape_id"].unique()) ^ set(exclusive["shape_id"].unique())
+    if mismatch:
+        raise ValueError(
+            f"Mismatched IDs between user and exclusive shapes {sorted(mismatch)}"
+        )
 
     projected_crs = _utils.check_crs(snakemake.params.crs["projected"], "projected")
     geographic_crs = _utils.check_crs(snakemake.params.crs["geographic"], "geographic")
+    if not projected_crs.equals(exclusive.crs):
+        exclusive = exclusive.to_crs(projected_crs)
 
     location_cnf = snakemake.params.location_cnf
     inner_distance = location_cnf["inner_distance"]
@@ -494,6 +473,7 @@ def main() -> None:
     assignment = assign_country_id(
         prepared_powerplants=combined,
         shapes=shapes,
+        exclusive_shapes=exclusive,
         projected_crs=projected_crs,
         inner_distance=inner_distance,
         overlap_method=location_cnf["on_overlap"],
@@ -502,7 +482,7 @@ def main() -> None:
 
     adjustment = adjust_powerplant_location(
         powerplants=assigned,
-        shapes=shapes,
+        exclusive_shapes=exclusive,
         forced_shape_class=location_cnf.get("forced_class", {}),
         projected_crs=projected_crs,
         inner_distance=inner_distance,

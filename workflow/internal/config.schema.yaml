@@ -361,10 +361,17 @@ properties:
         type: object
         additionalProperties: false
         required:
+          - remove_shape_overlaps
           - inner_distance
           - on_overlap
           - on_forced_class_error
         properties:
+          remove_shape_overlaps:
+            title: Remove shape overlaps
+            description: |
+              If enabled, run algorithms to remove overlaps between user provided shapes.
+              WARNING: slows down processing significantly. Avoid if possible!
+            type: boolean
           inner_distance:
             title: Inner distance
             description: |
