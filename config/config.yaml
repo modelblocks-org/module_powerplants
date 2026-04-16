@@ -92,8 +92,9 @@ fuel_mapping:
 
 imputation:
   location:
+    remove_shape_overlaps: false
     inner_distance: 100  # matches projected CRS unit.
-    on_overlap: "split_capacity"
+    on_overlap: "raise"  # either 'split_capacity', or 'raise'
     on_forced_class_error: "drop"  # either 'drop', 'ignore', or 'raise'
     forced_class:
       bioenergy turbine: "land"

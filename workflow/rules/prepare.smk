@@ -217,3 +217,20 @@ rule remap_fuel_classes:
         "Remap fuel classes of combustion plants to harmonised ones."
     script:
         "../scripts/remap_fuel_classes.py"
+
+
+rule prepare_shapes:
+    input:
+        shapes="<shapes>"
+    output:
+        exclusive="<resources>/automatic/shapes/{shapes}/exclusive_shapes.parquet"
+    log:
+        "<logs>/{shapes}/prepare_shapes.log"
+    conda:
+        "../envs/powerplants.yaml"
+    params:
+        crs=config["crs"]["projected"]
+    message:
+        "Prepare checks to ensure exclusive area."
+    script:
+        "../scripts/prepare_shapes.py"

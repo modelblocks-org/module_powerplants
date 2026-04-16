@@ -4,6 +4,11 @@
 rule impute_location:
     input:
         internal="<resources>/automatic/prepared/{category}.parquet",
+        exclusive_shapes=branch(
+            config["imputation"]["location"]["remove_shape_overlaps"],
+            then=rules.prepare_shapes.output.exclusive,
+            otherwise="<shapes>"
+        ),
         shapes="<shapes>",
         user=branch(
             exists("<imputed_powerplants>"),
