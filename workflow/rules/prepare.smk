@@ -221,15 +221,15 @@ rule remap_fuel_classes:
 
 rule prepare_shapes:
     input:
-        shapes="<shapes>"
+        shapes="<shapes>",
     output:
-        exclusive="<resources>/automatic/shapes/{shapes}/exclusive_shapes.parquet"
+        exclusive="<resources>/automatic/shapes/{shapes}/exclusive_shapes.parquet",
     log:
-        "<logs>/{shapes}/prepare_shapes.log"
+        "<logs>/{shapes}/prepare_shapes.log",
     conda:
         "../envs/powerplants.yaml"
     params:
-        crs=config["crs"]["projected"]
+        crs=config["crs"]["projected"],
     message:
         "Prepare checks to ensure exclusive area."
     script:
