@@ -108,19 +108,28 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
     # Coarsen the proxy data
     coarse = area_potential_da.coarsen(x=factor, y=factor, boundary="trim").mean()
 
-    fig, ax = plt.subplots(figsize=(6, 6), dpi=300)
-    coarse.plot.imshow(
+    fig, ax = plt.subplots(dpi=300)
+    im = coarse.plot.imshow(
         ax=ax,
         cmap=Colormap("seaborn:rocket").to_matplotlib(),
-        add_colorbar=True,
-        cbar_kwargs={"location": "right", "label": "Proxied potential"},
+        add_colorbar=False,
         alpha=1,
     )
-    # project to the raster's CRS for speed
     shapes_gdf.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
-        ax=ax, color="lightgrey", linewidth=0.3, alpha=0.5
+        ax=ax,
+        color="lightgrey",
+        linewidth=0.5,
+        alpha=0.7,
     )
+    ax.set_axis_off()
     ax.set_title(f"Aggregation proxy (coarsened ~{pixel_count:.1e} pixels)")
+    fig.colorbar(
+        im,
+        ax=ax,
+        location="right",
+        label="Proxied capacity",
+    )
+
     fig.savefig(output_file, bbox_inches="tight")
 
 

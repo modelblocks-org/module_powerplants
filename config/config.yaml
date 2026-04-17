@@ -95,8 +95,8 @@ imputation:
     remove_shape_overlaps: false
     inner_distance: 100  # matches projected CRS unit.
     on_overlap: "raise"  # either 'split_capacity', or 'raise'
-    on_forced_class_error: "drop"  # either 'drop', 'ignore', or 'raise'
-    forced_class:
+    on_shape_class_error: "drop"  # either 'drop', 'ignore', or 'raise'
+    shape_class:
       bioenergy turbine: "land"
       ccgt: "land"
       coal turbine: "land"
