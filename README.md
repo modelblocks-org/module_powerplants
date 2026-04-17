@@ -30,7 +30,7 @@ Data processing steps:
     - Disaggregated powerplant statistics from [GEM](https://globalenergymonitor.org/), [Transition-Zero](https://www.transitionzero.org/products/solar-asset-mapper), and [GloHydroRES](https://zenodo.org/records/14526360).
     - National-level statistics from the [EIA](https://www.eia.gov/).
 2. Individual powerplants are prepared into seven different categories (bioenergy, fossil, geothermal, hydropower, nuclear, solar, wind).
-    - Fuel-burning powerplants (fossil, bioenergy) are assigned unique fuel-classes depending on the combination of fuels they utilse.
+    - Fuel-burning powerplants (fossil, bioenergy) are assigned unique fuel-classes depending on the combination of fuels they utilise.
     - For utility-scale solar projects, satellite detected [TZ-Solar Asset Mapper](https://www.transitionzero.org/products/solar-asset-mapper) facilities are matched to [GEM-Global Solar Power Tracker](https://globalenergymonitor.org/) data to obtain a highly complete dataset of large-scale solar facilities.
 3. Powerplants are selected according to the shapes file provided by the user. Depending on the configuration, their placement may be adjusted per technology and country.
 
@@ -66,7 +66,7 @@ Data processing steps:
   <img src="./figures/fossil_aggregation_MEX.png" width="60%">
 </p>
 
-7. Solar is processed as a special case because rooftop PV pannels are not covered in GEM or Transition-Zero data.
+7. Solar is processed as a special case because rooftop PV panels are not covered in GEM or Transition-Zero data.
     1. Per country: $solar_{rooftop\_PV} = solar_{national\_statistics} - solar_{large\_scale}$.
     2. A user-provided proxy raster is used to determine how to disaggregate $solar_{rooftop\_PV}$.
     3. This proxy is used to determine the aggregated rooftop PV capacity per-shape.
