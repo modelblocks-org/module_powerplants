@@ -116,19 +116,11 @@ def plot(proxy_file: str, shapes_file: str, output_file: str, pixels: int = 500_
         alpha=1,
     )
     shapes_gdf.to_crs(area_potential_da.rio.crs).geometry.boundary.plot(
-        ax=ax,
-        color="lightgrey",
-        linewidth=0.5,
-        alpha=0.7,
+        ax=ax, color="lightgrey", linewidth=0.5, alpha=0.7
     )
     ax.set_axis_off()
     ax.set_title(f"Aggregation proxy (coarsened ~{pixel_count:.1e} pixels)")
-    fig.colorbar(
-        im,
-        ax=ax,
-        location="right",
-        label="Proxied capacity",
-    )
+    fig.colorbar(im, ax=ax, location="right", label="Proxied capacity")
 
     fig.savefig(output_file, bbox_inches="tight")
 
