@@ -483,10 +483,10 @@ def main() -> None:
     adjustment = adjust_powerplant_location(
         powerplants=assigned,
         exclusive_shapes=exclusive,
-        forced_shape_class=location_cnf.get("forced_class", {}),
+        forced_shape_class=location_cnf.get("shape_class", {}),
         projected_crs=projected_crs,
         inner_distance=inner_distance,
-        on_error=location_cnf["on_forced_class_error"],
+        on_error=location_cnf["on_shape_class_error"],
     )
     adjusted = schema.validate(adjustment.powerplants)
     adjusted.to_parquet(snakemake.output.relocated)

@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="1240"
+   viewBox="0 0 1200 1240"
+   role="img"
+   aria-labelledby="title desc"
+   version="1.1"
+   id="svg27"
+   sodipodi:docname="powerplant_location_algorithm.svg"
+   inkscape:version="1.4.3 (0d15f75042, 2025-12-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview27"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.320872"
+     inkscape:cx="577.64872"
+     inkscape:cy="1001.6111"
+     inkscape:window-width="1920"
+     inkscape:window-height="1011"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg27"
+     showguides="true" />
+  <title
+     id="title">Powerplant placement algorithm</title>
+  <desc
+     id="desc">Vertical summary showing how powerplants are removed when outside all shapes, kept when correctly placed, split across overlapping country shapes, and moved to the nearest forced-class shape in the same country.</desc>
+  <defs
+     id="defs4">
+    <rect
+       x="81.815994"
+       y="1271.8669"
+       width="560.31561"
+       height="205.77963"
+       id="rect15" />
+    <style
+       id="style1">
+      .bg { fill: #f8fafc; }
+      .card { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; }
+      .title { font: 700 40px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 22px Arial, Helvetica, sans-serif; fill: #475569; }
+      .step-title { font: 700 28px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .body { font: 400 20px Arial, Helvetica, sans-serif; fill: #334155; }
+      .small { font: 400 18px Arial, Helvetica, sans-serif; fill: #64748b; }
+      .tag { font: 700 16px Arial, Helvetica, sans-serif; fill: #0f172a; }
+      .legend { font: 700 10px Arial, Helvetica, sans-serif; fill: #1e293b; }
+      .legend-bg { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.2; opacity: 0.9; }
+      .country-a { fill: #60a5fa; fill-opacity: 0.45; stroke: #2563eb; stroke-width: 3; }
+      .country-b { fill: #4ade80; fill-opacity: 0.45; stroke: #16a34a; stroke-width: 3; }
+      .country-c { fill: #c084fc; fill-opacity: 0.42; stroke: #9333ea; stroke-width: 3; }
+      .point { fill: #f97316; stroke: #7c2d12; stroke-width: 3; }
+      .point-muted { fill: #fed7aa; stroke: #9a3412; stroke-width: 2; opacity: 0.62; }
+      .point-origin { fill: #334155; stroke: #0f172a; stroke-width: 3; }
+      .point-blue { fill: #2563eb; stroke: #1e3a8a; stroke-width: 3; }
+      .point-green { fill: #16a34a; stroke: #14532d; stroke-width: 3; }
+      .point-purple { fill: #9333ea; stroke: #581c87; stroke-width: 3; }
+      .removed { fill: none; stroke: #dc2626; stroke-width: 6; stroke-linecap: round; }
+      .badge-keep { fill: #dcfce7; stroke: #16a34a; stroke-width: 1.5; }
+      .badge-drop { fill: #fee2e2; stroke: #dc2626; stroke-width: 1.5; }
+      .badge-split { fill: #fef3c7; stroke: #d97706; stroke-width: 1.5; }
+      .badge-move { fill: #ffedd5; stroke: #f97316; stroke-width: 1.5; }
+      .ring-keep { fill: none; stroke: #16a34a; stroke-width: 4; opacity: 0.75; }
+      .arrow-orange { fill: none; stroke: #f97316; stroke-width: 4; stroke-dasharray: 10 8; marker-end: url(#arrowhead-orange); }
+      .arrow-blue { fill: none; stroke: #2563eb; stroke-width: 4; stroke-dasharray: 10 8; marker-end: url(#arrowhead-blue); }
+      .arrow-green { fill: none; stroke: #16a34a; stroke-width: 4; stroke-dasharray: 10 8; marker-end: url(#arrowhead-green); }
+      .arrow-purple { fill: none; stroke: #9333ea; stroke-width: 4; stroke-dasharray: 10 8; marker-end: url(#arrowhead-purple); }
+      .note { font: 700 12px Arial, Helvetica, sans-serif; fill: #334155; }
+    </style>
+    <marker
+       id="arrowhead-orange"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#f97316"
+         id="path1" />
+    </marker>
+    <marker
+       id="arrowhead-blue"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#2563eb"
+         id="path2" />
+    </marker>
+    <marker
+       id="arrowhead-green"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#16a34a"
+         id="path3" />
+    </marker>
+    <marker
+       id="arrowhead-purple"
+       markerWidth="12"
+       markerHeight="12"
+       refX="10"
+       refY="6"
+       orient="auto"
+       markerUnits="strokeWidth">
+      <path
+         d="m 2,2 8,4 -8,4 z"
+         fill="#9333ea"
+         id="path4" />
+    </marker>
+  </defs>
+  <rect
+     id="step1-card-6"
+     x="69.889"
+     y="9.8522072"
+     width="446.60703"
+     height="62.807278"
+     rx="10.111856"
+     class="card"
+     style="fill:#ffffff;stroke:#cbd5e1;stroke-width:2;stroke-dasharray:none" />
+  <!-- Flattened for Inkscape: no <use> clones and no grouped map panels. -->
+  <text
+     x="80"
+     y="54"
+     class="title"
+     id="text4"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:40px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Powerplant placement</text>
+  <!-- Step 1 -->
+  <rect
+     id="step1-card"
+     x="69.889473"
+     y="83.889473"
+     width="1060.2211"
+     height="221.47844"
+     rx="24.005005"
+     class="card" />
+  <text
+     x="105"
+     y="136"
+     class="step-title"
+     id="text6"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:28px;line-height:normal;font-family:Arial, Helvetica, sans-serif">1. Powerplants outside are removed</text>
+  <text
+     x="105"
+     y="174"
+     class="body"
+     id="text7"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:20px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Any powerplant outside the provided shapes is considered out of scope.</text>
+  <path
+     id="step1-country-a-1"
+     class="country-a"
+     d="m 808.52,137.92 c 35.28,-28.08 92.88,-18 123.84,18.72 29.52,35.28 15.12,88.56 -25.92,110.16 -39.6,20.16 -85.68,-3.6 -104.4,-43.92 -15.84,-33.84 -15.84,-66.24 6.48,-84.96 z" />
+  <rect
+     id="step1-legend-bg-1"
+     x="788.35999"
+     y="114.88"
+     width="74.879997"
+     height="20.16"
+     rx="10.08"
+     class="legend-bg" />
+  <text
+     id="step1-legend-1"
+     x="800"
+     y="129"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape A</text>
+  <circle
+     id="step1-point-1"
+     cx="1040.36"
+     cy="150.88"
+     r="8.6400003"
+     class="point" />
+  <line
+     id="step1-removed-1"
+     x1="1027.4"
+     y1="137.92"
+     x2="1053.3199"
+     y2="163.84"
+     class="removed" />
+  <line
+     id="step1-removed-2"
+     x1="1053.3199"
+     y1="137.92"
+     x2="1027.4"
+     y2="163.84"
+     class="removed" />
+  <!-- Step 2 -->
+  <rect
+     id="step2-card"
+     x="69.886971"
+     y="338.88696"
+     width="1060.2261"
+     height="220.2336"
+     rx="24.005117"
+     class="card" />
+  <text
+     x="105"
+     y="391"
+     class="step-title"
+     id="text11"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:28px;line-height:normal;font-family:Arial, Helvetica, sans-serif">2. Powerplants inside are preserved</text>
+  <text
+     x="105"
+     y="429"
+     class="body"
+     id="text12"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:20px;line-height:normal;font-family:Arial, Helvetica, sans-serif"><tspan
+       sodipodi:role="line"
+       x="105"
+       y="429"
+       id="tspan31">Powerplants inside the shapes are kept if:</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="454"
+       id="tspan32">- They intersect with exactly one shape.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="479"
+       id="tspan33">- Their technology matches the configured <tspan
+   style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif Bold'"
+   id="tspan34">shape_class<tspan
+   style="font-weight:normal"
+   id="tspan6">.</tspan></tspan></tspan></text>
+  <path
+     id="step2-country-a-1"
+     class="country-a"
+     d="m 808.52,392.92 c 35.28,-28.08 92.88,-18 123.84,18.72 29.52,35.28 15.12,88.56 -25.92,110.16 -39.6,20.16 -85.68,-3.6 -104.4,-43.92 -15.84,-33.84 -15.84,-66.24 6.48,-84.96 z" />
+  <path
+     id="step2-country-b-1"
+     class="country-b"
+     d="m 951.54731,406.47937 c 41.76,-18.72 84.95999,2.88 97.91999,45.36 14.4,47.52 -19.44,87.84 -66.95999,84.96 -41.04,-2.16 -64.08,-37.44 -54.72,-77.76 5.04,-25.2 11.52,-44.64 23.76,-52.56 z" />
+  <rect
+     id="step2-legend-bg-1"
+     x="788.35999"
+     y="369.88"
+     width="74.879997"
+     height="20.16"
+     rx="10.08"
+     class="legend-bg" />
+  <text
+     id="step2-legend-1"
+     x="800"
+     y="384"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape A</text>
+  <rect
+     id="step2-legend-bg-2"
+     x="941"
+     y="396.52002"
+     width="74.879997"
+     height="20.16"
+     rx="10.08"
+     class="legend-bg" />
+  <text
+     id="step2-legend-2"
+     x="953"
+     y="411"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape B</text>
+  <circle
+     id="step2-point-1"
+     cx="836.59998"
+     cy="444.76001"
+     r="8.6400003"
+     class="point" />
+  <circle
+     id="step2-ring-keep-1"
+     cx="836.59998"
+     cy="444.76001"
+     r="18.719999"
+     class="ring-keep" />
+  <!-- Step 3 -->
+  <rect
+     id="step3-card"
+     x="69.886589"
+     y="593.8866"
+     width="1060.2268"
+     height="278.98639"
+     rx="24.005135"
+     class="card" />
+  <text
+     x="105"
+     y="646"
+     class="step-title"
+     id="text16"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:28px;line-height:normal;font-family:Arial, Helvetica, sans-serif">3. Powerplants in overlaps are split</text>
+  <text
+     x="105"
+     y="684"
+     class="body"
+     id="text17"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:20px;line-height:normal;font-family:Arial, Helvetica, sans-serif"><tspan
+       sodipodi:role="line"
+       x="105"
+       y="684"
+       id="tspan1">If a powerplant intersects multiple shapes, it will be handled using the</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="709"
+       id="tspan3"><tspan
+   style="font-weight:bold"
+   id="tspan4">on_overlap</tspan> configuration option.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="734"
+       style="font-weight:normal"
+       id="tspan2">- <tspan
+   style="font-weight:bold"
+   id="tspan24">&quot;split_capacity&quot;</tspan>: powerplants will be split evenly outside overlaps.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="759"
+       style="font-weight:normal"
+       id="tspan15">- <tspan
+   style="font-weight:bold"
+   id="tspan12">&quot;raise&quot;</tspan>: stop with an error message.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="784"
+       style="font-weight:bold;fill:#831805;fill-opacity:1"
+       id="tspan22" /></text>
+  <path
+     id="step3-country-a-1"
+     class="country-a"
+     d="m 795.48,646.08 c 38.22,-30.42 100.62,-19.5 134.16,20.28 31.98,38.22 16.38,95.94 -28.08,119.34 -42.9,21.84 -92.82,-3.9 -113.1,-47.58 -17.16,-36.66 -17.16,-71.76 7.02,-92.04 z" />
+  <path
+     id="step3-country-b-1"
+     class="country-b"
+     d="m 890.64,657.78 c 45.24,-20.28 92.04,3.12 106.08,49.14 15.6,51.48 -21.06,95.16 -72.54,92.04 -44.46,-2.34 -69.42,-40.56 -59.28,-84.24 5.46,-27.3 12.48,-48.36 25.74,-56.94 z" />
+  <path
+     id="step3-country-c-1"
+     class="country-c"
+     d="m 834.48,721.74 c 32.76,-31.98 87.36,-31.2 121.68,4.68 31.98,34.32 15.6,87.36 -29.64,109.2 -46.02,22.62 -101.4,0.78 -116.22,-44.46 -10.92,-33.54 3.12,-56.16 24.18,-69.42 z" />
+  <rect
+     id="step3-legend-bg-1"
+     x="773.64001"
+     y="621.12"
+     width="81.120003"
+     height="21.84"
+     rx="10.92"
+     class="legend-bg" />
+  <text
+     id="step3-legend-1"
+     x="786"
+     y="637"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape A</text>
+  <rect
+     id="step3-legend-bg-2"
+     x="939"
+     y="649.97998"
+     width="81.120003"
+     height="21.84"
+     rx="10.92"
+     class="legend-bg" />
+  <text
+     id="step3-legend-2"
+     x="951"
+     y="666"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape B</text>
+  <rect
+     id="step3-legend-bg-3"
+     x="858.65997"
+     y="830.93988"
+     width="81.120003"
+     height="21.84"
+     rx="10.92"
+     class="legend-bg" />
+  <text
+     id="step3-legend-3"
+     x="871"
+     y="847"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Shape C</text>
+  <circle
+     id="step3-point-origin-1"
+     cx="891.41998"
+     cy="734.21997"
+     r="10.14"
+     class="point-origin" />
+  <path
+     id="step3-arrow-blue-1"
+     d="M 891.69932,734.36974 C 878.89381,713.03399 861.21003,695.57748 845.96538,683.93981"
+     class="arrow-blue" />
+  <path
+     id="step3-arrow-green-1"
+     d="m 891.42,734.22 c 23.4,-14.04 50.7,-24.18 74.88,-32.76"
+     class="arrow-green" />
+  <path
+     id="step3-arrow-purple-1"
+     d="m 891.42,734.22 c -3.12,29.64 9.36,56.94 28.86,81.12"
+     class="arrow-purple" />
+  <circle
+     id="step3-point-blue-1"
+     cx="843.45178"
+     cy="681.10333"
+     r="8.5799999"
+     class="point-blue" />
+  <circle
+     id="step3-point-green-1"
+     cx="966.29999"
+     cy="701.46002"
+     r="8.5799999"
+     class="point-green" />
+  <circle
+     id="step3-point-purple-1"
+     cx="920.28003"
+     cy="815.34003"
+     r="8.5799999"
+     class="point-purple" />
+  <!-- Step 4 -->
+  <rect
+     id="step4-card"
+     x="69.942207"
+     y="901.9422"
+     width="1060.1156"
+     height="315.12061"
+     rx="24.002617"
+     class="card" />
+  <text
+     x="105"
+     y="954"
+     class="step-title"
+     id="text22"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:28px;line-height:normal;font-family:Arial, Helvetica, sans-serif">4. Powerplants tied to a shape class are moved</text>
+  <text
+     x="105"
+     y="992"
+     class="body"
+     id="text23"
+     style="font-style:normal;font-variant:normal;font-weight:400;font-stretch:normal;font-size:20px;line-height:normal;font-family:Arial, Helvetica, sans-serif"><tspan
+       sodipodi:role="line"
+       x="105"
+       y="992"
+       id="tspan36">Technologies can be assigned a <tspan
+   style="font-weight:bold"
+   id="tspan27">shape_class</tspan>: <tspan
+   style="font-weight:bold"
+   id="tspan28">&quot;land&quot;</tspan> or <tspan
+   style="font-weight:bold"
+   id="tspan30">&quot;maritime&quot;</tspan>.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1017"
+       id="tspan18">Mismatches are moved to the closest matching shape in the same country.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1042"
+       id="tspan19" /><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1067"
+       id="tspan20">If no valid adjustment is possible, <tspan
+   style="font-weight:bold"
+   id="tspan35">on_shape_class_error</tspan> sets the behavior.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1092"
+       id="tspan23">- <tspan
+   style="font-weight:bold"
+   id="tspan39">&quot;drop&quot;</tspan>: remove them.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1117"
+       id="tspan25">- <tspan
+   style="font-weight:bold"
+   id="tspan38">&quot;ignore&quot;</tspan>: leave unchanged.</tspan><tspan
+       sodipodi:role="line"
+       x="105"
+       y="1142"
+       id="tspan26">- <tspan
+   style="font-weight:bold"
+   id="tspan37">&quot;raise&quot;</tspan>: stop with an error.</tspan></text>
+  <path
+     id="step4-country-a-1"
+     class="country-a"
+     d="m 815.48,952.08 c 38.22,-30.42 100.62,-19.5 134.16,20.28 31.98,38.22 16.38,95.94 -28.08,119.34 -42.9,21.84 -92.82,-3.9 -113.1,-47.58 -17.16,-36.66 -17.16,-71.76 7.02,-92.04 z" />
+  <path
+     id="step4-country-b-1"
+     class="country-b"
+     d="m 965.2747,939.5974 c 45.24,-20.28 92.04,3.12 106.08,49.14 15.6,51.48 -21.06,95.16 -72.54,92.04 -44.46,-2.34 -69.42,-40.56 -59.28,-84.24 5.46,-27.3 12.48,-48.36 25.74,-56.94 z" />
+  <path
+     id="step4-country-c-1"
+     class="country-c"
+     d="m 789.0568,1076.0644 c 32.76,-31.98 87.36,-31.2 121.68,4.68 31.98,34.32 15.6,87.36 -29.64,109.2 -46.02,22.62 -101.4,0.78 -116.22,-44.46 -10.92,-33.54 3.12,-56.16 24.18,-69.42 z"
+     style="fill:#4ade80;fill-opacity:0.45098;stroke:#16a34a;stroke-opacity:1" />
+  <rect
+     id="step4-legend-bg-1"
+     x="793.73322"
+     y="927.21332"
+     width="117.65527"
+     height="21.653578"
+     rx="15.838208"
+     class="legend-bg" />
+  <text
+     id="step4-legend-1"
+     x="806"
+     y="943"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Country A: maritime</text>
+  <rect
+     id="step4-legend-bg-2"
+     x="981.43903"
+     y="931.84509"
+     width="98.937584"
+     height="21.744566"
+     rx="13.318521"
+     class="legend-bg" />
+  <text
+     id="step4-legend-2"
+     x="993.3913"
+     y="947.81738"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Country A: land</text>
+  <rect
+     id="step4-legend-bg-3"
+     x="789.13806"
+     y="1148.6267"
+     width="97.155403"
+     height="21.753683"
+     rx="13.078611"
+     class="legend-bg" />
+  <text
+     id="step4-legend-3"
+     x="801.43494"
+     y="1164.6434"
+     class="legend"
+     style="font-style:normal;font-variant:normal;font-weight:700;font-stretch:normal;font-size:10px;line-height:normal;font-family:Arial, Helvetica, sans-serif">Country B: land</text>
+  <circle
+     id="step4-point-muted-1"
+     cx="912.27118"
+     cy="1063.6697"
+     r="9.3599997"
+     class="point-muted" />
+  <path
+     id="step4-arrow-orange-1"
+     d="m 912.93708,1064.0979 c 25.0302,-11.4812 46.39552,-20.64 70.30213,-32.7573"
+     class="arrow-orange" />
+  <circle
+     id="step4-point-1"
+     cx="985.60938"
+     cy="1030.3365"
+     r="9.3599997"
+     class="point" />
+  <text
+     xml:space="preserve"
+     style="font-size:10.6667px;writing-mode:lr-tb;direction:ltr;fill:#4ade80;fill-opacity:0.45098;stroke:#2563eb;stroke-width:4"
+     x="321.6701"
+     y="611.31879"
+     id="text29"><tspan
+       sodipodi:role="line"
+       id="tspan29"
+       x="321.6701"
+       y="611.31879" /></text>
+  <text
+     xml:space="preserve"
+     id="text15"
+     style="font-weight:bold;font-size:10.6667px;font-family:Arial, Helvetica, sans-serif;-inkscape-font-specification:'Arial, Helvetica, sans-serif Bold';writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect15);display:inline;fill:#4ade80;fill-opacity:0.45098;stroke:#2563eb;stroke-width:4" />
+  <metadata
+     id="metadata1">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Powerplant placement algorithm</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

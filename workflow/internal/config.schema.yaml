@@ -364,7 +364,7 @@ properties:
           - remove_shape_overlaps
           - inner_distance
           - on_overlap
-          - on_forced_class_error
+          - on_shape_class_error
         properties:
           remove_shape_overlaps:
             title: Remove shape overlaps
@@ -390,7 +390,7 @@ properties:
             enum:
               - raise
               - split_capacity
-          on_forced_class_error:
+          on_shape_class_error:
             title: Forced shape class adjustment error handling
             description: |
               Controls how to handle powerplants whose technology is configured for a forced `shape_class`, but no matching shape exists in that plant's country.
@@ -402,7 +402,7 @@ properties:
               - raise
               - ignore
               - drop
-          forced_class:
+          shape_class:
             title: Forced `shape_class` adjustment.
             description: |
               Optional. Maps powerplant technologies to a `shape_class`.
