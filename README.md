@@ -67,8 +67,8 @@ Data processing steps:
 </p>
 
 7. Solar is processed as a special case because rooftop PV panels are not covered in GEM or Transition-Zero data.
-    1. Per country: $solar_{rooftop\_PV} = solar_{national\_statistics} - solar_{large\_scale}$.
-    2. A user-provided proxy raster is used to determine how to disaggregate $solar_{rooftop\_PV}$.
+    1. Per country: $solar_{rooftopPV} = solar_{nationalStatistics} - solar_{largeScale}$.
+    2. A user-provided proxy raster is used to determine how to disaggregate $solar_{rooftopPV}$.
     3. This proxy is used to determine the aggregated rooftop PV capacity per-shape.
 
 <p align="center">
