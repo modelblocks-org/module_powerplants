@@ -132,7 +132,7 @@ For specific versions please consult our [stable dataset repository](https://doi
 * **Global Hydropower powerplants.**
 Shah, J., Hu, J., Edelenbosch, O., & van Vliet, M. T. H. (2024). GloHydroRes - a global dataset combining open-source hydropower plant and reservoir data [Data set]. Zenodo. <https://doi.org/10.5281/zenodo.14526360>. License: CC BY 4.0.
 * **National capacity dataset.**
-U.S. Energy Information Administration (Oct 2008). <https://www.eia.gov/international/overview/world>
+U.S. Energy Information Administration (Oct 2008). <https://www.eia.gov/international/overview/world>. License: Public domain.
 * **Satellite Utility-scale PV dataset.**
 TransitionZero Solar Asset Mapper, TransitionZero. <https://www.transitionzero.org/products/solar-asset-mapper>.
 License: CC BY-NC 4.0.
