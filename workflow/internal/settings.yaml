@@ -1,4 +1,6 @@
 # Module settings that users cannot modify.
+curl:
+  retry: 5
 crs:
   geographic: "EPSG:4326"
 resources:
