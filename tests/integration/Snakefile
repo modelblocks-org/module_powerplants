@@ -18,9 +18,9 @@ module module_powerplants:
         aggregated_capacity="results/outputs/{shapes}/aggregated/{adjustment}/{category}.parquet",
         powerplants="results/outputs/{shapes}/powerplants/{adjustment}/{category}.parquet",
         # Redirect module intermediate files
-        logs="resources/powerplants/logs",
-        resources="resources/powerplants/resources",
-        results="resources/powerplants/results",
+        logs="resources/module/logs",
+        resources="resources/module/resources",
+        results="resources/module/results",
     snakefile:
         "../../workflow/Snakefile"
     config:
