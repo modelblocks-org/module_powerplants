@@ -9,12 +9,13 @@ rule download_eia:
     conda:
         "../envs/shell.yaml"
     params:
+        retry=internal["curl"]["retry"],
         url=internal["resources"]["automatic"]["EIA"],
     message:
         "Download the EIA International energy statistics in bulk."
     shell:
         """
-        curl -sSLo {output.path:q} {params.url:q}
+        curl -fsSL --retry {params.retry:q} -o {output.path:q} {params.url:q}
         """
 
 
@@ -26,12 +27,13 @@ rule download_tz_sam:
     conda:
         "../envs/shell.yaml"
     params:
+        retry=internal["curl"]["retry"],
         url=internal["resources"]["automatic"]["TZ-SAM"],
     message:
         "Download the Transition Zero - Solar Asset Mapper dataset."
     shell:
         """
-        curl -sSLo {output.path:q} {params.url:q}
+        curl -fsSL --retry {params.retry:q} -o {output.path:q} {params.url:q}
         """
 
 
@@ -43,12 +45,13 @@ rule download_glohydrores:
     conda:
         "../envs/shell.yaml"
     params:
+        retry=internal["curl"]["retry"],
         url=internal["resources"]["automatic"]["GloHydroRes"],
     message:
         "Download the GloHydroRes dataset."
     shell:
         """
-        curl -sSLo {output.path:q} {params.url:q}
+        curl -fsSL --retry {params.retry:q} -o {output.path:q} {params.url:q}
         """
 
 
@@ -60,10 +63,11 @@ rule download_gem:
     conda:
         "../envs/shell.yaml"
     params:
+        retry=internal["curl"]["retry"],
         url=lambda wc: internal["resources"]["automatic"]["GEM"][wc.dataset],
     message:
         "Download the GEM {wildcards.dataset} dataset."
     shell:
         """
-        curl -sSLo {output.path:q} {params.url:q}
+        curl -fsSL --retry {params.retry:q} -o {output.path:q} {params.url:q}
         """
