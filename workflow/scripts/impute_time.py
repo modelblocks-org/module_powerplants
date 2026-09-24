@@ -971,12 +971,12 @@ def explore(
             file.write("No data")
     else:
         imputed.explore(
-        column="technology",
-        legend=True,
-        popup=True,
-        cmap=colormap,
-        tiles=xyz.OpenStreetMap.DE ,
-    ).save(output_path)
+            column="technology",
+            legend=True,
+            popup=True,
+            cmap=colormap,
+            tiles=xyz.OpenStreetMap.DE,
+        ).save(output_path)
 
 
 def plot_powerplant_capacity_buildup(
