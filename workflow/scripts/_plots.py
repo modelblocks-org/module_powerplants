@@ -28,6 +28,7 @@ def plot_empty(title: str, output_path: str) -> None:
     draw_empty(ax, "")
     fig.suptitle(title, fontsize=14)
     fig.savefig(output_path)
+    plt.close(fig)
 
 
 def plot_capacity_adjustment(
@@ -38,6 +39,7 @@ def plot_capacity_adjustment(
     output_file: str,
     is_disagg: bool,
     *,
+    category: str,
     country_col: str = "country_id",
     dis_tech_col: str = "technology",
     dis_cap_col: str = "output_capacity_mw",
@@ -54,23 +56,22 @@ def plot_capacity_adjustment(
     df_adj = pd.read_parquet(adjusted_file)
     df_eia = pd.read_parquet(stats_file)
 
-    # Handle the no-data case
-    if df_udj.empty and df_adj.empty:
-        plot_empty(suptitle, output_file)
-        return
+    for label, df in (("Unadjusted", df_udj), ("Adjusted", df_adj)):
+        if df.empty:
+            continue
+        input_category = _utils.check_single_category(df)
+        if input_category != category:
+            raise ValueError(
+                f"{label} dataset has category {input_category!r}, "
+                f"expected {category!r}."
+            )
 
     if is_disagg:
         df_udj = _utils.filter_years(df_udj, year, how="operating")
         df_adj = _utils.filter_years(df_adj, year, how="operating")
 
-    category_dis = _utils.check_single_category(df_udj)
-    category_adj = _utils.check_single_category(df_adj)
-    if category_dis != category_adj:
-        raise ValueError(
-            f"Input datasets are not of the same category: {category_dis} vs {category_adj}"
-        )
-    df_eia = _utils.get_eia_stats_in_cat_yr(df_eia, year, category_dis)
-    df_udj = df_udj[df_udj["country_id"].isin(df_eia["country_id"].unique())]
+    df_eia = _utils.get_eia_stats_in_cat_yr(df_eia, year, category)
+    df_eia = df_eia[df_eia[eia_cap_col] > 0]
 
     # aggregate total capacities.
     agg_dis = (
@@ -82,7 +83,16 @@ def plot_capacity_adjustment(
     agg_eia = (
         df_eia.groupby([country_col, eia_cat_col])[[eia_cap_col]].sum().reset_index()
     )
-    countries = sorted(set(agg_dis[country_col]).union(agg_adj[country_col]))
+    source_countries = {
+        "Unadjusted": set(agg_dis[country_col]),
+        "Adjusted": set(agg_adj[country_col]),
+        "EIA": set(agg_eia[country_col]),
+    }
+    countries = sorted(set().union(*source_countries.values()))
+    if not countries:
+        plot_empty(suptitle, output_file)
+        return
+
     techs = sorted(set(agg_dis[dis_tech_col]).union(agg_adj[dis_tech_col]))
     cats = sorted(agg_eia[eia_cat_col].unique())
 
@@ -165,7 +175,16 @@ def plot_capacity_adjustment(
         ax_bar.axhline(tot_adj, ls="--", lw=0.8, color="grey")
 
         ax_bar.set_xticks([xpos[k] for k in ("Unadjusted", "Adjusted", "EIA")])
-        ax_bar.set_xticklabels(["Unadjusted", "Adjusted", "EIA statistics"])
+        ax_bar.set_xticklabels(
+            [
+                label if country in source_countries[source] else f"{label}\n(no data)"
+                for source, label in (
+                    ("Unadjusted", "Unadjusted"),
+                    ("Adjusted", "Adjusted"),
+                    ("EIA", "EIA statistics"),
+                )
+            ]
+        )
         ax_bar.set_title(country, pad=4)
         ax_bar.set_ylabel("Capacity (MW)")
         ax_bar.yaxis.set_major_locator(mticker.MaxNLocator(nbins=target_ticks))
@@ -192,17 +211,19 @@ def plot_capacity_adjustment(
             (ax_cat, cat_handles, "EIA category"),
         ]:
             ax.axis("off")
-            ax.legend(
-                handles,
-                [h.get_label() for h in handles],
-                ncol=1,
-                frameon=False,
-                title=title,
-                loc="center",
-            )
+            if handles:
+                ax.legend(
+                    handles,
+                    [h.get_label() for h in handles],
+                    ncol=1,
+                    frameon=False,
+                    title=title,
+                    loc="center",
+                )
     fig.suptitle(suptitle, y=0.999)
 
     fig.savefig(output_file, bbox_inches="tight")
+    plt.close(fig)
 
 
 def plot_capacity_aggregation(

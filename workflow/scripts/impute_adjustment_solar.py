@@ -15,9 +15,14 @@ if TYPE_CHECKING:
 
 
 def capacity_solar(
-    large_pv_agg_file: str, proxy_file: str, shapes_file: str, technology: str
+    large_pv_agg_file: str,
+    proxy_file: str,
+    shapes_file: str,
+    stats_file: str,
+    technology: str,
+    year: int,
 ) -> gpd.GeoDataFrame:
-    """Aggregate rooftop PV using a proxy raster."""
+    """Aggregate rooftop PV and reconcile total solar capacity to statistics."""
     large_pv = pd.read_parquet(large_pv_agg_file)
     shapes = gpd.read_parquet(shapes_file)
     agg_roof_pv_cap = aggregate_raster_to_polygon(proxy_file, shapes, stats="sum")
@@ -34,7 +39,11 @@ def capacity_solar(
     # Combine and clean the data
     solar_mw = pd.concat([agg_roof_pv_cap, large_pv], ignore_index=True)
     solar_mw = _utils.ensure_positive_capacity(solar_mw)
-    solar_mw.attrs = large_pv.attrs | agg_roof_pv_cap.attrs
+    attrs = large_pv.attrs | agg_roof_pv_cap.attrs
+    if not solar_mw.empty:
+        stats = pd.read_parquet(stats_file)
+        solar_mw = _utils.adjust_aggregated_capacity(solar_mw, stats, year)
+    solar_mw.attrs = attrs
     return _schemas.AggregatedPlantSchema.validate(solar_mw)
 
 
@@ -44,7 +53,9 @@ def main():
         large_pv_agg_file=snakemake.input.large_solar,
         proxy_file=snakemake.input.proxy,
         shapes_file=snakemake.input.shapes,
+        stats_file=snakemake.input.stats,
         technology=snakemake.params.technology,
+        year=_utils.DATASET_YEAR,
     )
     solar_gdf.to_parquet(snakemake.output.aggregated)
     _plots.plot_capacity_aggregation(
@@ -61,6 +72,7 @@ def main():
         year=_utils.DATASET_YEAR,
         output_file=snakemake.output.plot_adjustment,
         is_disagg=False,
+        category=snakemake.params.category,
     )
 
 

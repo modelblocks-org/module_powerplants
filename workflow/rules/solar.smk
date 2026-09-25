@@ -9,6 +9,7 @@ To fill solar capacity, we follow these steps:
 2. Assume rooftop PV = national solar statistics - large projects.
 3. Use a proxy to disaggregate then aggregate assumed rooftop PV capacity per shape.
 4. Combine aggregated large pv projects and rooftop PV capacity.
+5. Reconcile the combined capacity to national statistics.
 """
 
 
