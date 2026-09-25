@@ -71,6 +71,7 @@ def plot_capacity_adjustment(
         df_adj = _utils.filter_years(df_adj, year, how="operating")
 
     df_eia = _utils.get_eia_stats_in_cat_yr(df_eia, year, category)
+    df_eia = df_eia[df_eia[eia_cap_col] > 0]
 
     # aggregate total capacities.
     agg_dis = (

@@ -36,6 +36,18 @@ def _get_borders_gdf(shapes_file: str) -> gpd.GeoDataFrame:
     return shapes
 
 
+def _missing_capacity_by_country(
+    total_cap_mw: pd.Series, unadjusted_cap_mw: pd.Series
+) -> pd.Series:
+    """Return non-negative capacity gaps for countries with statistics.
+
+    A country absent from the unadjusted dataset has zero observed capacity.
+    Countries absent from the statistics are excluded.
+    """
+    unadjusted_cap_mw = unadjusted_cap_mw.reindex(total_cap_mw.index, fill_value=0)
+    return (total_cap_mw - unadjusted_cap_mw).clip(lower=0).dropna()
+
+
 def proxy_rooftop_pv_capacity(
     shapes_file: str,
     proxy_file: str,
@@ -66,13 +78,10 @@ def proxy_rooftop_pv_capacity(
     agg_unadjusted_df = pd.read_parquet(aggregated_unadjusted_file)
     unadj_cap_mw = agg_unadjusted_df.groupby("country_id")["output_capacity_mw"].sum()
 
-    stats_df = stats_df[stats_df["year"] == year]
-    stats_df = stats_df[stats_df["category"].isin(_utils.EIA_CAT_MAPPING[category])]
-    total_cap_mw = stats_df.set_index("country_id")["capacity_mw"]
+    stats_df = _utils.get_eia_stats_in_cat_yr(stats_df, year, category)
+    total_cap_mw = stats_df.groupby("country_id")["capacity_mw"].sum(min_count=1)
 
-    missing_cap_mw = total_cap_mw - unadj_cap_mw
-    missing_cap_mw = missing_cap_mw.dropna()
-    missing_cap_mw = missing_cap_mw.where(missing_cap_mw >= 0, 0)
+    missing_cap_mw = _missing_capacity_by_country(total_cap_mw, unadj_cap_mw)
     borders_df["output_capacity_mw"] = missing_cap_mw
 
     proxy = gregor.disaggregate.disaggregate_polygon_to_raster(

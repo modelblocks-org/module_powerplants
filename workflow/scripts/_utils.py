@@ -232,16 +232,20 @@ def get_adjusted_capacity(
 
 
 def adjust_aggregated_capacity(plants, stats, year):
-    """Adjust capacity to national statistics in the given year."""
+    """Scale each country's capacity to positive national statistics.
+
+    Rows without a matching positive statistic are removed.
+    """
     category = check_single_category(plants)
     stats = get_eia_stats_in_cat_yr(stats, year, category)
     expected_capacity = stats.groupby(["country_id"])["capacity_mw"].sum()
+    positive_expected = expected_capacity[expected_capacity > 0]
 
     adjusted = ensure_positive_capacity(plants)
-    adjusted = adjusted[adjusted["country_id"].isin(expected_capacity.index)]
+    adjusted = adjusted[adjusted["country_id"].isin(positive_expected.index)].copy()
 
     if adjusted.empty:
         return adjusted.reset_index(drop=True)
 
-    adjusted["output_capacity_mw"] = get_adjusted_capacity(adjusted, expected_capacity)
+    adjusted["output_capacity_mw"] = get_adjusted_capacity(adjusted, positive_expected)
     return adjusted.reset_index(drop=True)
