@@ -12,6 +12,7 @@ import _utils
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import xyzservices.providers as xyz
 from _schemas import HISTORICAL, OPERATING, PLANNED, RETIRED, SCENARIO_MAP
 from _utils import DATASET_YEAR, EIA_CAT_MAPPING
 from matplotlib import pyplot as plt
@@ -970,7 +971,11 @@ def explore(
             file.write("No data")
     else:
         imputed.explore(
-            column="technology", legend=True, popup=True, cmap=colormap
+            column="technology",
+            legend=True,
+            popup=True,
+            cmap=colormap,
+            tiles=xyz.OpenStreetMap.DE,
         ).save(output_path)
 
 
