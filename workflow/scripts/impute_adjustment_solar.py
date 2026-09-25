@@ -61,6 +61,7 @@ def main():
         year=_utils.DATASET_YEAR,
         output_file=snakemake.output.plot_adjustment,
         is_disagg=False,
+        category=snakemake.params.category,
     )
 
 

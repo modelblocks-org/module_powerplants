@@ -83,4 +83,5 @@ if __name__ == "__main__":
         year=_utils.DATASET_YEAR,
         output_file=snakemake.output.plot,
         is_disagg=True,
+        category=snakemake.wildcards.category,
     )
